@@ -1,7 +1,6 @@
 """Metrics collection and exposure for Prometheus."""
 
 from prometheus_client import Counter, Gauge, Histogram
-from typing import Dict
 
 # API request metrics
 http_requests_total = Counter(
@@ -48,7 +47,9 @@ current_cost_usd = Gauge(
 )
 
 
-def record_http_request(method: str, endpoint: str, status: int, duration_ms: float):
+def record_http_request(
+    method: str, endpoint: str, status: int, duration_ms: float
+) -> None:
     """Record HTTP request metrics."""
     http_requests_total.labels(method=method, endpoint=endpoint, status=status).inc()
     http_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(
@@ -64,7 +65,7 @@ def record_llm_call(
     cost_usd: float,
     duration_ms: float,
     status: str = "success",
-):
+) -> None:
     """Record LLM API call metrics."""
     llm_calls_total.labels(service=service, model=model, status=status).inc()
     llm_tokens_total.labels(service=service, model=model, type="prompt").inc(
@@ -79,16 +80,16 @@ def record_llm_call(
     )
 
 
-def update_cost_gauge(cost_usd: float):
+def update_cost_gauge(cost_usd: float) -> None:
     """Update current cost gauge."""
     current_cost_usd.set(cost_usd)
 
 
-def increment_active_requests():
+def increment_active_requests() -> None:
     """Increment active requests counter."""
     active_requests.inc()
 
 
-def decrement_active_requests():
+def decrement_active_requests() -> None:
     """Decrement active requests counter."""
     active_requests.dec()

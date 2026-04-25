@@ -2,7 +2,6 @@
 
 import logging
 import sys
-from typing import Any
 
 import structlog
 
@@ -45,7 +44,7 @@ def setup_logging() -> None:
 
 def get_logger(name: str) -> structlog.BoundLogger:
     """Get a configured logger instance."""
-    return structlog.get_logger(name)
+    return structlog.get_logger(name)  # type: ignore[no-any-return]
 
 
 def log_cost(

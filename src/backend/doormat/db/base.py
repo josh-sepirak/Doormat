@@ -2,7 +2,7 @@
 
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from doormat.config import settings
@@ -29,7 +29,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncGenerator:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Database session dependency for FastAPI."""
     async with AsyncSessionLocal() as session:
         try:

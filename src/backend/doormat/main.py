@@ -3,18 +3,18 @@
 Main FastAPI application entry point.
 """
 
-from contextlib import asynccontextmanager
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-from doormat.config import settings
-from doormat.logging_config import get_logger, setup_logging
-from doormat.cost_tracking import get_cost_summary
 from doormat import metrics
+from doormat.config import settings
+from doormat.cost_tracking import get_cost_summary
+from doormat.logging_config import get_logger, setup_logging
 
 # Setup structured logging
 setup_logging()
@@ -22,7 +22,7 @@ logger = get_logger("doormat.main")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> None:  # type: ignore[misc]
     """App lifecycle context manager."""
     logger.info("doormat_startup", version="0.1.0")
     yield
@@ -50,7 +50,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def metrics_middleware(request: Request, call_next):
+async def metrics_middleware(request: Request, call_next) -> PlainTextResponse:  # type: ignore[misc]
     """Middleware to track HTTP request metrics."""
     path = request.url.path
     method = request.method
@@ -63,7 +63,6 @@ async def metrics_middleware(request: Request, call_next):
         status_code = response.status_code
     except Exception as e:
         status_code = 500
-        metrics.decrement_active_requests()
         logger.error("request_error", path=path, method=method, error=str(e))
         raise
     finally:
@@ -78,7 +77,7 @@ async def metrics_middleware(request: Request, call_next):
             duration_ms=duration_ms,
         )
 
-    return response
+    return response  # type: ignore[return-value]
 
 
 @app.get("/health", tags=["health"])
@@ -99,17 +98,19 @@ async def root() -> dict[str, str]:
 
 
 @app.get("/metrics", tags=["monitoring"])
-async def get_metrics():
+async def get_metrics() -> PlainTextResponse:
     """Prometheus metrics endpoint."""
     # Update cost gauge from tracker
     cost_summary = get_cost_summary()
-    metrics.update_cost_gauge(cost_summary.get("total_cost_usd", 0.0))
+    cost_usd = cost_summary.get("total_cost_usd", 0.0)
+    if isinstance(cost_usd, (int, float)):
+        metrics.update_cost_gauge(float(cost_usd))
 
     return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/api/costs", tags=["monitoring"])
-async def get_costs() -> dict:
+async def get_costs() -> dict[str, object]:
     """Get cost tracking summary."""
     return get_cost_summary()
 

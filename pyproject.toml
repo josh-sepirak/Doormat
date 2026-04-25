@@ -41,6 +41,7 @@ dependencies = [
     "openai>=1.0.0",
     "instructor>=0.3.0",
     "prometheus-client>=0.19.0",
+    "browser-use>=0.1.40",
 ]
 
 [project.urls]
@@ -60,7 +61,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/backend"]
+packages = ["src/backend/doormat"]
 
 [tool.ruff]
 line-length = 100

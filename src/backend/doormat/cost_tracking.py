@@ -1,10 +1,11 @@
 """Cost tracking for LLM and external API calls."""
 
-import structlog
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -20,14 +21,14 @@ class CostRecord:
     total_tokens: int = 0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: str = "success"  # success, error, timeout
 
 
 class CostTracker:
     """Track and aggregate costs across service calls."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize cost tracker."""
         self.records: list[CostRecord] = []
 
@@ -76,24 +77,24 @@ async def track_cost(
     model: Optional[str] = None,
     prompt_tokens: int = 0,
     completion_tokens: int = 0,
-):
+) -> None:  # type: ignore[misc]
     """Context manager to track costs for a service call.
 
     Usage:
         async with track_cost("openrouter", model="gpt-4", prompt_tokens=100):
             response = await llm_call()
     """
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
 
     try:
         yield
         status = "success"
     except Exception as e:
         status = "error"
-        logger.error(f"cost_track_error", service=service, error=str(e))
+        logger.error("cost_track_error", service=service, error=str(e))
         raise
     finally:
-        latency_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        latency_ms = (datetime.now(UTC) - start_time).total_seconds() * 1000
         total_tokens = prompt_tokens + completion_tokens
         cost_usd = estimate_cost(service, model, prompt_tokens, completion_tokens)
 
@@ -142,7 +143,7 @@ def estimate_cost(
     return 0.0
 
 
-def get_cost_summary() -> dict:
+def get_cost_summary() -> dict[str, object]:
     """Get summary of all tracked costs."""
     tracker = get_cost_tracker()
     return {
