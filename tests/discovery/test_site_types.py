@@ -57,9 +57,7 @@ async def test_js_spa_site_validates_with_lower_confidence() -> None:
 async def test_paginated_index_site_validates() -> None:
     """A paginated listings index counts as a valid PM site."""
     stub = _stub_with(
-        ValidationResult(
-            is_valid=True, reason="paginated rentals index detected", confidence=0.88
-        )
+        ValidationResult(is_valid=True, reason="paginated rentals index detected", confidence=0.88)
     )
     classifier = PropertyManagerClassifier(llm=stub)
     res = await classifier.classify(_candidate("Paginated PM", "https://pagedpm.com"))
@@ -70,9 +68,7 @@ async def test_paginated_index_site_validates() -> None:
 async def test_aggregator_site_rejected() -> None:
     """Aggregators (Zillow-like) should not classify as a PM."""
     stub = _stub_with(
-        ValidationResult(
-            is_valid=False, reason="aggregator/marketplace, not a PM", confidence=0.95
-        )
+        ValidationResult(is_valid=False, reason="aggregator/marketplace, not a PM", confidence=0.95)
     )
     classifier = PropertyManagerClassifier(llm=stub)
     res = await classifier.classify(_candidate("Big Aggregator", "https://aggregator.example"))

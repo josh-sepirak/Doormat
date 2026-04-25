@@ -70,9 +70,7 @@ class ExtractionStrategy(Base):
     last_refined: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     # Relationships
-    property_manager: Mapped[PropertyManager] = relationship(
-        back_populates="extraction_strategies"
-    )
+    property_manager: Mapped[PropertyManager] = relationship(back_populates="extraction_strategies")
     feedback: Mapped[list["ExtractionFeedback"]] = relationship(back_populates="strategy")
 
     __table_args__ = (Index("idx_manager_refined", "property_manager_id", "last_refined"),)

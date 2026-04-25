@@ -132,9 +132,7 @@ def estimate_cost(
             # Default to gpt-3.5-turbo rates for unknown models
             rates = pricing["gpt-3.5-turbo"]
 
-        return (prompt_tokens * rates["prompt"]) + (
-            completion_tokens * rates["completion"]
-        )
+        return (prompt_tokens * rates["prompt"]) + (completion_tokens * rates["completion"])
 
     elif service == "apify":
         # Apify charges per actor run, roughly $0.25-$1.00 per run

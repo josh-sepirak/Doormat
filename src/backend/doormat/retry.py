@@ -40,9 +40,7 @@ def get_retry_decorator(
         @retry(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=1, min=base_delay_seconds, max=60),
-            retry=retry_if_exception_type(
-                (ConnectionError, TimeoutError, OSError, IOError)
-            ),
+            retry=retry_if_exception_type((ConnectionError, TimeoutError, OSError, IOError)),
             reraise=True,
         )
         async def wrapper(*args, **kwargs) -> T:  # type: ignore[misc]

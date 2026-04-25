@@ -3,8 +3,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from doormat.cost_tracking import CostRecord, get_cost_summary, get_cost_tracker
 from doormat.main import app
-from doormat.cost_tracking import get_cost_tracker, CostRecord, get_cost_summary
 
 
 @pytest.fixture

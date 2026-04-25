@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -12,7 +12,6 @@ from doormat.cost_tracking import CostRecord, get_cost_tracker
 from doormat.discovery.agent import DiscoveryAgent
 from doormat.discovery.models import DiscoveryCandidate, ValidationResult
 from doormat.models.orm import PropertyManager
-
 
 # Helpers --------------------------------------------------------------------
 
@@ -82,7 +81,7 @@ async def test_cache_hit_returns_early() -> None:
             website="https://cached.com",
             listing_page_url=None,
             validated=True,
-            discovery_timestamp=datetime.utcnow(),
+            discovery_timestamp=datetime.now(UTC),
         )
     ]
     session = make_session(cached_pm_rows=cached)
@@ -90,9 +89,7 @@ async def test_cache_hit_returns_early() -> None:
     browser = stub_browser()
     classifier = stub_classifier([])
 
-    agent = DiscoveryAgent(
-        session=session, search=search, browser=browser, classifier=classifier
-    )
+    agent = DiscoveryAgent(session=session, search=search, browser=browser, classifier=classifier)
 
     result = await agent.discover_city("Austin")
 
@@ -121,9 +118,7 @@ async def test_full_flow_search_classify_persist() -> None:
         ]
     )
 
-    agent = DiscoveryAgent(
-        session=session, search=search, browser=browser, classifier=classifier
-    )
+    agent = DiscoveryAgent(session=session, search=search, browser=browser, classifier=classifier)
 
     result = await agent.discover_city("San Francisco")
 
@@ -149,9 +144,7 @@ async def test_feedback_loop_retries_on_zero_validated() -> None:
         ]
     )
 
-    agent = DiscoveryAgent(
-        session=session, search=search, browser=browser, classifier=classifier
-    )
+    agent = DiscoveryAgent(session=session, search=search, browser=browser, classifier=classifier)
 
     result = await agent.discover_city("Seattle")
 
@@ -190,9 +183,7 @@ async def test_cost_tracking_diff_recorded() -> None:
     classifier = AsyncMock()
     classifier.classify = AsyncMock(side_effect=classify_side_effect)
 
-    agent = DiscoveryAgent(
-        session=session, search=search, browser=browser, classifier=classifier
-    )
+    agent = DiscoveryAgent(session=session, search=search, browser=browser, classifier=classifier)
 
     result = await agent.discover_city("Portland")
 
@@ -215,9 +206,7 @@ async def test_max_retries_respected() -> None:
         return_value=ValidationResult(is_valid=False, reason="spam", confidence=0.5)
     )
 
-    agent = DiscoveryAgent(
-        session=session, search=search, browser=browser, classifier=classifier
-    )
+    agent = DiscoveryAgent(session=session, search=search, browser=browser, classifier=classifier)
 
     result = await agent.discover_city("Boston")
 

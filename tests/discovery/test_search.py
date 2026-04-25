@@ -10,10 +10,10 @@ import pytest
 from doormat.discovery.models import DiscoveryCandidate
 from doormat.discovery.search import (
     DiscoverySearch,
-    _SearchCandidate,
-    _SearchResponse,
     _dedupe_by_domain,
     _normalize_host,
+    _SearchCandidate,
+    _SearchResponse,
 )
 
 

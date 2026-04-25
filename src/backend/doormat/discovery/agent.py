@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 import structlog
@@ -54,9 +54,7 @@ class DiscoveryAgent:
         self._browser = browser or BrowserDiscovery()
         self._classifier = classifier or PropertyManagerClassifier()
 
-    async def discover_city(
-        self, city: str, preference_id: str | None = None
-    ) -> DiscoveryResult:
+    async def discover_city(self, city: str, preference_id: str | None = None) -> DiscoveryResult:
         """Run the discovery pipeline for `city`."""
         request_id = uuid.uuid4().hex[:12]
         log = logger.bind(request_id=request_id, city=city, preference_id=preference_id)
@@ -182,7 +180,7 @@ class DiscoveryAgent:
                     website=candidate.website,
                     listing_page_url=None,
                     validated=True,
-                    discovery_timestamp=datetime.utcnow(),
+                    discovery_timestamp=datetime.now(UTC),
                 )
                 self._session.add(pm)
                 persisted += 1

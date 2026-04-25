@@ -12,6 +12,7 @@ from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from doormat import metrics
+from doormat.api.routers.discovery import router as discovery_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
 from doormat.logging_config import get_logger, setup_logging
@@ -47,6 +48,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API routers
+app.include_router(discovery_router)
 
 
 @app.middleware("http")
