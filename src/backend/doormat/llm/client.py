@@ -65,30 +65,23 @@ class LLMClient:
         prompt_tokens = _estimate_prompt_tokens(messages)
         completion_tokens = 0
 
-        async with track_cost(
-            service="openrouter",
-            model=model,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=0,
-        ):
-            try:
-                if response_model is not None:
-                    parsed: T = await self._instructor_client.chat.completions.create(
-                        model=model,
-                        messages=cast(Any, messages),
-                        response_model=response_model,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-                    completion_tokens = _estimate_completion_tokens(parsed.model_dump_json())
-                    logger.info(
-                        "llm_call_complete",
-                        model=model,
-                        completion_tokens=completion_tokens,
-                        structured=True,
-                    )
-                    return parsed
-
+        try:
+            if response_model is not None:
+                parsed: T = await self._instructor_client.chat.completions.create(
+                    model=model,
+                    messages=cast(Any, messages),
+                    response_model=response_model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+                completion_tokens = _estimate_completion_tokens(parsed.model_dump_json())
+                logger.info(
+                    "llm_call_complete",
+                    model=model,
+                    completion_tokens=completion_tokens,
+                    structured=True,
+                )
+            else:
                 response = await self._raw_client.chat.completions.create(
                     model=model,
                     messages=cast(Any, messages),
@@ -103,10 +96,24 @@ class LLMClient:
                     completion_tokens=completion_tokens,
                     structured=False,
                 )
-                return content
-            except Exception as exc:
-                logger.error("llm_call_failed", model=model, error=str(exc))
-                raise
+        except Exception as exc:
+            logger.error("llm_call_failed", model=model, error=str(exc))
+            raise
+
+        # Track cost after we have actual completion tokens
+        async with track_cost(
+            service="openrouter",
+            model=model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        ):
+            pass
+
+        # Return the result (stored above)
+        if response_model is not None:
+            return parsed
+        else:
+            return content
 
 
 _CLIENT_SINGLETON: Optional[LLMClient] = None
