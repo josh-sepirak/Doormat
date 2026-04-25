@@ -1,11 +1,11 @@
 # Multi-stage build: uv builder + runtime
+# uv is copied from a versioned image so builds do not execute remote install scripts.
+FROM ghcr.io/astral-sh/uv:0.9.10 AS uv
+
 # Stage 1: Builder
 FROM python:3.13-slim AS builder
 
-# Install uv
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+COPY --from=uv /uv /uvx /usr/local/bin/
 
 WORKDIR /build
 
@@ -14,8 +14,9 @@ COPY uv.lock .
 COPY pyproject.toml .
 COPY src/backend ./src/backend
 
-# Install dependencies with uv
-RUN uv pip install --no-cache -r <(uv pip compile pyproject.toml) --target /install
+# Install locked runtime dependencies with uv
+RUN uv export --frozen --no-dev --no-emit-project --format requirements-txt -o requirements.txt \
+    && uv pip install --no-cache -r requirements.txt --target /install
 
 # Stage 2: Runtime
 FROM python:3.13-slim

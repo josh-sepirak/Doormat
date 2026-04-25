@@ -8,14 +8,17 @@ Endpoints:
 
 from __future__ import annotations
 
+import time
+from collections import deque
 from typing import Annotated, Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from doormat.config import settings
 from doormat.db.base import get_db
 from doormat.discovery.agent import DiscoveryAgent
 from doormat.discovery.models import DiscoveryResult
@@ -26,6 +29,9 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 logger = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/api/discovery", tags=["discovery"])
+
+_RATE_WINDOW_SECONDS = 60.0
+_discovery_request_times: dict[str, deque[float]] = {}
 
 
 class TriggerRequest(BaseModel):
@@ -56,6 +62,49 @@ class CityStatus(BaseModel):
     has_been_discovered: bool
 
 
+async def require_discovery_auth(
+    authorization: Annotated[str | None, Header()] = None,
+) -> None:
+    """Require bearer auth when AUTH_BEARER_TOKEN is configured."""
+    if not settings.AUTH_BEARER_TOKEN:
+        return
+
+    expected = f"Bearer {settings.AUTH_BEARER_TOKEN}"
+    if authorization != expected:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="missing or invalid bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def enforce_discovery_rate_limit(request: Request) -> None:
+    """Apply a simple in-process per-client limit before LLM-backed discovery."""
+    limit = settings.DISCOVERY_RATE_LIMIT_PER_MINUTE
+    if limit <= 0:
+        return
+
+    now = time.monotonic()
+    client_host = request.client.host if request.client else "unknown"
+    request_times = _discovery_request_times.setdefault(client_host, deque())
+
+    while request_times and now - request_times[0] >= _RATE_WINDOW_SECONDS:
+        request_times.popleft()
+
+    if len(request_times) >= limit:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="too many discovery requests",
+        )
+
+    request_times.append(now)
+
+
+def reset_discovery_rate_limits() -> None:
+    """Clear rate-limit state for tests and local maintenance scripts."""
+    _discovery_request_times.clear()
+
+
 def _validate_city(city: str) -> str:
     """Validate city path parameter at the API boundary."""
     cleaned = city.strip()
@@ -70,6 +119,8 @@ def _validate_city(city: str) -> str:
 @router.post("/cities/{city}", response_model=DiscoveryResult)
 async def trigger_discovery(
     city: str,
+    _auth: Annotated[None, Depends(require_discovery_auth)],
+    _rate_limit: Annotated[None, Depends(enforce_discovery_rate_limit)],
     session: DBSession,
     body: TriggerRequest | None = None,
 ) -> DiscoveryResult:

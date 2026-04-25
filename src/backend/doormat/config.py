@@ -1,8 +1,9 @@
 """Configuration management for Doormat."""
 
-from typing import Literal
+from typing import Annotated, Any, Literal
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -14,12 +15,15 @@ class Settings(BaseSettings):
 
     # App
     DEBUG: bool = False
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     PORT: int = 8000
     API_VERSION: str = "v1"
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ]
 
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./doormat.db"
@@ -38,6 +42,22 @@ class Settings(BaseSettings):
 
     # Cost tracking
     TRACK_COSTS: bool = True
+
+    # Optional bearer auth for exposed/self-hosted deployments
+    AUTH_BEARER_TOKEN: str = ""
+
+    # Expensive discovery endpoint protection
+    DISCOVERY_RATE_LIMIT_PER_MINUTE: int = 10
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: Any) -> list[str]:
+        """Accept JSON/list values and simple comma-separated env strings."""
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        if isinstance(value, list) and all(isinstance(origin, str) for origin in value):
+            return [str(origin) for origin in value]
+        raise ValueError("CORS_ORIGINS must be a comma-separated string or list of strings")
 
 
 # Global settings instance

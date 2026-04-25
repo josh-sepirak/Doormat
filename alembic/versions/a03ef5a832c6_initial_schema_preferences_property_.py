@@ -1,7 +1,7 @@
 """Initial schema: preferences, property_managers, strategies, listings, costs, feedback
 
 Revision ID: a03ef5a832c6
-Revises: 
+Revises:
 Create Date: 2026-04-25 16:04:04.138924
 
 """
@@ -78,8 +78,14 @@ def upgrade() -> None:
     sa.Column('preference_id', sa.String(length=36), nullable=True),
     sa.Column('address', sa.String(length=255), nullable=False),
     sa.Column('bedrooms', sa.Integer(), nullable=True),
+    sa.Column('bathrooms', sa.Float(), nullable=True),
+    sa.Column('sqft', sa.Integer(), nullable=True),
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('url', sa.Text(), nullable=False),
+    sa.Column('pets_policy', sa.String(length=50), nullable=False),
+    sa.Column('amenities', sa.Text(), nullable=True),
+    sa.Column('photos', sa.Text(), nullable=True),
+    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('raw_data', sa.Text(), nullable=True),
     sa.Column('extraction_timestamp', sa.DateTime(timezone=True), nullable=False),
     sa.Column('extraction_model', sa.String(length=100), nullable=True),

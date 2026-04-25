@@ -1,9 +1,10 @@
 """Pydantic request/response models for API."""
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 # ============================================================================
 # Preferences
@@ -27,14 +28,13 @@ class PreferenceUpdate(BaseModel):
 class PreferenceResponse(BaseModel):
     """Preference response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     description: str
     city: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ============================================================================
@@ -45,6 +45,8 @@ class PreferenceResponse(BaseModel):
 class PropertyManagerResponse(BaseModel):
     """Property manager response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     city: str
     name: str
@@ -52,9 +54,6 @@ class PropertyManagerResponse(BaseModel):
     listing_page_url: Optional[str] = None
     validated: bool
     discovery_timestamp: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ============================================================================
@@ -65,6 +64,8 @@ class PropertyManagerResponse(BaseModel):
 class ExtractionStrategyResponse(BaseModel):
     """Extraction strategy response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     property_manager_id: str
     strategy_json: str
@@ -73,13 +74,17 @@ class ExtractionStrategyResponse(BaseModel):
     validation_rate: float
     last_refined: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 
 # ============================================================================
 # Listings
 # ============================================================================
+
+
+class PetsPolicy(str, Enum):
+    ALLOWED_WITH_SMALL_DOG = "allowed_with_small_dog"
+    CATS_ONLY = "cats_only"
+    NONE_ALLOWED = "none_allowed"
+    UNKNOWN = "unknown"
 
 
 class ListingCreate(BaseModel):
@@ -88,29 +93,40 @@ class ListingCreate(BaseModel):
     property_manager_id: str
     address: str
     bedrooms: Optional[int] = None
+    bathrooms: Optional[float] = None
+    sqft: Optional[int] = None
     price: float = Field(..., gt=0)
     url: str
+    pets_policy: PetsPolicy = Field(default=PetsPolicy.UNKNOWN)
+    amenities: list[str] = Field(default_factory=list)
+    photos: list[HttpUrl] = Field(default_factory=list)
+    description: Optional[str] = None
     raw_data: Optional[str] = None
 
 
 class ListingResponse(BaseModel):
     """Listing response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     property_manager_id: str
     preference_id: Optional[str] = None
     address: str
     bedrooms: Optional[int] = None
+    bathrooms: Optional[float] = None
+    sqft: Optional[int] = None
     price: float
     url: str
+    pets_policy: PetsPolicy
+    amenities: list[str]
+    photos: list[str]  # Serialized HttpUrl
+    description: Optional[str] = None
     extraction_timestamp: datetime
     extraction_model: Optional[str] = None
     tier1_cost: Optional[float] = None
     tier2_cost: Optional[float] = None
     validation_passed: bool
-
-    class Config:
-        from_attributes = True
 
 
 class ListingFilterParams(BaseModel):
@@ -121,6 +137,8 @@ class ListingFilterParams(BaseModel):
     max_price: Optional[float] = Field(None, ge=0)
     min_bedrooms: Optional[int] = Field(None, ge=0)
     max_bedrooms: Optional[int] = Field(None, ge=0)
+    min_bathrooms: Optional[float] = Field(None, ge=0)
+    pets_policy: Optional[PetsPolicy] = None
     validated_only: bool = False
     limit: int = Field(50, ge=1, le=500)
     offset: int = Field(0, ge=0)
@@ -134,6 +152,8 @@ class ListingFilterParams(BaseModel):
 class CostResponse(BaseModel):
     """Cost tracking response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     component: str
     model: str
@@ -143,9 +163,6 @@ class CostResponse(BaseModel):
     cache_hit: bool
     timestamp: datetime
     city: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 class CostBreakdown(BaseModel):

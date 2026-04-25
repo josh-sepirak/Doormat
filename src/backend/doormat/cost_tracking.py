@@ -1,5 +1,6 @@
 """Cost tracking for LLM and external API calls."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -77,7 +78,7 @@ async def track_cost(
     model: Optional[str] = None,
     prompt_tokens: int = 0,
     completion_tokens: int = 0,
-) -> None:  # type: ignore[misc]
+) -> AsyncGenerator[None, None]:
     """Context manager to track costs for a service call.
 
     Usage:

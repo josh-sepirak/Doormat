@@ -89,10 +89,18 @@ class Listing(Base):
         String(36), ForeignKey("preferences.id"), nullable=True, index=True
     )
     address: Mapped[str] = mapped_column(String(255), nullable=False)
-    bedrooms: Mapped[int] = mapped_column(Integer, nullable=True)
+    bedrooms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    bathrooms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    sqft: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     url: Mapped[str] = mapped_column(Text, nullable=False)
-    raw_data: Mapped[str] = mapped_column(Text, nullable=True)  # JSON stored as text
+    pets_policy: Mapped[str] = mapped_column(String(50), nullable=False, default="unknown")
+    amenities: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True
+    )  # JSON list stored as text
+    photos: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON list stored as text
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    raw_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON stored as text
     extraction_timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )

@@ -4,15 +4,17 @@ Main FastAPI application entry point.
 """
 
 import time
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from doormat import metrics
 from doormat.api.routers.discovery import router as discovery_router
+from doormat.api.routers.extraction import router as extraction_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
 from doormat.logging_config import get_logger, setup_logging
@@ -23,7 +25,7 @@ logger = get_logger("doormat.main")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:  # type: ignore[misc]
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """App lifecycle context manager."""
     logger.info("doormat_startup", version="0.1.0")
     yield
@@ -51,10 +53,14 @@ app.add_middleware(
 
 # Register API routers
 app.include_router(discovery_router)
+app.include_router(extraction_router)
 
 
 @app.middleware("http")
-async def metrics_middleware(request: Request, call_next) -> PlainTextResponse:  # type: ignore[misc]
+async def metrics_middleware(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
     """Middleware to track HTTP request metrics."""
     path = request.url.path
     method = request.method
@@ -81,7 +87,7 @@ async def metrics_middleware(request: Request, call_next) -> PlainTextResponse: 
             duration_ms=duration_ms,
         )
 
-    return response  # type: ignore[return-value]
+    return response
 
 
 @app.get("/health", tags=["health"])
