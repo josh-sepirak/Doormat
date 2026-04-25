@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: doormat-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=console
+      - DATABASE_URL=sqlite+aiosqlite:///./data/doormat.db
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - APIFY_API_TOKEN=${APIFY_API_TOKEN:-}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - doormat-net
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  db:
+    image: sqlite:latest
+    container_name: doormat-db
+    volumes:
+      - ./data:/data
+    networks:
+      - doormat-net
+    # SQLite doesn't run as a service, but we keep this for compatibility
+
+networks:
+  doormat-net:
+    driver: bridge
+
+volumes:
+  doormat-data:
+    driver: local
+  doormat-logs:
+    driver: local

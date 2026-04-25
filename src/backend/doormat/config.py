@@ -2,11 +2,14 @@
 
 from typing import Literal
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """Application settings."""
+
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True)
 
     # App
     DEBUG: bool = False
@@ -34,13 +37,6 @@ class Settings(BaseSettings):
 
     # Cost tracking
     TRACK_COSTS: bool = True
-
-    class Config:
-        """Pydantic config."""
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
 
 
 # Global settings instance
