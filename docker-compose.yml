@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: doormat-api
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=console
+      - DATABASE_URL=sqlite+aiosqlite:///./data/doormat.db
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - APIFY_API_TOKEN=${APIFY_API_TOKEN:-}
+      - AUTH_BEARER_TOKEN=${AUTH_BEARER_TOKEN:-}
+      - DISCOVERY_RATE_LIMIT_PER_MINUTE=${DISCOVERY_RATE_LIMIT_PER_MINUTE:-10}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - doormat-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  doormat-net:
+    driver: bridge
+
+volumes:
+  doormat-data:
+    driver: local
+  doormat-logs:
+    driver: local
