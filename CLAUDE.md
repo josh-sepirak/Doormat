@@ -94,3 +94,25 @@ Copy `.env.example` to `.env`. Required for LLM features:
 Optional:
 - `DATABASE_URL` — defaults to `sqlite+aiosqlite:///./doormat.db`
 - `DEBUG`, `LOG_LEVEL`, `LOG_FORMAT`
+
+## Design Context
+
+### Users
+Solo developer self-hosting to automate their own rental search. Sets it up once, returns to see results. Stressed about housing — the tool should feel like a relief.
+
+### Brand Personality
+**Warm, capable, quiet.** Like Notion or Loom: human, clear, a little personality in the small moments. Not startup-bold, not enterprise-cold. The name is self-deprecating on purpose.
+
+### Aesthetic Direction
+Clean, warm-minimal, type-led. Inter body + Lexend display. Blue-600 (`#2563EB`) as sole accent; everything else is slate. Rounded-2xl cards, subtle borders, no harsh shadows.
+
+**Both light and dark mode** (system preference). Dark: deep slate, not pure black, same blue-600 accent.
+
+Anti-reference: no neon AI-startup gradients, no heavy enterprise sidebars.
+
+### Design Principles
+1. **Trust through clarity** — status always legible; user always knows what's running
+2. **Confidence without anxiety** — "it's working, step away" not "watch me carefully"
+3. **Warmth in the margins** — personality in empty states and micro-copy, not flashy visuals
+4. **Dark mode as equal citizen** — both themes intentionally designed
+5. **Personal, not enterprise** — one person's housing search; no unnecessary chrome

@@ -5,16 +5,16 @@ import { NavLink } from '@/components/NavLink'
 
 export function Footer() {
   return (
-    <footer className="bg-slate-50">
+    <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
       <Container>
-        <div className="py-16">
+        <div className="py-10">
           <div className="mx-auto flex items-center justify-center gap-x-2">
-            <span className="text-2xl">🚪</span>
-            <span className="font-display text-xl font-bold text-slate-900">
+            <span className="text-xl">🚪</span>
+            <span className="font-display text-lg font-bold text-slate-900 dark:text-slate-100">
               Doormat
             </span>
           </div>
-          <nav className="mt-10 text-sm" aria-label="quick links">
+          <nav className="mt-6 text-sm" aria-label="quick links">
             <div className="-my-1 flex justify-center gap-x-6">
               <NavLink href="/">Dashboard</NavLink>
               <NavLink href="/listings">Listings</NavLink>
@@ -22,7 +22,7 @@ export function Footer() {
             </div>
           </nav>
         </div>
-        <div className="flex flex-col items-center border-t border-slate-400/10 py-10 sm:flex-row-reverse sm:justify-between">
+        <div className="flex flex-col items-center border-t border-slate-400/10 py-8 sm:flex-row-reverse sm:justify-between dark:border-slate-800">
           <div className="flex gap-x-6">
             <Link
               href="https://github.com/josh-sepirak/Doormat"
@@ -38,8 +38,8 @@ export function Footer() {
               </svg>
             </Link>
           </div>
-          <p className="mt-6 text-sm text-slate-500 sm:mt-0">
-            Doormat — AI-powered rental finder. Built with ❤️
+          <p className="mt-6 text-sm text-slate-400 dark:text-slate-600 sm:mt-0">
+            Doormat — AI-powered rental finder.
           </p>
         </div>
       </Container>
