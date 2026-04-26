@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <nav className="border-b px-6 py-3 flex items-center gap-6 bg-background">
-          <Link href="/" className="font-semibold text-lg">🚪 Doormat</Link>
+          <Link href="/" className="font-semibold text-lg">Doormat</Link>
           <Link href="/listings" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Listings
           </Link>

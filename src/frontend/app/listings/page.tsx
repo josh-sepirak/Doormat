@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
@@ -63,7 +62,7 @@ function ListingCard({ listing, onToggleSave }: { listing: Listing; onToggleSave
             onClick={() => onToggleSave(listing.id)}
             className="shrink-0"
           >
-            {listing.saved ? "★ Saved" : "☆ Save"}
+            {listing.saved ? "Saved" : "Save"}
           </Button>
         </div>
       </CardHeader>
@@ -102,6 +101,7 @@ function ListingCard({ listing, onToggleSave }: { listing: Listing; onToggleSave
 function ListingsContent() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // URL-state filters via nuqs
   const [maxPrice, setMaxPrice] = useQueryState("max_price", parseAsFloat);
@@ -109,21 +109,36 @@ function ListingsContent() {
   const [savedOnly, setSavedOnly] = useQueryState("saved_only", parseAsBoolean.withDefault(false));
   const [minScore, setMinScore] = useQueryState("min_score", parseAsFloat);
 
-  const fetchListings = useCallback(async () => {
-    setLoading(true);
+  const fetchListings = useCallback(async (signal?: AbortSignal) => {
     const params = new URLSearchParams();
     if (maxPrice !== null) params.set("max_price", String(maxPrice));
     if (minBeds !== null) params.set("min_bedrooms", String(minBeds));
     if (savedOnly) params.set("saved_only", "true");
     if (minScore !== null) params.set("min_score", String(minScore));
 
-    const res = await fetch(`${API_BASE}/api/listings?${params}`);
-    if (res.ok) setListings(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE}/api/listings?${params}`, { signal });
+      if (!res.ok) throw new Error(`Backend returned ${res.status}`);
+      setListings(await res.json());
+      setError(null);
+    } catch {
+      if (signal?.aborted) return;
+      setError("Could not load listings. Start the backend and try again.");
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }, [maxPrice, minBeds, savedOnly, minScore]);
 
   useEffect(() => {
-    fetchListings();
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      void fetchListings(controller.signal);
+    }, 0);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchListings]);
 
   // SSE for real-time updates
@@ -136,16 +151,28 @@ function ListingsContent() {
           if (prev.find((l) => l.id === newListing.id)) return prev;
           return [newListing, ...prev];
         });
-      } catch {}
+      } catch {
+        setError("A live listing update could not be read.");
+      }
     };
     return () => es.close();
   }, []);
 
   const handleToggleSave = async (id: string) => {
-    const res = await fetch(`${API_BASE}/api/listings/${id}/save`, { method: "POST" });
-    if (res.ok) {
+    const previous = listings;
+    setListings((prev) =>
+      prev.map((listing) => (listing.id === id ? { ...listing, saved: !listing.saved } : listing)),
+    );
+
+    try {
+      const res = await fetch(`${API_BASE}/api/listings/${id}/save`, { method: "POST" });
+      if (!res.ok) throw new Error(`Backend returned ${res.status}`);
       const updated: Listing = await res.json();
       setListings((prev) => prev.map((l) => (l.id === id ? updated : l)));
+      setError(null);
+    } catch {
+      setListings(previous);
+      setError("Could not update saved state.");
     }
   };
 
@@ -205,7 +232,7 @@ function ListingsContent() {
               size="sm"
               onClick={() => setSavedOnly(!savedOnly)}
             >
-              {savedOnly ? "★ Saved only" : "☆ Show saved only"}
+              {savedOnly ? "Saved only" : "Show saved only"}
             </Button>
             <Button
               variant="ghost"
@@ -223,6 +250,12 @@ function ListingsContent() {
         </CardContent>
       </Card>
 
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
       {/* Results */}
       {loading ? (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -233,9 +266,9 @@ function ListingsContent() {
           ))}
         </div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <p className="text-lg">No listings found</p>
-          <p className="text-sm mt-1">Try adjusting your filters or run a discovery first.</p>
+        <div className="rounded-2xl border border-dashed bg-card px-6 py-14 text-center text-muted-foreground">
+          <p className="text-lg font-medium text-foreground">No matching listings yet</p>
+          <p className="text-sm mt-1">Adjust filters, save a preference, or run discovery for a target city.</p>
         </div>
       ) : (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">

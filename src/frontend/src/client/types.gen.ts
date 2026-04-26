@@ -15,6 +15,10 @@ export type CityStatus = {
      */
     city: string;
     /**
+     * Has Been Discovered
+     */
+    has_been_discovered: boolean;
+    /**
      * Managers Total
      */
     managers_total: number;
@@ -22,10 +26,6 @@ export type CityStatus = {
      * Managers Validated
      */
     managers_validated: number;
-    /**
-     * Has Been Discovered
-     */
-    has_been_discovered: boolean;
 };
 
 /**
@@ -35,21 +35,17 @@ export type CityStatus = {
  */
 export type DiscoveryResult = {
     /**
-     * City
+     * Cached
      */
-    city: string;
+    cached?: boolean;
     /**
      * Candidates Found
      */
     candidates_found: number;
     /**
-     * Validated Count
+     * City
      */
-    validated_count: number;
-    /**
-     * Cached
-     */
-    cached?: boolean;
+    city: string;
     /**
      * Cost Usd
      */
@@ -58,12 +54,20 @@ export type DiscoveryResult = {
      * Duration Seconds
      */
     duration_seconds: number;
+    /**
+     * Validated Count
+     */
+    validated_count: number;
 };
 
 /**
  * ExtractionRequest
  */
 export type ExtractionRequest = {
+    /**
+     * Html
+     */
+    html: string;
     /**
      * Property Manager Id
      */
@@ -72,10 +76,6 @@ export type ExtractionRequest = {
      * Url
      */
     url: string;
-    /**
-     * Html
-     */
-    html: string;
 };
 
 /**
@@ -83,21 +83,21 @@ export type ExtractionRequest = {
  */
 export type ExtractionResponse = {
     /**
-     * Status
-     */
-    status: 'success';
-    /**
      * Confidence
      */
     confidence: 'high' | 'medium' | 'low';
+    /**
+     * Listing Address
+     */
+    listing_address: string;
     /**
      * Mode
      */
     mode: 'A' | 'B';
     /**
-     * Listing Address
+     * Status
      */
-    listing_address: string;
+    status: 'success';
 };
 
 /**
@@ -117,74 +117,58 @@ export type HttpValidationError = {
  */
 export type ListingResponse = {
     /**
-     * Id
-     */
-    id: string;
-    /**
-     * Property Manager Id
-     */
-    property_manager_id: string;
-    /**
-     * Preference Id
-     */
-    preference_id?: string | null;
-    /**
      * Address
      */
     address: string;
-    /**
-     * Bedrooms
-     */
-    bedrooms?: number | null;
-    /**
-     * Bathrooms
-     */
-    bathrooms?: number | null;
-    /**
-     * Sqft
-     */
-    sqft?: number | null;
-    /**
-     * Price
-     */
-    price: number;
-    /**
-     * Url
-     */
-    url: string;
-    pets_policy: PetsPolicy;
     /**
      * Amenities
      */
     amenities: Array<string>;
     /**
-     * Photos
+     * Bathrooms
      */
-    photos: Array<string>;
+    bathrooms?: number | null;
+    /**
+     * Bedrooms
+     */
+    bedrooms?: number | null;
     /**
      * Description
      */
     description?: string | null;
     /**
-     * Extraction Timestamp
-     */
-    extraction_timestamp: string;
-    /**
      * Extraction Model
      */
     extraction_model?: string | null;
     /**
-     * Tier1 Cost
+     * Extraction Timestamp
      */
-    tier1_cost?: number | null;
+    extraction_timestamp: string;
     /**
-     * Tier2 Cost
+     * Id
      */
-    tier2_cost?: number | null;
+    id: string;
+    pets_policy: PetsPolicy;
     /**
-     * Validation Passed
+     * Photos
      */
-    validation_passed: boolean;
+    photos: Array<string>;
+    /**
+     * Preference Id
+     */
+    preference_id?: string | null;
+    /**
+     * Price
+     */
+    price: number;
+    /**
+     * Property Manager Id
+     */
+    property_manager_id: string;
+    /**
+     * Saved
+     */
+    saved?: boolean;
     /**
      * Score
      */
@@ -194,9 +178,25 @@ export type ListingResponse = {
      */
     score_explanation?: string | null;
     /**
-     * Saved
+     * Sqft
      */
-    saved?: boolean;
+    sqft?: number | null;
+    /**
+     * Tier1 Cost
+     */
+    tier1_cost?: number | null;
+    /**
+     * Tier2 Cost
+     */
+    tier2_cost?: number | null;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Validation Passed
+     */
+    validation_passed: boolean;
 };
 
 /**
@@ -206,35 +206,139 @@ export type ListingResponse = {
  */
 export type ManagerOut = {
     /**
-     * Id
-     */
-    id: string;
-    /**
      * City
      */
     city: string;
     /**
-     * Name
+     * Id
      */
-    name: string;
-    /**
-     * Website
-     */
-    website: string | null;
+    id: string;
     /**
      * Listing Page Url
      */
     listing_page_url: string | null;
     /**
+     * Name
+     */
+    name: string;
+    /**
      * Validated
      */
     validated: boolean;
+    /**
+     * Website
+     */
+    website: string | null;
 };
 
 /**
  * PetsPolicy
  */
 export type PetsPolicy = 'allowed_with_small_dog' | 'cats_only' | 'none_allowed' | 'unknown';
+
+/**
+ * PreferenceCreate
+ *
+ * Create a new preference.
+ */
+export type PreferenceCreate = {
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * Description
+     */
+    description: string;
+};
+
+/**
+ * PreferenceResponse
+ *
+ * Preference response model.
+ */
+export type PreferenceResponse = {
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * PreferenceUpdate
+ *
+ * Update an existing preference.
+ */
+export type PreferenceUpdate = {
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+};
+
+/**
+ * ScoreListingsRequest
+ *
+ * Run preference scoring for persisted listings.
+ */
+export type ScoreListingsRequest = {
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Listing Ids
+     */
+    listing_ids?: Array<string>;
+    /**
+     * Preference Id
+     */
+    preference_id: string;
+    /**
+     * Rescore
+     */
+    rescore?: boolean;
+};
+
+/**
+ * ScoreListingsResponse
+ *
+ * Summary of a listing scoring run.
+ */
+export type ScoreListingsResponse = {
+    /**
+     * Listing Ids
+     */
+    listing_ids: Array<string>;
+    /**
+     * Preference Id
+     */
+    preference_id: string;
+    /**
+     * Scored Count
+     */
+    scored_count: number;
+};
 
 /**
  * TriggerRequest
@@ -253,6 +357,16 @@ export type TriggerRequest = {
  */
 export type ValidationError = {
     /**
+     * Context
+     */
+    ctx?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Input
+     */
+    input?: unknown;
+    /**
      * Location
      */
     loc: Array<string | number>;
@@ -264,17 +378,47 @@ export type ValidationError = {
      * Error Type
      */
     type: string;
+};
+
+export type RootGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/';
+};
+
+export type RootGetResponses = {
     /**
-     * Input
+     * Response Root  Get
+     *
+     * Successful Response
      */
-    input?: unknown;
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type RootGetResponse = RootGetResponses[keyof RootGetResponses];
+
+export type GetCostsApiCostsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/costs';
+};
+
+export type GetCostsApiCostsGetResponses = {
     /**
-     * Context
+     * Response Get Costs Api Costs Get
+     *
+     * Successful Response
      */
-    ctx?: {
+    200: {
         [key: string]: unknown;
     };
 };
+
+export type GetCostsApiCostsGetResponse = GetCostsApiCostsGetResponses[keyof GetCostsApiCostsGetResponses];
 
 export type TriggerDiscoveryApiDiscoveryCitiesCityPostData = {
     /**
@@ -377,37 +521,6 @@ export type CityStatusApiDiscoveryCitiesCityStatusGetResponses = {
 
 export type CityStatusApiDiscoveryCitiesCityStatusGetResponse = CityStatusApiDiscoveryCitiesCityStatusGetResponses[keyof CityStatusApiDiscoveryCitiesCityStatusGetResponses];
 
-export type TriggerExtractionExtractionTriggerPostData = {
-    body: ExtractionRequest;
-    headers?: {
-        /**
-         * Authorization
-         */
-        authorization?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/extraction/trigger';
-};
-
-export type TriggerExtractionExtractionTriggerPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type TriggerExtractionExtractionTriggerPostError = TriggerExtractionExtractionTriggerPostErrors[keyof TriggerExtractionExtractionTriggerPostErrors];
-
-export type TriggerExtractionExtractionTriggerPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: ExtractionResponse;
-};
-
-export type TriggerExtractionExtractionTriggerPostResponse = TriggerExtractionExtractionTriggerPostResponses[keyof TriggerExtractionExtractionTriggerPostResponses];
-
 export type GetListingsApiListingsGetData = {
     body?: never;
     path?: never;
@@ -472,6 +585,45 @@ export type GetListingsApiListingsGetResponses = {
 
 export type GetListingsApiListingsGetResponse = GetListingsApiListingsGetResponses[keyof GetListingsApiListingsGetResponses];
 
+export type ScoreListingsApiListingsScorePostData = {
+    body: ScoreListingsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/listings/score';
+};
+
+export type ScoreListingsApiListingsScorePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ScoreListingsApiListingsScorePostError = ScoreListingsApiListingsScorePostErrors[keyof ScoreListingsApiListingsScorePostErrors];
+
+export type ScoreListingsApiListingsScorePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ScoreListingsResponse;
+};
+
+export type ScoreListingsApiListingsScorePostResponse = ScoreListingsApiListingsScorePostResponses[keyof ScoreListingsApiListingsScorePostResponses];
+
+export type StreamListingsApiListingsStreamGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/listings/stream';
+};
+
+export type StreamListingsApiListingsStreamGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type GetListingApiListingsListingIdGetData = {
     body?: never;
     path: {
@@ -532,19 +684,139 @@ export type ToggleSaveListingApiListingsListingIdSavePostResponses = {
 
 export type ToggleSaveListingApiListingsListingIdSavePostResponse = ToggleSaveListingApiListingsListingIdSavePostResponses[keyof ToggleSaveListingApiListingsListingIdSavePostResponses];
 
-export type StreamListingsApiListingsStreamGetData = {
+export type ListPreferencesApiPreferencesGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/listings/stream';
+    url: '/api/preferences';
 };
 
-export type StreamListingsApiListingsStreamGetResponses = {
+export type ListPreferencesApiPreferencesGetResponses = {
+    /**
+     * Response List Preferences Api Preferences Get
+     *
+     * Successful Response
+     */
+    200: Array<PreferenceResponse>;
+};
+
+export type ListPreferencesApiPreferencesGetResponse = ListPreferencesApiPreferencesGetResponses[keyof ListPreferencesApiPreferencesGetResponses];
+
+export type CreatePreferenceApiPreferencesPostData = {
+    body: PreferenceCreate;
+    path?: never;
+    query?: never;
+    url: '/api/preferences';
+};
+
+export type CreatePreferenceApiPreferencesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreatePreferenceApiPreferencesPostError = CreatePreferenceApiPreferencesPostErrors[keyof CreatePreferenceApiPreferencesPostErrors];
+
+export type CreatePreferenceApiPreferencesPostResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    201: PreferenceResponse;
 };
+
+export type CreatePreferenceApiPreferencesPostResponse = CreatePreferenceApiPreferencesPostResponses[keyof CreatePreferenceApiPreferencesPostResponses];
+
+export type DeletePreferenceApiPreferencesPreferenceIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Preference Id
+         */
+        preference_id: string;
+    };
+    query?: never;
+    url: '/api/preferences/{preference_id}';
+};
+
+export type DeletePreferenceApiPreferencesPreferenceIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeletePreferenceApiPreferencesPreferenceIdDeleteError = DeletePreferenceApiPreferencesPreferenceIdDeleteErrors[keyof DeletePreferenceApiPreferencesPreferenceIdDeleteErrors];
+
+export type DeletePreferenceApiPreferencesPreferenceIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeletePreferenceApiPreferencesPreferenceIdDeleteResponse = DeletePreferenceApiPreferencesPreferenceIdDeleteResponses[keyof DeletePreferenceApiPreferencesPreferenceIdDeleteResponses];
+
+export type UpdatePreferenceApiPreferencesPreferenceIdPatchData = {
+    body: PreferenceUpdate;
+    path: {
+        /**
+         * Preference Id
+         */
+        preference_id: string;
+    };
+    query?: never;
+    url: '/api/preferences/{preference_id}';
+};
+
+export type UpdatePreferenceApiPreferencesPreferenceIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdatePreferenceApiPreferencesPreferenceIdPatchError = UpdatePreferenceApiPreferencesPreferenceIdPatchErrors[keyof UpdatePreferenceApiPreferencesPreferenceIdPatchErrors];
+
+export type UpdatePreferenceApiPreferencesPreferenceIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: PreferenceResponse;
+};
+
+export type UpdatePreferenceApiPreferencesPreferenceIdPatchResponse = UpdatePreferenceApiPreferencesPreferenceIdPatchResponses[keyof UpdatePreferenceApiPreferencesPreferenceIdPatchResponses];
+
+export type TriggerExtractionExtractionTriggerPostData = {
+    body: ExtractionRequest;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/extraction/trigger';
+};
+
+export type TriggerExtractionExtractionTriggerPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TriggerExtractionExtractionTriggerPostError = TriggerExtractionExtractionTriggerPostErrors[keyof TriggerExtractionExtractionTriggerPostErrors];
+
+export type TriggerExtractionExtractionTriggerPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ExtractionResponse;
+};
+
+export type TriggerExtractionExtractionTriggerPostResponse = TriggerExtractionExtractionTriggerPostResponses[keyof TriggerExtractionExtractionTriggerPostResponses];
 
 export type HealthCheckHealthGetData = {
     body?: never;
@@ -566,26 +838,6 @@ export type HealthCheckHealthGetResponses = {
 
 export type HealthCheckHealthGetResponse = HealthCheckHealthGetResponses[keyof HealthCheckHealthGetResponses];
 
-export type RootGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/';
-};
-
-export type RootGetResponses = {
-    /**
-     * Response Root  Get
-     *
-     * Successful Response
-     */
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type RootGetResponse = RootGetResponses[keyof RootGetResponses];
-
 export type GetMetricsMetricsGetData = {
     body?: never;
     path?: never;
@@ -599,23 +851,3 @@ export type GetMetricsMetricsGetResponses = {
      */
     200: unknown;
 };
-
-export type GetCostsApiCostsGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/costs';
-};
-
-export type GetCostsApiCostsGetResponses = {
-    /**
-     * Response Get Costs Api Costs Get
-     *
-     * Successful Response
-     */
-    200: {
-        [key: string]: unknown;
-    };
-};
-
-export type GetCostsApiCostsGetResponse = GetCostsApiCostsGetResponses[keyof GetCostsApiCostsGetResponses];

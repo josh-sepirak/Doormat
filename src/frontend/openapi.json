@@ -1,32 +1,691 @@
 {
-  "openapi": "3.1.0",
+  "components": {
+    "schemas": {
+      "CityStatus": {
+        "description": "Discovery status for a city.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "has_been_discovered": {
+            "title": "Has Been Discovered",
+            "type": "boolean"
+          },
+          "managers_total": {
+            "title": "Managers Total",
+            "type": "integer"
+          },
+          "managers_validated": {
+            "title": "Managers Validated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city",
+          "managers_total",
+          "managers_validated",
+          "has_been_discovered"
+        ],
+        "title": "CityStatus",
+        "type": "object"
+      },
+      "DiscoveryResult": {
+        "description": "Aggregate result of a city discovery run.",
+        "properties": {
+          "cached": {
+            "default": false,
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "candidates_found": {
+            "minimum": 0.0,
+            "title": "Candidates Found",
+            "type": "integer"
+          },
+          "city": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "City",
+            "type": "string"
+          },
+          "cost_usd": {
+            "minimum": 0.0,
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "duration_seconds": {
+            "minimum": 0.0,
+            "title": "Duration Seconds",
+            "type": "number"
+          },
+          "validated_count": {
+            "minimum": 0.0,
+            "title": "Validated Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city",
+          "candidates_found",
+          "validated_count",
+          "cost_usd",
+          "duration_seconds"
+        ],
+        "title": "DiscoveryResult",
+        "type": "object"
+      },
+      "ExtractionRequest": {
+        "properties": {
+          "html": {
+            "maxLength": 2000000,
+            "minLength": 1,
+            "title": "Html",
+            "type": "string"
+          },
+          "property_manager_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Property Manager Id",
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_manager_id",
+          "url",
+          "html"
+        ],
+        "title": "ExtractionRequest",
+        "type": "object"
+      },
+      "ExtractionResponse": {
+        "properties": {
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "listing_address": {
+            "title": "Listing Address",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "A",
+              "B"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "const": "success",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "confidence",
+          "mode",
+          "listing_address"
+        ],
+        "title": "ExtractionResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ListingResponse": {
+        "description": "Listing response model.",
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "amenities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Amenities",
+            "type": "array"
+          },
+          "bathrooms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathrooms"
+          },
+          "bedrooms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bedrooms"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "extraction_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model"
+          },
+          "extraction_timestamp": {
+            "format": "date-time",
+            "title": "Extraction Timestamp",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pets_policy": {
+            "$ref": "#/components/schemas/PetsPolicy"
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "preference_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preference Id"
+          },
+          "price": {
+            "title": "Price",
+            "type": "number"
+          },
+          "property_manager_id": {
+            "title": "Property Manager Id",
+            "type": "string"
+          },
+          "saved": {
+            "default": false,
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Explanation"
+          },
+          "sqft": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sqft"
+          },
+          "tier1_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier1 Cost"
+          },
+          "tier2_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier2 Cost"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "validation_passed": {
+            "title": "Validation Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "property_manager_id",
+          "address",
+          "price",
+          "url",
+          "pets_policy",
+          "amenities",
+          "photos",
+          "extraction_timestamp",
+          "validation_passed"
+        ],
+        "title": "ListingResponse",
+        "type": "object"
+      },
+      "ManagerOut": {
+        "description": "Public representation of a discovered manager.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "listing_page_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Page Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "validated": {
+            "title": "Validated",
+            "type": "boolean"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          }
+        },
+        "required": [
+          "id",
+          "city",
+          "name",
+          "website",
+          "listing_page_url",
+          "validated"
+        ],
+        "title": "ManagerOut",
+        "type": "object"
+      },
+      "PetsPolicy": {
+        "enum": [
+          "allowed_with_small_dog",
+          "cats_only",
+          "none_allowed",
+          "unknown"
+        ],
+        "title": "PetsPolicy",
+        "type": "string"
+      },
+      "PreferenceCreate": {
+        "description": "Create a new preference.",
+        "properties": {
+          "city": {
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "City",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "city"
+        ],
+        "title": "PreferenceCreate",
+        "type": "object"
+      },
+      "PreferenceResponse": {
+        "description": "Preference response model.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "city",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PreferenceResponse",
+        "type": "object"
+      },
+      "PreferenceUpdate": {
+        "description": "Update an existing preference.",
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "title": "PreferenceUpdate",
+        "type": "object"
+      },
+      "ScoreListingsRequest": {
+        "description": "Run preference scoring for persisted listings.",
+        "properties": {
+          "limit": {
+            "default": 50,
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "listing_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Listing Ids",
+            "type": "array"
+          },
+          "preference_id": {
+            "title": "Preference Id",
+            "type": "string"
+          },
+          "rescore": {
+            "default": false,
+            "title": "Rescore",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "preference_id"
+        ],
+        "title": "ScoreListingsRequest",
+        "type": "object"
+      },
+      "ScoreListingsResponse": {
+        "description": "Summary of a listing scoring run.",
+        "properties": {
+          "listing_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Listing Ids",
+            "type": "array"
+          },
+          "preference_id": {
+            "title": "Preference Id",
+            "type": "string"
+          },
+          "scored_count": {
+            "title": "Scored Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "preference_id",
+          "scored_count",
+          "listing_ids"
+        ],
+        "title": "ScoreListingsResponse",
+        "type": "object"
+      },
+      "TriggerRequest": {
+        "description": "Optional body for POST trigger.",
+        "properties": {
+          "preference_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preference Id"
+          }
+        },
+        "title": "TriggerRequest",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
   "info": {
-    "title": "Doormat",
     "description": "AI-first rental finder - autonomous property manager discovery and listing scoring",
+    "title": "Doormat",
     "version": "0.1.0"
   },
+  "openapi": "3.1.0",
   "paths": {
+    "/": {
+      "get": {
+        "description": "Root endpoint.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Root  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Root",
+        "tags": [
+          "root"
+        ]
+      }
+    },
+    "/api/costs": {
+      "get": {
+        "description": "Get cost tracking summary.",
+        "operationId": "get_costs_api_costs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Costs Api Costs Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Costs",
+        "tags": [
+          "monitoring"
+        ]
+      }
+    },
     "/api/discovery/cities/{city}": {
       "post": {
-        "tags": [
-          "discovery"
-        ],
-        "summary": "Trigger Discovery",
         "description": "Trigger a discovery run for the given city.",
         "operationId": "trigger_discovery_api_discovery_cities__city__post",
         "parameters": [
           {
-            "name": "city",
             "in": "path",
+            "name": "city",
             "required": true,
             "schema": {
-              "type": "string",
-              "title": "City"
+              "title": "City",
+              "type": "string"
             }
           },
           {
-            "name": "authorization",
             "in": "header",
+            "name": "authorization",
             "required": false,
             "schema": {
               "anyOf": [
@@ -60,130 +719,599 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DiscoveryResult"
                 }
               }
-            }
+            },
+            "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
-            }
+            },
+            "description": "Validation Error"
           }
-        }
+        },
+        "summary": "Trigger Discovery",
+        "tags": [
+          "discovery"
+        ]
       }
     },
     "/api/discovery/cities/{city}/managers": {
       "get": {
-        "tags": [
-          "discovery"
-        ],
-        "summary": "List Managers",
         "description": "List discovered managers for a city.",
         "operationId": "list_managers_api_discovery_cities__city__managers_get",
         "parameters": [
           {
-            "name": "city",
             "in": "path",
+            "name": "city",
             "required": true,
             "schema": {
-              "type": "string",
-              "title": "City"
+              "title": "City",
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ManagerOut"
                   },
-                  "title": "Response List Managers Api Discovery Cities  City  Managers Get"
+                  "title": "Response List Managers Api Discovery Cities  City  Managers Get",
+                  "type": "array"
                 }
               }
-            }
+            },
+            "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
-            }
+            },
+            "description": "Validation Error"
           }
-        }
+        },
+        "summary": "List Managers",
+        "tags": [
+          "discovery"
+        ]
       }
     },
     "/api/discovery/cities/{city}/status": {
       "get": {
-        "tags": [
-          "discovery"
-        ],
-        "summary": "City Status",
         "description": "Return discovery status for a city.",
         "operationId": "city_status_api_discovery_cities__city__status_get",
         "parameters": [
           {
-            "name": "city",
             "in": "path",
+            "name": "city",
             "required": true,
             "schema": {
-              "type": "string",
-              "title": "City"
+              "title": "City",
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CityStatus"
                 }
               }
-            }
+            },
+            "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "City Status",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/api/listings": {
+      "get": {
+        "description": "Return paginated, filterable listings.",
+        "operationId": "get_listings_api_listings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "city",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_price",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Price"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_price",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Price"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_bedrooms",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Bedrooms"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_bedrooms",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Bedrooms"
+            }
+          },
+          {
+            "in": "query",
+            "name": "saved_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Saved Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_score",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Score"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
             }
           }
-        }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ListingResponse"
+                  },
+                  "title": "Response Get Listings Api Listings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Listings",
+        "tags": [
+          "listings"
+        ]
+      }
+    },
+    "/api/listings/score": {
+      "post": {
+        "description": "Score persisted listings against a saved preference.",
+        "operationId": "score_listings_api_listings_score_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreListingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreListingsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Score Listings",
+        "tags": [
+          "listings"
+        ]
+      }
+    },
+    "/api/listings/stream": {
+      "get": {
+        "description": "SSE stream \u2014 push new listings as they arrive.",
+        "operationId": "stream_listings_api_listings_stream_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Stream Listings",
+        "tags": [
+          "listings"
+        ]
+      }
+    },
+    "/api/listings/{listing_id}": {
+      "get": {
+        "description": "Return a single listing by ID.",
+        "operationId": "get_listing_api_listings__listing_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "listing_id",
+            "required": true,
+            "schema": {
+              "title": "Listing Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Listing",
+        "tags": [
+          "listings"
+        ]
+      }
+    },
+    "/api/listings/{listing_id}/save": {
+      "post": {
+        "description": "Toggle the saved state of a listing.",
+        "operationId": "toggle_save_listing_api_listings__listing_id__save_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "listing_id",
+            "required": true,
+            "schema": {
+              "title": "Listing Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Toggle Save Listing",
+        "tags": [
+          "listings"
+        ]
+      }
+    },
+    "/api/preferences": {
+      "get": {
+        "description": "Return saved search preferences, newest first.",
+        "operationId": "list_preferences_api_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PreferenceResponse"
+                  },
+                  "title": "Response List Preferences Api Preferences Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Preferences",
+        "tags": [
+          "preferences"
+        ]
+      },
+      "post": {
+        "description": "Create a natural-language search preference.",
+        "operationId": "create_preference_api_preferences_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Preference",
+        "tags": [
+          "preferences"
+        ]
+      }
+    },
+    "/api/preferences/{preference_id}": {
+      "delete": {
+        "description": "Delete a saved search preference.",
+        "operationId": "delete_preference_api_preferences__preference_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "preference_id",
+            "required": true,
+            "schema": {
+              "title": "Preference Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Preference",
+        "tags": [
+          "preferences"
+        ]
+      },
+      "patch": {
+        "description": "Update an existing search preference.",
+        "operationId": "update_preference_api_preferences__preference_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "preference_id",
+            "required": true,
+            "schema": {
+              "title": "Preference Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Preference",
+        "tags": [
+          "preferences"
+        ]
       }
     },
     "/extraction/trigger": {
       "post": {
-        "tags": [
-          "Extraction"
-        ],
-        "summary": "Trigger Extraction",
         "description": "Trigger a manual extraction job.",
         "operationId": "trigger_extraction_extraction_trigger_post",
         "parameters": [
           {
-            "name": "authorization",
             "in": "header",
+            "name": "authorization",
             "required": false,
             "schema": {
               "anyOf": [
@@ -199,867 +1327,87 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ExtractionRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExtractionResponse"
                 }
               }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/listings": {
-      "get": {
-        "tags": [
-          "listings"
-        ],
-        "summary": "Get Listings",
-        "description": "Return paginated, filterable listings.",
-        "operationId": "get_listings_api_listings_get",
-        "parameters": [
-          {
-            "name": "city",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "City"
-            }
-          },
-          {
-            "name": "min_price",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Min Price"
-            }
-          },
-          {
-            "name": "max_price",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "number",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Max Price"
-            }
-          },
-          {
-            "name": "min_bedrooms",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Min Bedrooms"
-            }
-          },
-          {
-            "name": "max_bedrooms",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Max Bedrooms"
-            }
-          },
-          {
-            "name": "saved_only",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false,
-              "title": "Saved Only"
-            }
-          },
-          {
-            "name": "min_score",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "number",
-                  "maximum": 1.0,
-                  "minimum": 0.0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Min Score"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 500,
-              "minimum": 1,
-              "default": 50,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ListingResponse"
-                  },
-                  "title": "Response Get Listings Api Listings Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/listings/{listing_id}": {
-      "get": {
-        "tags": [
-          "listings"
-        ],
-        "summary": "Get Listing",
-        "description": "Return a single listing by ID.",
-        "operationId": "get_listing_api_listings__listing_id__get",
-        "parameters": [
-          {
-            "name": "listing_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Listing Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListingResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/listings/{listing_id}/save": {
-      "post": {
-        "tags": [
-          "listings"
-        ],
-        "summary": "Toggle Save Listing",
-        "description": "Toggle the saved state of a listing.",
-        "operationId": "toggle_save_listing_api_listings__listing_id__save_post",
-        "parameters": [
-          {
-            "name": "listing_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Listing Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListingResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/listings/stream": {
-      "get": {
-        "tags": [
-          "listings"
-        ],
-        "summary": "Stream Listings",
-        "description": "SSE stream \u2014 push new listings as they arrive.",
-        "operationId": "stream_listings_api_listings_stream_get",
-        "responses": {
-          "200": {
+            },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
-        }
+        },
+        "summary": "Trigger Extraction",
+        "tags": [
+          "Extraction"
+        ]
       }
     },
     "/health": {
       "get": {
-        "tags": [
-          "health"
-        ],
-        "summary": "Health Check",
         "description": "Health check endpoint.",
         "operationId": "health_check_health_get",
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "type": "object",
-                  "title": "Response Health Check Health Get"
+                  "title": "Response Health Check Health Get",
+                  "type": "object"
                 }
               }
-            }
+            },
+            "description": "Successful Response"
           }
-        }
-      }
-    },
-    "/": {
-      "get": {
+        },
+        "summary": "Health Check",
         "tags": [
-          "root"
-        ],
-        "summary": "Root",
-        "description": "Root endpoint.",
-        "operationId": "root__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Root  Get"
-                }
-              }
-            }
-          }
-        }
+          "health"
+        ]
       }
     },
     "/metrics": {
       "get": {
-        "tags": [
-          "monitoring"
-        ],
-        "summary": "Get Metrics",
         "description": "Prometheus metrics endpoint.",
         "operationId": "get_metrics_metrics_get",
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
               }
-            }
+            },
+            "description": "Successful Response"
           }
-        }
-      }
-    },
-    "/api/costs": {
-      "get": {
+        },
+        "summary": "Get Metrics",
         "tags": [
           "monitoring"
-        ],
-        "summary": "Get Costs",
-        "description": "Get cost tracking summary.",
-        "operationId": "get_costs_api_costs_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Get Costs Api Costs Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "CityStatus": {
-        "properties": {
-          "city": {
-            "type": "string",
-            "title": "City"
-          },
-          "managers_total": {
-            "type": "integer",
-            "title": "Managers Total"
-          },
-          "managers_validated": {
-            "type": "integer",
-            "title": "Managers Validated"
-          },
-          "has_been_discovered": {
-            "type": "boolean",
-            "title": "Has Been Discovered"
-          }
-        },
-        "type": "object",
-        "required": [
-          "city",
-          "managers_total",
-          "managers_validated",
-          "has_been_discovered"
-        ],
-        "title": "CityStatus",
-        "description": "Discovery status for a city."
-      },
-      "DiscoveryResult": {
-        "properties": {
-          "city": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "City"
-          },
-          "candidates_found": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Candidates Found"
-          },
-          "validated_count": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Validated Count"
-          },
-          "cached": {
-            "type": "boolean",
-            "title": "Cached",
-            "default": false
-          },
-          "cost_usd": {
-            "type": "number",
-            "minimum": 0.0,
-            "title": "Cost Usd"
-          },
-          "duration_seconds": {
-            "type": "number",
-            "minimum": 0.0,
-            "title": "Duration Seconds"
-          }
-        },
-        "type": "object",
-        "required": [
-          "city",
-          "candidates_found",
-          "validated_count",
-          "cost_usd",
-          "duration_seconds"
-        ],
-        "title": "DiscoveryResult",
-        "description": "Aggregate result of a city discovery run."
-      },
-      "ExtractionRequest": {
-        "properties": {
-          "property_manager_id": {
-            "type": "string",
-            "maxLength": 36,
-            "minLength": 1,
-            "title": "Property Manager Id"
-          },
-          "url": {
-            "type": "string",
-            "maxLength": 2083,
-            "minLength": 1,
-            "format": "uri",
-            "title": "Url"
-          },
-          "html": {
-            "type": "string",
-            "maxLength": 2000000,
-            "minLength": 1,
-            "title": "Html"
-          }
-        },
-        "type": "object",
-        "required": [
-          "property_manager_id",
-          "url",
-          "html"
-        ],
-        "title": "ExtractionRequest"
-      },
-      "ExtractionResponse": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "const": "success",
-            "title": "Status"
-          },
-          "confidence": {
-            "type": "string",
-            "enum": [
-              "high",
-              "medium",
-              "low"
-            ],
-            "title": "Confidence"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "A",
-              "B"
-            ],
-            "title": "Mode"
-          },
-          "listing_address": {
-            "type": "string",
-            "title": "Listing Address"
-          }
-        },
-        "type": "object",
-        "required": [
-          "status",
-          "confidence",
-          "mode",
-          "listing_address"
-        ],
-        "title": "ExtractionResponse"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
-      },
-      "ListingResponse": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "property_manager_id": {
-            "type": "string",
-            "title": "Property Manager Id"
-          },
-          "preference_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Preference Id"
-          },
-          "address": {
-            "type": "string",
-            "title": "Address"
-          },
-          "bedrooms": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bedrooms"
-          },
-          "bathrooms": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bathrooms"
-          },
-          "sqft": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sqft"
-          },
-          "price": {
-            "type": "number",
-            "title": "Price"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url"
-          },
-          "pets_policy": {
-            "$ref": "#/components/schemas/PetsPolicy"
-          },
-          "amenities": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Amenities"
-          },
-          "photos": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Photos"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "extraction_timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Extraction Timestamp"
-          },
-          "extraction_model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extraction Model"
-          },
-          "tier1_cost": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tier1 Cost"
-          },
-          "tier2_cost": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tier2 Cost"
-          },
-          "validation_passed": {
-            "type": "boolean",
-            "title": "Validation Passed"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          },
-          "score_explanation": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score Explanation"
-          },
-          "saved": {
-            "type": "boolean",
-            "title": "Saved",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "property_manager_id",
-          "address",
-          "price",
-          "url",
-          "pets_policy",
-          "amenities",
-          "photos",
-          "extraction_timestamp",
-          "validation_passed"
-        ],
-        "title": "ListingResponse",
-        "description": "Listing response model."
-      },
-      "ManagerOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "city": {
-            "type": "string",
-            "title": "City"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "website": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Website"
-          },
-          "listing_page_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Listing Page Url"
-          },
-          "validated": {
-            "type": "boolean",
-            "title": "Validated"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "city",
-          "name",
-          "website",
-          "listing_page_url",
-          "validated"
-        ],
-        "title": "ManagerOut",
-        "description": "Public representation of a discovered manager."
-      },
-      "PetsPolicy": {
-        "type": "string",
-        "enum": [
-          "allowed_with_small_dog",
-          "cats_only",
-          "none_allowed",
-          "unknown"
-        ],
-        "title": "PetsPolicy"
-      },
-      "TriggerRequest": {
-        "properties": {
-          "preference_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Preference Id"
-          }
-        },
-        "type": "object",
-        "title": "TriggerRequest",
-        "description": "Optional body for POST trigger."
-      },
-      "ValidationError": {
-        "properties": {
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Location"
-          },
-          "msg": {
-            "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "ctx": {
-            "type": "object",
-            "title": "Context"
-          }
-        },
-        "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError"
+        ]
       }
     }
   }

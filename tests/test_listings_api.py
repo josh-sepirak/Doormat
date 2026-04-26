@@ -4,12 +4,12 @@ import json
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
 from fastapi.testclient import TestClient
 
+from doormat.api.routers.listings import _serialize_listing
 from doormat.db.base import get_db
 from doormat.main import app
-from doormat.models.orm import Listing
+from doormat.models.orm import Listing, Preference
 
 
 def make_db_listing(
@@ -37,6 +37,16 @@ def make_db_listing(
         saved=saved,
         score=score,
         score_explanation="Test explanation" if score is not None else None,
+    )
+
+
+def make_preference() -> Preference:
+    return Preference(
+        id="pref-1",
+        description="2BR pet-friendly under $2000",
+        city="Austin",
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
 
@@ -78,6 +88,31 @@ def test_get_listings_returns_200():
     data = resp.json()
     assert len(data) == 2
     assert data[0]["id"] == "l-1"
+
+
+def test_listings_stream_route_is_not_shadowed_by_listing_id_route():
+    """Specific SSE route should be registered before /{listing_id}."""
+    listing_paths = [
+        getattr(route, "path", "")
+        for route in app.routes
+        if getattr(route, "path", "").startswith("/api/listings")
+    ]
+
+    assert listing_paths.index("/api/listings/stream") < listing_paths.index(
+        "/api/listings/{listing_id}"
+    )
+
+
+def test_serialize_listing_tolerates_corrupt_json_fields():
+    """Bad cached extraction JSON should not break the listing API."""
+    listing = make_db_listing()
+    listing.amenities = "{not-json"
+    listing.photos = "{not-json"
+
+    data = _serialize_listing(listing)
+
+    assert data["amenities"] == []
+    assert data["photos"] == []
 
 
 def test_get_listing_by_id_returns_404_when_missing():
@@ -139,6 +174,43 @@ def test_save_listing_returns_404_when_missing():
     assert resp.status_code == 404
 
 
+def test_score_listings_endpoint_runs_scorer(monkeypatch):
+    """POST /api/listings/score should update matching listings and commit."""
+    listings = [make_db_listing("l-1"), make_db_listing("l-2")]
+    pref_result = MagicMock()
+    pref_result.scalar_one_or_none.return_value = make_preference()
+    listing_result = MagicMock()
+    listing_result.scalars.return_value.all.return_value = listings
+    session = AsyncMock()
+    session.execute = AsyncMock(side_effect=[pref_result, listing_result])
+    session.commit = AsyncMock()
+
+    async def _dep():
+        yield session
+
+    class FakeScorer:
+        async def score_batch(self, rows, preference):
+            for row in rows:
+                row.score = 0.8
+                row.score_explanation = f"Scored for {preference.city}"
+
+    import doormat.api.routers.listings as listings_router
+
+    monkeypatch.setattr(listings_router, "ListingScorer", FakeScorer)
+    app.dependency_overrides[get_db] = _dep
+
+    try:
+        with TestClient(app) as client:
+            resp = client.post("/api/listings/score", json={"preference_id": "pref-1"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    assert resp.json()["scored_count"] == 2
+    assert listings[0].score == 0.8
+    session.commit.assert_awaited_once()
+
+
 def test_get_listings_filters_by_max_price():
     """GET /api/listings?max_price=1600 should apply price filter."""
     listings = [make_db_listing("l-1", price=1500.0)]
@@ -152,4 +224,4 @@ def test_get_listings_filters_by_max_price():
 
     assert resp.status_code == 200
     data = resp.json()
-    assert all(l["price"] <= 1600 for l in data)
+    assert all(listing["price"] <= 1600 for listing in data)

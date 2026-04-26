@@ -5,10 +5,13 @@ export default function Home() {
   return (
     <div className="space-y-10 max-w-3xl">
       <div className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight">🚪 Doormat</h1>
+        <p className="text-sm font-medium uppercase tracking-[0.22em] text-muted-foreground">
+          AI rental intelligence
+        </p>
+        <h1 className="text-4xl font-bold tracking-tight">Doormat</h1>
         <p className="text-xl text-muted-foreground">
           AI-powered rental finder. Discovers property managers, extracts listings,
-          and scores them against your preferences — automatically.
+          and scores them against your preferences automatically.
         </p>
         <div className="flex gap-3 pt-2">
           <Link
@@ -29,7 +32,7 @@ export default function Home() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">🔍 Discovery</CardTitle>
+            <CardTitle className="text-base">Discovery</CardTitle>
           </CardHeader>
           <CardContent>
             <CardDescription>
@@ -39,7 +42,7 @@ export default function Home() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">📄 Extraction</CardTitle>
+            <CardTitle className="text-base">Extraction</CardTitle>
           </CardHeader>
           <CardContent>
             <CardDescription>
@@ -49,7 +52,7 @@ export default function Home() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">⭐ Scoring</CardTitle>
+            <CardTitle className="text-base">Scoring</CardTitle>
           </CardHeader>
           <CardContent>
             <CardDescription>

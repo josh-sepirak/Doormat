@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
@@ -20,24 +19,36 @@ interface Preference {
 }
 
 async function fetchPreferences(): Promise<Preference[]> {
-  const res = await fetch(`${API_BASE}/api/preferences`);
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/preferences`);
+    if (!res.ok) throw new Error(`Backend returned ${res.status}`);
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 async function createPreference(description: string, city: string): Promise<Preference | null> {
-  const res = await fetch(`${API_BASE}/api/preferences`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ description, city }),
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/preferences`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description, city }),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 async function deletePreference(id: string): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/api/preferences/${id}`, { method: "DELETE" });
-  return res.ok;
+  try {
+    const res = await fetch(`${API_BASE}/api/preferences/${id}`, { method: "DELETE" });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export default function PreferencesPage() {
@@ -45,10 +56,14 @@ export default function PreferencesPage() {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPreferences().then(setPreferences);
+    void fetchPreferences().then((items) => {
+      setPreferences(items);
+      setLoading(false);
+    });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,8 +86,13 @@ export default function PreferencesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    const previous = preferences;
+    setPreferences((prev) => prev.filter((p) => p.id !== id));
     const ok = await deletePreference(id);
-    if (ok) setPreferences((prev) => prev.filter((p) => p.id !== id));
+    if (!ok) {
+      setPreferences(previous);
+      setError("Failed to delete preference.");
+    }
   };
 
   return (
@@ -113,6 +133,7 @@ export default function PreferencesPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 required
                 minLength={10}
+                maxLength={1000}
                 rows={4}
               />
               <p className="text-xs text-muted-foreground">{description.length}/1000 characters</p>
@@ -155,6 +176,12 @@ export default function PreferencesPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {!loading && preferences.length === 0 && (
+        <div className="rounded-2xl border border-dashed bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+          Saved preferences will appear here and drive listing scoring.
         </div>
       )}
     </div>

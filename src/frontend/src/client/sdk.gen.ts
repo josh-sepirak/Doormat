@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CityStatusApiDiscoveryCitiesCityStatusGetData, CityStatusApiDiscoveryCitiesCityStatusGetErrors, CityStatusApiDiscoveryCitiesCityStatusGetResponses, GetCostsApiCostsGetData, GetCostsApiCostsGetResponses, GetListingApiListingsListingIdGetData, GetListingApiListingsListingIdGetErrors, GetListingApiListingsListingIdGetResponses, GetListingsApiListingsGetData, GetListingsApiListingsGetErrors, GetListingsApiListingsGetResponses, GetMetricsMetricsGetData, GetMetricsMetricsGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListManagersApiDiscoveryCitiesCityManagersGetData, ListManagersApiDiscoveryCitiesCityManagersGetErrors, ListManagersApiDiscoveryCitiesCityManagersGetResponses, RootGetData, RootGetResponses, StreamListingsApiListingsStreamGetData, StreamListingsApiListingsStreamGetResponses, ToggleSaveListingApiListingsListingIdSavePostData, ToggleSaveListingApiListingsListingIdSavePostErrors, ToggleSaveListingApiListingsListingIdSavePostResponses, TriggerDiscoveryApiDiscoveryCitiesCityPostData, TriggerDiscoveryApiDiscoveryCitiesCityPostErrors, TriggerDiscoveryApiDiscoveryCitiesCityPostResponses, TriggerExtractionExtractionTriggerPostData, TriggerExtractionExtractionTriggerPostErrors, TriggerExtractionExtractionTriggerPostResponses } from './types.gen';
+import type { CityStatusApiDiscoveryCitiesCityStatusGetData, CityStatusApiDiscoveryCitiesCityStatusGetErrors, CityStatusApiDiscoveryCitiesCityStatusGetResponses, CreatePreferenceApiPreferencesPostData, CreatePreferenceApiPreferencesPostErrors, CreatePreferenceApiPreferencesPostResponses, DeletePreferenceApiPreferencesPreferenceIdDeleteData, DeletePreferenceApiPreferencesPreferenceIdDeleteErrors, DeletePreferenceApiPreferencesPreferenceIdDeleteResponses, GetCostsApiCostsGetData, GetCostsApiCostsGetResponses, GetListingApiListingsListingIdGetData, GetListingApiListingsListingIdGetErrors, GetListingApiListingsListingIdGetResponses, GetListingsApiListingsGetData, GetListingsApiListingsGetErrors, GetListingsApiListingsGetResponses, GetMetricsMetricsGetData, GetMetricsMetricsGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListManagersApiDiscoveryCitiesCityManagersGetData, ListManagersApiDiscoveryCitiesCityManagersGetErrors, ListManagersApiDiscoveryCitiesCityManagersGetResponses, ListPreferencesApiPreferencesGetData, ListPreferencesApiPreferencesGetResponses, RootGetData, RootGetResponses, ScoreListingsApiListingsScorePostData, ScoreListingsApiListingsScorePostErrors, ScoreListingsApiListingsScorePostResponses, StreamListingsApiListingsStreamGetData, StreamListingsApiListingsStreamGetResponses, ToggleSaveListingApiListingsListingIdSavePostData, ToggleSaveListingApiListingsListingIdSavePostErrors, ToggleSaveListingApiListingsListingIdSavePostResponses, TriggerDiscoveryApiDiscoveryCitiesCityPostData, TriggerDiscoveryApiDiscoveryCitiesCityPostErrors, TriggerDiscoveryApiDiscoveryCitiesCityPostResponses, TriggerExtractionExtractionTriggerPostData, TriggerExtractionExtractionTriggerPostErrors, TriggerExtractionExtractionTriggerPostResponses, UpdatePreferenceApiPreferencesPreferenceIdPatchData, UpdatePreferenceApiPreferencesPreferenceIdPatchErrors, UpdatePreferenceApiPreferencesPreferenceIdPatchResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,20 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+/**
+ * Root
+ *
+ * Root endpoint.
+ */
+export const rootGet = <ThrowOnError extends boolean = false>(options?: Options<RootGetData, ThrowOnError>) => (options?.client ?? client).get<RootGetResponses, unknown, ThrowOnError>({ url: '/', ...options });
+
+/**
+ * Get Costs
+ *
+ * Get cost tracking summary.
+ */
+export const getCostsApiCostsGet = <ThrowOnError extends boolean = false>(options?: Options<GetCostsApiCostsGetData, ThrowOnError>) => (options?.client ?? client).get<GetCostsApiCostsGetResponses, unknown, ThrowOnError>({ url: '/api/costs', ...options });
 
 /**
  * Trigger Discovery
@@ -47,12 +61,19 @@ export const listManagersApiDiscoveryCitiesCityManagersGet = <ThrowOnError exten
 export const cityStatusApiDiscoveryCitiesCityStatusGet = <ThrowOnError extends boolean = false>(options: Options<CityStatusApiDiscoveryCitiesCityStatusGetData, ThrowOnError>) => (options.client ?? client).get<CityStatusApiDiscoveryCitiesCityStatusGetResponses, CityStatusApiDiscoveryCitiesCityStatusGetErrors, ThrowOnError>({ url: '/api/discovery/cities/{city}/status', ...options });
 
 /**
- * Trigger Extraction
+ * Get Listings
  *
- * Trigger a manual extraction job.
+ * Return paginated, filterable listings.
  */
-export const triggerExtractionExtractionTriggerPost = <ThrowOnError extends boolean = false>(options: Options<TriggerExtractionExtractionTriggerPostData, ThrowOnError>) => (options.client ?? client).post<TriggerExtractionExtractionTriggerPostResponses, TriggerExtractionExtractionTriggerPostErrors, ThrowOnError>({
-    url: '/extraction/trigger',
+export const getListingsApiListingsGet = <ThrowOnError extends boolean = false>(options?: Options<GetListingsApiListingsGetData, ThrowOnError>) => (options?.client ?? client).get<GetListingsApiListingsGetResponses, GetListingsApiListingsGetErrors, ThrowOnError>({ url: '/api/listings', ...options });
+
+/**
+ * Score Listings
+ *
+ * Score persisted listings against a saved preference.
+ */
+export const scoreListingsApiListingsScorePost = <ThrowOnError extends boolean = false>(options: Options<ScoreListingsApiListingsScorePostData, ThrowOnError>) => (options.client ?? client).post<ScoreListingsApiListingsScorePostResponses, ScoreListingsApiListingsScorePostErrors, ThrowOnError>({
+    url: '/api/listings/score',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -61,11 +82,11 @@ export const triggerExtractionExtractionTriggerPost = <ThrowOnError extends bool
 });
 
 /**
- * Get Listings
+ * Stream Listings
  *
- * Return paginated, filterable listings.
+ * SSE stream — push new listings as they arrive.
  */
-export const getListingsApiListingsGet = <ThrowOnError extends boolean = false>(options?: Options<GetListingsApiListingsGetData, ThrowOnError>) => (options?.client ?? client).get<GetListingsApiListingsGetResponses, GetListingsApiListingsGetErrors, ThrowOnError>({ url: '/api/listings', ...options });
+export const streamListingsApiListingsStreamGet = <ThrowOnError extends boolean = false>(options?: Options<StreamListingsApiListingsStreamGetData, ThrowOnError>) => (options?.client ?? client).get<StreamListingsApiListingsStreamGetResponses, unknown, ThrowOnError>({ url: '/api/listings/stream', ...options });
 
 /**
  * Get Listing
@@ -82,11 +103,60 @@ export const getListingApiListingsListingIdGet = <ThrowOnError extends boolean =
 export const toggleSaveListingApiListingsListingIdSavePost = <ThrowOnError extends boolean = false>(options: Options<ToggleSaveListingApiListingsListingIdSavePostData, ThrowOnError>) => (options.client ?? client).post<ToggleSaveListingApiListingsListingIdSavePostResponses, ToggleSaveListingApiListingsListingIdSavePostErrors, ThrowOnError>({ url: '/api/listings/{listing_id}/save', ...options });
 
 /**
- * Stream Listings
+ * List Preferences
  *
- * SSE stream — push new listings as they arrive.
+ * Return saved search preferences, newest first.
  */
-export const streamListingsApiListingsStreamGet = <ThrowOnError extends boolean = false>(options?: Options<StreamListingsApiListingsStreamGetData, ThrowOnError>) => (options?.client ?? client).get<StreamListingsApiListingsStreamGetResponses, unknown, ThrowOnError>({ url: '/api/listings/stream', ...options });
+export const listPreferencesApiPreferencesGet = <ThrowOnError extends boolean = false>(options?: Options<ListPreferencesApiPreferencesGetData, ThrowOnError>) => (options?.client ?? client).get<ListPreferencesApiPreferencesGetResponses, unknown, ThrowOnError>({ url: '/api/preferences', ...options });
+
+/**
+ * Create Preference
+ *
+ * Create a natural-language search preference.
+ */
+export const createPreferenceApiPreferencesPost = <ThrowOnError extends boolean = false>(options: Options<CreatePreferenceApiPreferencesPostData, ThrowOnError>) => (options.client ?? client).post<CreatePreferenceApiPreferencesPostResponses, CreatePreferenceApiPreferencesPostErrors, ThrowOnError>({
+    url: '/api/preferences',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Preference
+ *
+ * Delete a saved search preference.
+ */
+export const deletePreferenceApiPreferencesPreferenceIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeletePreferenceApiPreferencesPreferenceIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeletePreferenceApiPreferencesPreferenceIdDeleteResponses, DeletePreferenceApiPreferencesPreferenceIdDeleteErrors, ThrowOnError>({ url: '/api/preferences/{preference_id}', ...options });
+
+/**
+ * Update Preference
+ *
+ * Update an existing search preference.
+ */
+export const updatePreferenceApiPreferencesPreferenceIdPatch = <ThrowOnError extends boolean = false>(options: Options<UpdatePreferenceApiPreferencesPreferenceIdPatchData, ThrowOnError>) => (options.client ?? client).patch<UpdatePreferenceApiPreferencesPreferenceIdPatchResponses, UpdatePreferenceApiPreferencesPreferenceIdPatchErrors, ThrowOnError>({
+    url: '/api/preferences/{preference_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Trigger Extraction
+ *
+ * Trigger a manual extraction job.
+ */
+export const triggerExtractionExtractionTriggerPost = <ThrowOnError extends boolean = false>(options: Options<TriggerExtractionExtractionTriggerPostData, ThrowOnError>) => (options.client ?? client).post<TriggerExtractionExtractionTriggerPostResponses, TriggerExtractionExtractionTriggerPostErrors, ThrowOnError>({
+    url: '/extraction/trigger',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Health Check
@@ -96,22 +166,8 @@ export const streamListingsApiListingsStreamGet = <ThrowOnError extends boolean 
 export const healthCheckHealthGet = <ThrowOnError extends boolean = false>(options?: Options<HealthCheckHealthGetData, ThrowOnError>) => (options?.client ?? client).get<HealthCheckHealthGetResponses, unknown, ThrowOnError>({ url: '/health', ...options });
 
 /**
- * Root
- *
- * Root endpoint.
- */
-export const rootGet = <ThrowOnError extends boolean = false>(options?: Options<RootGetData, ThrowOnError>) => (options?.client ?? client).get<RootGetResponses, unknown, ThrowOnError>({ url: '/', ...options });
-
-/**
  * Get Metrics
  *
  * Prometheus metrics endpoint.
  */
 export const getMetricsMetricsGet = <ThrowOnError extends boolean = false>(options?: Options<GetMetricsMetricsGetData, ThrowOnError>) => (options?.client ?? client).get<GetMetricsMetricsGetResponses, unknown, ThrowOnError>({ url: '/metrics', ...options });
-
-/**
- * Get Costs
- *
- * Get cost tracking summary.
- */
-export const getCostsApiCostsGet = <ThrowOnError extends boolean = false>(options?: Options<GetCostsApiCostsGetData, ThrowOnError>) => (options?.client ?? client).get<GetCostsApiCostsGetResponses, unknown, ThrowOnError>({ url: '/api/costs', ...options });
