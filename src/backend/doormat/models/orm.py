@@ -108,6 +108,9 @@ class Listing(Base):
     tier1_cost: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     tier2_cost: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     validation_passed: Mapped[bool] = mapped_column(Boolean, default=False)
+    score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    score_explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    saved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     property_manager: Mapped[PropertyManager] = relationship(back_populates="listings")

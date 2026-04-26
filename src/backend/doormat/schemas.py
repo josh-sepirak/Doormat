@@ -127,6 +127,9 @@ class ListingResponse(BaseModel):
     tier1_cost: Optional[float] = None
     tier2_cost: Optional[float] = None
     validation_passed: bool
+    score: Optional[float] = None
+    score_explanation: Optional[str] = None
+    saved: bool = False
 
 
 class ListingFilterParams(BaseModel):
