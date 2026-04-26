@@ -45,11 +45,19 @@ class StrategyCache:
 
         current_strategy = await self.get(property_manager_id)
 
-        # Build the new strategy JSON
+        # Build the new strategy JSON.
         if current_strategy:
-            current_data = json.loads(current_strategy.strategy_json)
+            try:
+                current_data = json.loads(current_strategy.strategy_json)
+            except json.JSONDecodeError:
+                logger.warning(
+                    "strategy_json_corrupt",
+                    property_manager_id=property_manager_id,
+                    strategy_id=current_strategy.id,
+                )
+                current_data = _empty_strategy_data()
         else:
-            current_data = {"field_selectors": {}, "pre_extraction_actions": [], "notes": ""}
+            current_data = _empty_strategy_data()
 
         current_data["field_selectors"].update(update.field_selectors)
         if update.pre_extraction_actions:
@@ -101,3 +109,8 @@ class StrategyCache:
         await self._session.commit()
         logger.warning("strategy_merge_failed_validation", property_manager_id=property_manager_id)
         return False
+
+
+def _empty_strategy_data() -> dict[str, object]:
+    """Return the canonical serialized strategy shape."""
+    return {"field_selectors": {}, "pre_extraction_actions": [], "notes": ""}

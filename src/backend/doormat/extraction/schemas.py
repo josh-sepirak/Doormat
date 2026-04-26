@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 from doormat.schemas import PetsPolicy
 
@@ -61,11 +61,13 @@ class StrategyUpdate(BaseModel):
 
     field_selectors: dict[str, str] = Field(
         default_factory=dict,
+        max_length=12,
         description="CSS or XPath selectors per field name. "
         "Example: {'rent': 'dd.price', 'bedrooms': '.beds-baths .beds'}",
     )
     pre_extraction_actions: list[str] = Field(
         default_factory=list,
+        max_length=10,
         description="Click/scroll actions needed before extraction. "
         "Example: ['click .show-all-amenities', 'scroll down 800']",
     )
@@ -75,6 +77,26 @@ class StrategyUpdate(BaseModel):
         description="Free-form notes about the source's quirks, for the next "
         "engineer (or the agent) reviewing this strategy.",
     )
+
+    @field_validator("field_selectors")
+    @classmethod
+    def validate_field_selector_keys(cls, value: dict[str, str]) -> dict[str, str]:
+        """Restrict strategy patches to fields the extractor actually understands."""
+        allowed_fields = {
+            "address",
+            "rent",
+            "bedrooms",
+            "bathrooms",
+            "sqft",
+            "pets_policy",
+            "amenities",
+            "photos",
+            "description",
+        }
+        unknown = sorted(set(value) - allowed_fields)
+        if unknown:
+            raise ValueError(f"unknown strategy field selector keys: {unknown}")
+        return value
 
 
 class ListingExtractionResult(BaseModel):

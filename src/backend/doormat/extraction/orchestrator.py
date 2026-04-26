@@ -28,13 +28,13 @@ async def extract_listing(
     strategy_cache = StrategyCache(session)
     strategy = await strategy_cache.get(source_id)
 
-    # Mode A: trust the cached strategy (or attempt extraction if none exists yet)
+    # Mode A: trust the cached strategy (or attempt extraction if none exists yet).
     result = await run_mode_a(html, url, source_id, strategy)
 
-    if result.confidence != "low":
+    if _is_persistable_result(result):
         return await _save_listing(session, result, property_manager, url)
 
-    # Mode A failed or confidence is low — escalate to Mode B
+    # Mode A failed quality gates; escalate to Mode B with concrete failure context.
     logger.info("extraction_escalating_to_mode_b", source_id=source_id, url=url)
 
     # Provide the prior failure context to Mode B
@@ -50,7 +50,17 @@ async def extract_listing(
         # We don't have a listing ID yet, but we'll merge it.
         await strategy_cache.merge(source_id, mode_b_result.strategy_update)
 
-    return await _save_listing(session, mode_b_result, property_manager, url)
+    if _is_persistable_result(mode_b_result):
+        return await _save_listing(session, mode_b_result, property_manager, url)
+
+    logger.warning(
+        "extraction_not_persisted_low_quality",
+        source_id=source_id,
+        url=url,
+        confidence=mode_b_result.confidence,
+        missing_fields=_identify_missing_fields(mode_b_result.listing),
+    )
+    return mode_b_result
 
 
 def _identify_missing_fields(listing: ExtractedListing) -> list[str]:
@@ -63,6 +73,14 @@ def _identify_missing_fields(listing: ExtractedListing) -> list[str]:
     if listing.bedrooms == 0:
         missing.append("bedrooms")
     return missing
+
+
+def _is_persistable_result(result: ListingExtractionResult) -> bool:
+    """Return True when an extraction is good enough to become user-facing data."""
+    if result.confidence == "low":
+        return False
+    missing = set(_identify_missing_fields(result.listing))
+    return "rent" not in missing and "address" not in missing
 
 
 async def _save_listing(
