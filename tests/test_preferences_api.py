@@ -15,6 +15,7 @@ def make_preference(preference_id: str = "pref-1") -> Preference:
         id=preference_id,
         description="2BR pet-friendly apartment under $2000",
         city="Austin",
+        api_provider="openrouter",
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
     )

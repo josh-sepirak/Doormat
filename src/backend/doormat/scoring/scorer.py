@@ -45,7 +45,7 @@ class ListingScorer:
                     {"role": "user", "content": user_content},
                 ],
                 response_model=ListingScore,
-                model="openai/gpt-4o-mini",
+                model="google/gemma-4-31b-it:free",
                 max_tokens=300,
                 temperature=0.0,
             )

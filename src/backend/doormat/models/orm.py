@@ -17,6 +17,9 @@ class Preference(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)  # Natural language
     city: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    api_provider: Mapped[str] = mapped_column(String(50), default="openrouter")
+    openrouter_api_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    apify_api_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )

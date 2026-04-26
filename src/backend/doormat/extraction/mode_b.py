@@ -135,7 +135,7 @@ async def run_mode_b(
     url: str,
     source_id: str,
     prior_failure: dict[str, Any],
-    model: str = "openai/gpt-4o",
+    model: str = "google/gemma-4-31b-it:free",
 ) -> ListingExtractionResult:
     """Run Mode B agentic recovery extraction using Browser-Use."""
     logger.info("extraction_mode_b_start", source_id=source_id, url=url)

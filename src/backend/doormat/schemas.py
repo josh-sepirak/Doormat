@@ -16,6 +16,9 @@ class PreferenceCreate(BaseModel):
 
     description: str = Field(..., min_length=10, max_length=1000)
     city: str = Field(..., min_length=2, max_length=100)
+    api_provider: str = Field(default="openrouter")
+    openrouter_api_key: Optional[str] = Field(None)
+    apify_api_token: Optional[str] = Field(None)
 
 
 class PreferenceUpdate(BaseModel):
@@ -23,6 +26,9 @@ class PreferenceUpdate(BaseModel):
 
     description: Optional[str] = Field(None, min_length=10, max_length=1000)
     city: Optional[str] = Field(None, min_length=2, max_length=100)
+    api_provider: Optional[str] = Field(None)
+    openrouter_api_key: Optional[str] = Field(None)
+    apify_api_token: Optional[str] = Field(None)
 
 
 class PreferenceResponse(BaseModel):
@@ -33,6 +39,9 @@ class PreferenceResponse(BaseModel):
     id: str
     description: str
     city: str
+    api_provider: str
+    openrouter_api_key: Optional[str] = None
+    apify_api_token: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

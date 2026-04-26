@@ -107,7 +107,7 @@ async def _save_listing(
         photos=json.dumps([str(p) for p in listing_data.photos]),
         description=listing_data.description,
         extraction_timestamp=datetime.now(UTC),
-        extraction_model="gpt-4o-mini" if result.mode == "A" else "gpt-4o",
+        extraction_model="google/gemma-4-31b-it:free",
         validation_passed=(result.confidence == "high"),
     )
 

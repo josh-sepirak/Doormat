@@ -20,7 +20,7 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-DEFAULT_MODEL = "openai/gpt-4o-mini"
+DEFAULT_MODEL = "google/gemma-4-31b-it:free"
 
 
 class LLMClient:
@@ -119,8 +119,16 @@ class LLMClient:
 _CLIENT_SINGLETON: Optional[LLMClient] = None
 
 
-def get_llm_client() -> LLMClient:
-    """Return the process-wide LLMClient singleton."""
+def get_llm_client(api_key: Optional[str] = None) -> LLMClient:
+    """Return an LLMClient.
+
+    If *api_key* is provided (e.g. from a user's stored preference), a fresh
+    client is created with that key.  Otherwise the process-wide singleton
+    backed by the .env OPENROUTER_API_KEY is returned.
+    """
+    if api_key:
+        return LLMClient(api_key=api_key)
+
     global _CLIENT_SINGLETON
     if _CLIENT_SINGLETON is None:
         _CLIENT_SINGLETON = LLMClient()

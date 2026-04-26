@@ -30,7 +30,7 @@ Bias toward locally-active mid-size PMs over national portals. Avoid aggregators
 Return between 5 and 15 candidates.
 """
 
-DEFAULT_SEARCH_MODEL = "openai/gpt-4o-mini"
+DEFAULT_SEARCH_MODEL = "google/gemma-4-31b-it:free"
 
 
 class _SearchCandidate(BaseModel):

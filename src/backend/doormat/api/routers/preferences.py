@@ -34,6 +34,9 @@ async def create_preference(body: PreferenceCreate, session: DbSession) -> Prefe
         id=str(uuid.uuid4()),
         description=body.description.strip(),
         city=body.city.strip(),
+        api_provider=body.api_provider,
+        openrouter_api_key=body.openrouter_api_key,
+        apify_api_token=body.apify_api_token,
         created_at=now,
         updated_at=now,
     )
@@ -60,6 +63,12 @@ async def update_preference(
         preference.description = body.description.strip()
     if body.city is not None:
         preference.city = body.city.strip()
+    if body.api_provider is not None:
+        preference.api_provider = body.api_provider
+    if body.openrouter_api_key is not None:
+        preference.openrouter_api_key = body.openrouter_api_key
+    if body.apify_api_token is not None:
+        preference.apify_api_token = body.apify_api_token
     preference.updated_at = datetime.now(UTC)
 
     await session.commit()

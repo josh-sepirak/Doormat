@@ -232,3 +232,6 @@ logs/
 .vscode/
 *.swp
 *.swo
+
+# Template downloads
+tailwind-plus-salient/

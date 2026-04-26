@@ -85,7 +85,7 @@ async def run_mode_a(
     url: str,
     source_id: str,
     strategy: ExtractionStrategy | None,
-    model: str = "openai/gpt-4o-mini",
+    model: str = "google/gemma-4-31b-it:free",
 ) -> ListingExtractionResult:
     """Run Mode A deterministic extraction against raw HTML.
 

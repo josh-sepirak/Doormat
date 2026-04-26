@@ -31,7 +31,7 @@ Output:
 - confidence: 0.0 to 1.0 - your certainty.
 """
 
-DEFAULT_CLASSIFIER_MODEL = "openai/gpt-4o-mini"
+DEFAULT_CLASSIFIER_MODEL = "google/gemma-4-31b-it:free"
 
 
 class PropertyManagerClassifier:
