@@ -2,11 +2,13 @@
 
 import json
 from typing import Any
+from urllib.parse import urlparse
 
 import structlog
 
 from doormat.config import settings
-from doormat.extraction.schemas import ListingExtractionResult
+from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
+from doormat.schemas import PetsPolicy
 
 logger = structlog.get_logger(__name__)
 
@@ -106,6 +108,29 @@ except ImportError:
     BROWSER_USE_AVAILABLE = False
 
 
+def _low_confidence_result(reason: str) -> ListingExtractionResult:
+    """Return a structured failure result without persisting guessed data."""
+    return ListingExtractionResult(
+        reasoning=reason,
+        listing=ExtractedListing(
+            address="Unknown - see source URL",
+            rent=0,
+            bedrooms=0,
+            bathrooms=0,
+            pets_policy=PetsPolicy.UNKNOWN,
+            description="",
+        ),
+        confidence="low",
+        mode="B",
+    )
+
+
+def _allowed_domains(url: str) -> list[str]:
+    """Restrict Browser-Use navigation to the listing host."""
+    host = urlparse(url).netloc.lower()
+    return [host] if host else []
+
+
 async def run_mode_b(
     url: str,
     source_id: str,
@@ -117,23 +142,11 @@ async def run_mode_b(
 
     if not BROWSER_USE_AVAILABLE:
         logger.warning("browser_use_unavailable_for_mode_b", source_id=source_id)
-        # Graceful degrade for local environments missing dependencies
-        from doormat.extraction.schemas import ExtractedListing
-        from doormat.schemas import PetsPolicy
+        return _low_confidence_result("browser-use not available locally")
 
-        return ListingExtractionResult(
-            reasoning="browser-use not available locally",
-            listing=ExtractedListing(
-                address="Unknown — see source URL",
-                rent=0,
-                bedrooms=0,
-                bathrooms=0,
-                pets_policy=PetsPolicy.UNKNOWN,
-                description="",
-            ),
-            confidence="low",
-            mode="B",
-        )
+    if not settings.OPENROUTER_API_KEY:
+        logger.warning("mode_b_missing_openrouter_key", source_id=source_id)
+        return _low_confidence_result("OPENROUTER_API_KEY is not configured")
 
     llm = ChatLiteLLM(
         model=model,
@@ -142,7 +155,7 @@ async def run_mode_b(
         temperature=0.0,
     )
 
-    browser_session = BrowserSession(headless=True)
+    browser_session = BrowserSession(headless=True, allowed_domains=_allowed_domains(url))
 
     task_prompt = USER_TEMPLATE.format(
         source=source_id,
