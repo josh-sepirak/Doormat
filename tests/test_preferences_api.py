@@ -128,9 +128,7 @@ def test_preferences_require_bearer_when_configured(monkeypatch):
     try:
         with TestClient(app) as client:
             missing = client.get("/api/preferences")
-            allowed = client.get(
-                "/api/preferences", headers={"Authorization": "Bearer test-token"}
-            )
+            allowed = client.get("/api/preferences", headers={"Authorization": "Bearer test-token"})
     finally:
         app.dependency_overrides.clear()
 

@@ -127,7 +127,6 @@ async def get_metrics() -> PlainTextResponse:
     return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
-
 if __name__ == "__main__":
     import uvicorn
 

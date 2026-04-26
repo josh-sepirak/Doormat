@@ -91,9 +91,9 @@ async def cost_summary(
         func.coalesce(func.sum(Cost.cost_usd), 0.0).label("total_cost"),
         func.count(Cost.id).label("total_calls"),
         func.coalesce(func.sum(Cost.tokens_in + Cost.tokens_out), 0).label("total_tokens"),
-        func.coalesce(
-            func.sum(case((Cost.cache_hit.is_(True), 1), else_=0)), 0
-        ).label("cache_hits"),
+        func.coalesce(func.sum(case((Cost.cache_hit.is_(True), 1), else_=0)), 0).label(
+            "cache_hits"
+        ),
     )
     stmt = stmt.where(Cost.component != "model_catalog")
 
@@ -136,12 +136,16 @@ async def costs_by_component(
     end: Optional[str] = Query(None),
 ) -> list[CostGroupedEntry]:
     """Return costs grouped by component (discovery, extraction, scoring)."""
-    stmt = select(
-        Cost.component,
-        func.sum(Cost.cost_usd).label("cost_usd"),
-        func.count(Cost.id).label("call_count"),
-        func.sum(Cost.tokens_in + Cost.tokens_out).label("tokens_total"),
-    ).where(Cost.component != "model_catalog").group_by(Cost.component)
+    stmt = (
+        select(
+            Cost.component,
+            func.sum(Cost.cost_usd).label("cost_usd"),
+            func.count(Cost.id).label("call_count"),
+            func.sum(Cost.tokens_in + Cost.tokens_out).label("tokens_total"),
+        )
+        .where(Cost.component != "model_catalog")
+        .group_by(Cost.component)
+    )
 
     start_dt = _parse_date(start)
     end_dt = _parse_date(end)
@@ -174,12 +178,16 @@ async def costs_by_model(
     end: Optional[str] = Query(None),
 ) -> list[CostGroupedEntry]:
     """Return costs grouped by LLM model."""
-    stmt = select(
-        Cost.model,
-        func.sum(Cost.cost_usd).label("cost_usd"),
-        func.count(Cost.id).label("call_count"),
-        func.sum(Cost.tokens_in + Cost.tokens_out).label("tokens_total"),
-    ).where(Cost.component != "model_catalog").group_by(Cost.model)
+    stmt = (
+        select(
+            Cost.model,
+            func.sum(Cost.cost_usd).label("cost_usd"),
+            func.count(Cost.id).label("call_count"),
+            func.sum(Cost.tokens_in + Cost.tokens_out).label("tokens_total"),
+        )
+        .where(Cost.component != "model_catalog")
+        .group_by(Cost.model)
+    )
 
     start_dt = _parse_date(start)
     end_dt = _parse_date(end)

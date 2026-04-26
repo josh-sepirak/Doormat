@@ -31,7 +31,6 @@ Return between 5 and 15 candidates.
 """
 
 
-
 class _SearchCandidate(BaseModel):
     """Internal Pydantic shape used as LLM response_model."""
 

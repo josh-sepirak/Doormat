@@ -144,9 +144,7 @@ def reset_discovery_rate_limits() -> None:
     _discovery_request_times.clear()
 
 
-def _build_run_response(
-    run: DiscoveryRun, logs: list[DiscoveryRunLog]
-) -> DiscoveryRunResponse:
+def _build_run_response(run: DiscoveryRun, logs: list[DiscoveryRunLog]) -> DiscoveryRunResponse:
     """Build response dict without triggering SQLAlchemy lazy loads."""
     return DiscoveryRunResponse.model_validate(
         {
@@ -240,9 +238,7 @@ async def _record_discovery_success(
 # ─── Main trigger (what the frontend calls) ──────────────────────────────────
 
 
-async def _run_discovery_background(
-    run_id: str, city: str, preference_id: str | None
-) -> None:
+async def _run_discovery_background(run_id: str, city: str, preference_id: str | None) -> None:
     """Background task: runs discovery pipeline, updates run record, commits logs live."""
     run_logger = RunLogger(run_id=run_id)
     await run_logger.info(f"Starting discovery for {city}")
@@ -313,11 +309,7 @@ async def list_runs(
     limit: int = 20,
 ) -> list[DiscoveryRunResponse]:
     """List recent discovery runs, newest first."""
-    stmt = (
-        select(DiscoveryRun)
-        .order_by(DiscoveryRun.started_at.desc())
-        .limit(min(limit, 100))
-    )
+    stmt = select(DiscoveryRun).order_by(DiscoveryRun.started_at.desc()).limit(min(limit, 100))
     runs = (await session.execute(stmt)).scalars().all()
 
     result = []

@@ -76,7 +76,9 @@ def test_models_endpoint_uses_post_body_not_query_string(monkeypatch):
     try:
         with TestClient(app) as client:
             get_resp = client.get("/api/openrouter/models?key=test-openrouter-secret")
-            post_resp = client.post("/api/openrouter/models", json={"key": "test-openrouter-secret"})
+            post_resp = client.post(
+                "/api/openrouter/models", json={"key": "test-openrouter-secret"}
+            )
     finally:
         app.dependency_overrides.clear()
 

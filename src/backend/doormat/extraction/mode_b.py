@@ -146,9 +146,7 @@ def _token_usage_from_history(history: Any) -> tuple[int, int]:
             return (0, 0)
         visited.add(value_id)
 
-        prompt_tokens = _extract_token_count(
-            value, "prompt_tokens", "input_tokens", "tokens_in"
-        )
+        prompt_tokens = _extract_token_count(value, "prompt_tokens", "input_tokens", "tokens_in")
         completion_tokens = _extract_token_count(
             value, "completion_tokens", "output_tokens", "tokens_out"
         )

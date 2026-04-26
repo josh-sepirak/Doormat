@@ -160,9 +160,7 @@ class DiscoveryAgent:
                     component="agent",
                 )
 
-            attempt_validated = await self._classify_candidates(
-                attempt_candidates, log, run_logger
-            )
+            attempt_validated = await self._classify_candidates(attempt_candidates, log, run_logger)
             validated.extend(attempt_validated)
 
             if attempt_validated:

@@ -31,6 +31,7 @@ Output:
 - confidence: 0.0 to 1.0 - your certainty.
 """
 
+
 class PropertyManagerClassifier:
     """LLM-backed validator for DiscoveryCandidate -> ValidationResult."""
 
