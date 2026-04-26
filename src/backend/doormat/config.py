@@ -42,9 +42,13 @@ class Settings(BaseSettings):
 
     # Cost tracking
     TRACK_COSTS: bool = True
+    BUDGET_LIMIT_USD: float = 5.0
 
     # Optional bearer auth for exposed/self-hosted deployments
     AUTH_BEARER_TOKEN: str = ""
+
+    # Local encryption key for BYOK secrets stored in SQLite.
+    SECRET_KEY: str = ""
 
     # Expensive discovery endpoint protection
     DISCOVERY_RATE_LIMIT_PER_MINUTE: int = 10

@@ -12,6 +12,7 @@ import clsx from 'clsx'
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
 import { NavLink } from '@/components/NavLink'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 function MobileNavLink({
   href,
@@ -73,6 +74,7 @@ function MobileNavigation() {
       >
         <MobileNavLink href="/">Dashboard</MobileNavLink>
         <MobileNavLink href="/listings">Listings</MobileNavLink>
+        <MobileNavLink href="/costs">Costs</MobileNavLink>
         <MobileNavLink href="/preferences">Preferences</MobileNavLink>
       </PopoverPanel>
     </Popover>
@@ -94,10 +96,12 @@ export function Header() {
             <div className="hidden md:flex md:gap-x-6">
               <NavLink href="/">Dashboard</NavLink>
               <NavLink href="/listings">Listings</NavLink>
+              <NavLink href="/costs">Costs</NavLink>
               <NavLink href="/preferences">Preferences</NavLink>
             </div>
           </div>
           <div className="flex items-center gap-x-5 md:gap-x-8">
+            <ThemeToggle />
             <Button href="/preferences" color="blue">
               <span>Settings</span>
             </Button>

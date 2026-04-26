@@ -58,7 +58,7 @@ async def test_scorer_returns_score_and_explanation(monkeypatch):
 
     import doormat.scoring.scorer as scorer_mod
 
-    monkeypatch.setattr(scorer_mod, "get_llm_client", lambda: FakeLLM())
+    monkeypatch.setattr(scorer_mod, "get_llm_client", lambda api_key=None: FakeLLM())
 
     scorer = ListingScorer()
     result = await scorer.score(make_listing(), make_preference())
@@ -78,7 +78,7 @@ async def test_scorer_degrades_on_llm_error(monkeypatch):
 
     import doormat.scoring.scorer as scorer_mod
 
-    monkeypatch.setattr(scorer_mod, "get_llm_client", lambda: FailingLLM())
+    monkeypatch.setattr(scorer_mod, "get_llm_client", lambda api_key=None: FailingLLM())
 
     scorer = ListingScorer()
     result = await scorer.score(make_listing(), make_preference())
@@ -86,6 +86,35 @@ async def test_scorer_degrades_on_llm_error(monkeypatch):
     assert 0.0 < result.score <= 1.0
     assert "heuristic" in result.explanation.lower()
     assert "api-key-123" not in result.explanation
+
+
+@pytest.mark.asyncio
+async def test_scorer_uses_preference_key_and_smart_model(monkeypatch):
+    """Saved OpenRouter settings should drive scoring calls."""
+    calls = {}
+
+    class FakeLLM:
+        async def complete(self, **kwargs):
+            calls.update(kwargs)
+            return ListingScore(score=0.82, explanation="Preferred model used")
+
+    import doormat.scoring.scorer as scorer_mod
+
+    def fake_get_llm_client(api_key=None):
+        calls["api_key"] = api_key
+        return FakeLLM()
+
+    monkeypatch.setattr(scorer_mod, "get_llm_client", fake_get_llm_client)
+
+    preference = make_preference()
+    preference.openrouter_api_key = "sk-or-preferred"
+    preference.smart_model = "anthropic/claude-3.5-sonnet"
+
+    result = await ListingScorer().score(make_listing(), preference)
+
+    assert result.score == 0.82
+    assert calls["api_key"] == "sk-or-preferred"
+    assert calls["model"] == "anthropic/claude-3.5-sonnet"
 
 
 def test_heuristic_score_rewards_objective_matches():

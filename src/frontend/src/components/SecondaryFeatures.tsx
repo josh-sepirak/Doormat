@@ -20,13 +20,13 @@ interface Feature {
 
 const features: Array<Feature> = [
   {
-    name: 'Reporting',
-    summary: 'Stay on top of things with always up-to-date reporting features.',
+    name: 'Run logs',
+    summary: 'Inspect discovery progress and failure reasons without digging through server output.',
     description:
-      'We talked about reporting in the section above but we needed three items here, so mentioning it one more time for posterity.',
+      'Every discovery run records structured status events so model/provider failures are visible and reviewable.',
     image: screenshotProfitLoss,
     icon: function ReportingIcon() {
-      let id = useId()
+      const id = useId()
       return (
         <>
           <defs>
@@ -54,11 +54,11 @@ const features: Array<Feature> = [
     },
   },
   {
-    name: 'Inventory',
+    name: 'Listing pipeline',
     summary:
-      'Never lose track of what’s in stock with accurate inventory tracking.',
+      'Keep extracted rentals organized with source URLs, validation state, scoring, and saved flags.',
     description:
-      'We don’t offer this as part of our software but that statement is inarguably true. Accurate inventory tracking would help you for sure.',
+      'The app treats scraped listings as data products: bounded extraction, schema validation, and user-facing filters.',
     image: screenshotInventory,
     icon: function InventoryIcon() {
       return (
@@ -82,11 +82,11 @@ const features: Array<Feature> = [
     },
   },
   {
-    name: 'Contacts',
+    name: 'Model controls',
     summary:
-      'Organize all of your contacts, service providers, and invoices in one place.',
+      'Bring your own OpenRouter key and choose separate fast and smart models per workflow.',
     description:
-      'This also isn’t actually a feature, it’s just some friendly advice. We definitely recommend that you do this, you’ll feel really organized and professional.',
+      'Model choices are stored locally, masked in API responses, and applied where cost and reasoning tradeoffs matter.',
     image: screenshotContacts,
     icon: function ContactsIcon() {
       return (

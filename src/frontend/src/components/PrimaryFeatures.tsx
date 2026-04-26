@@ -14,38 +14,38 @@ import screenshotVatReturns from '@/images/screenshots/vat-returns.png'
 
 const features = [
   {
-    title: 'Payroll',
+    title: 'Discovery',
     description:
-      "Keep track of everyone's salaries and whether or not they've been paid. Direct deposit not supported.",
+      'Find local property managers from a city prompt, then validate likely listing sources before scraping.',
     image: screenshotPayroll,
   },
   {
-    title: 'Claim expenses',
+    title: 'Extraction',
     description:
-      "All of your receipts organized into one place, as long as you don't mind typing in the data by hand.",
+      'Turn messy listing pages into structured rental data with deterministic extraction and agentic fallback.',
     image: screenshotExpenses,
   },
   {
-    title: 'VAT handling',
+    title: 'Scoring',
     description:
-      "We only sell our software to companies who don't deal with VAT at all, so technically we do all the VAT stuff they need.",
+      'Rank listings against natural-language preferences with explanations and model-cost tracking.',
     image: screenshotVatReturns,
   },
   {
-    title: 'Reporting',
+    title: 'Operations',
     description:
-      'Easily export your data into an Excel spreadsheet where you can do whatever the hell you want with it.',
+      'Monitor run logs, model spend, and saved listings from one self-hosted dashboard.',
     image: screenshotReporting,
   },
 ]
 
 export function PrimaryFeatures() {
-  let [tabOrientation, setTabOrientation] = useState<'horizontal' | 'vertical'>(
+  const [tabOrientation, setTabOrientation] = useState<'horizontal' | 'vertical'>(
     'horizontal',
   )
 
   useEffect(() => {
-    let lgMediaQuery = window.matchMedia('(min-width: 1024px)')
+    const lgMediaQuery = window.matchMedia('(min-width: 1024px)')
 
     function onMediaQueryChange({ matches }: { matches: boolean }) {
       setTabOrientation(matches ? 'vertical' : 'horizontal')

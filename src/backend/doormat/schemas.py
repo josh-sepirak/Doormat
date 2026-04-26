@@ -16,9 +16,11 @@ class PreferenceCreate(BaseModel):
 
     description: str = Field(..., min_length=10, max_length=1000)
     city: str = Field(..., min_length=2, max_length=100)
-    api_provider: str = Field(default="openrouter")
-    openrouter_api_key: Optional[str] = Field(None)
-    apify_api_token: Optional[str] = Field(None)
+    api_provider: str = Field(default="openrouter", max_length=50)
+    openrouter_api_key: Optional[str] = Field(None, max_length=255)
+    apify_api_token: Optional[str] = Field(None, max_length=255)
+    fast_model: Optional[str] = Field(None, max_length=150)
+    smart_model: Optional[str] = Field(None, max_length=150)
 
 
 class PreferenceUpdate(BaseModel):
@@ -26,9 +28,11 @@ class PreferenceUpdate(BaseModel):
 
     description: Optional[str] = Field(None, min_length=10, max_length=1000)
     city: Optional[str] = Field(None, min_length=2, max_length=100)
-    api_provider: Optional[str] = Field(None)
-    openrouter_api_key: Optional[str] = Field(None)
-    apify_api_token: Optional[str] = Field(None)
+    api_provider: Optional[str] = Field(None, max_length=50)
+    openrouter_api_key: Optional[str] = Field(None, max_length=255)
+    apify_api_token: Optional[str] = Field(None, max_length=255)
+    fast_model: Optional[str] = Field(None, max_length=150)
+    smart_model: Optional[str] = Field(None, max_length=150)
 
 
 class PreferenceResponse(BaseModel):
@@ -40,8 +44,12 @@ class PreferenceResponse(BaseModel):
     description: str
     city: str
     api_provider: str
-    openrouter_api_key: Optional[str] = None
-    apify_api_token: Optional[str] = None
+    has_openrouter_api_key: bool = False
+    openrouter_key_last4: Optional[str] = None
+    has_apify_api_token: bool = False
+    apify_token_last4: Optional[str] = None
+    fast_model: Optional[str] = None
+    smart_model: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -105,7 +113,7 @@ class ListingCreate(BaseModel):
     bathrooms: Optional[float] = None
     sqft: Optional[int] = None
     price: float = Field(..., gt=0)
-    url: str
+    url: Optional[str] = None
     pets_policy: PetsPolicy = Field(default=PetsPolicy.UNKNOWN)
     amenities: list[str] = Field(default_factory=list)
     photos: list[HttpUrl] = Field(default_factory=list)
@@ -206,6 +214,37 @@ class CostBreakdown(BaseModel):
     by_model: dict[str, float]
 
 
+class CostTimeseriesPoint(BaseModel):
+    """A single data point for cost timeseries charts."""
+
+    date: str  # YYYY-MM-DD
+    cost_usd: float
+    call_count: int
+    tokens_total: int
+
+
+class CostGroupedEntry(BaseModel):
+    """A cost entry grouped by a dimension (component, model, city)."""
+
+    group: str
+    cost_usd: float
+    call_count: int
+    tokens_total: int
+
+
+class CostSummaryResponse(BaseModel):
+    """Full cost summary with budget info."""
+
+    total_cost_usd: float
+    total_calls: int
+    total_tokens: int
+    avg_cost_per_call: float
+    cache_hit_rate: float
+    budget_limit_usd: float
+    budget_remaining_usd: float
+    budget_exceeded: bool
+
+
 # ============================================================================
 # Health
 # ============================================================================
@@ -217,3 +256,33 @@ class HealthCheck(BaseModel):
     status: str
     service: str
     version: Optional[str] = None
+
+
+# ============================================================================
+# Discovery Runs
+# ============================================================================
+
+
+class DiscoveryRunLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    sequence: int
+    level: str
+    component: str
+    message: str
+    details: Optional[str] = None
+    timestamp: datetime
+
+
+class DiscoveryRunResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    city: str
+    preference_id: Optional[str] = None
+    status: str
+    managers_found: Optional[int] = None
+    started_at: datetime
+    finished_at: Optional[datetime] = None
+    logs: list[DiscoveryRunLogResponse] = []

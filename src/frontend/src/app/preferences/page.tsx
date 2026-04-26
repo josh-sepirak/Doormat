@@ -1,38 +1,430 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Container } from '@/components/Container'
 import { Button } from '@/components/Button'
 import { TextField, SelectField } from '@/components/Fields'
+import {
+  CTX_FILTERS,
+  SORTS,
+  TIERS,
+  fmtContext,
+  fmtPrice,
+  getTier,
+  matchesCtx,
+  pill, pillOff, pillOn,
+  roleBtn, roleBtnOff, roleBtnOn, tierColors,
+  type CtxFilter,
+  type ModelInfo,
+  type Preference,
+  type SortBy,
+  type TierFilter,
+} from './model-utils'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-interface Preference {
-  id: string
-  description: string
-  city: string
-  api_provider: string
-  openrouter_api_key: string | null
-  apify_api_token: string | null
+function ModelChip({
+  label,
+  hint,
+  model,
+  onClear,
+}: {
+  label: string
+  hint: string
+  model: ModelInfo | undefined
+  onClear: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          {label}
+        </span>
+        {model && (
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label={`Remove ${label}`}
+            className="rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {model ? (
+        <div className="mt-1.5">
+          <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+            {model.name}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-400 dark:text-slate-500">
+            <span className="tabular-nums">{fmtPrice(model.prompt_price)}/1M in</span>
+            <span aria-hidden="true">·</span>
+            <span>{fmtContext(model.context_length)} ctx</span>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-1.5 text-sm text-slate-400 dark:text-slate-500">{hint}</p>
+      )}
+    </div>
+  )
+}
+
+function ModelRow({
+  model,
+  isFast,
+  isSmart,
+  onSetFast,
+  onSetSmart,
+}: {
+  model: ModelInfo
+  isFast: boolean
+  isSmart: boolean
+  onSetFast: () => void
+  onSetSmart: () => void
+}) {
+  const tier = getTier(model.prompt_price)
+  const highlighted = isFast || isSmart
+  return (
+    <div
+      className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+        highlighted
+          ? 'bg-blue-50 dark:bg-blue-950/20'
+          : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+      }`}
+      role="listitem"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span
+            className={`truncate text-sm font-medium ${
+              highlighted
+                ? 'text-blue-800 dark:text-blue-300'
+                : 'text-slate-800 dark:text-slate-200'
+            }`}
+          >
+            {model.name}
+          </span>
+          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${tierColors[tier]}`}>
+            {tier}
+          </span>
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-slate-400 dark:text-slate-500">
+          <span>{model.provider}</span>
+          <span aria-hidden="true">·</span>
+          <span className="tabular-nums">{fmtContext(model.context_length)} ctx</span>
+          <span aria-hidden="true">·</span>
+          <span className="tabular-nums">
+            {fmtPrice(model.prompt_price)} in / {fmtPrice(model.completion_price)} out
+          </span>
+        </div>
+      </div>
+      <div className="flex shrink-0 gap-1.5">
+        <button
+          type="button"
+          onClick={onSetFast}
+          aria-pressed={isFast}
+          className={`${roleBtn} ${isFast ? roleBtnOn : roleBtnOff}`}
+        >
+          Fast
+        </button>
+        <button
+          type="button"
+          onClick={onSetSmart}
+          aria-pressed={isSmart}
+          className={`${roleBtn} ${isSmart ? roleBtnOn : roleBtnOff}`}
+        >
+          Smart
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ModelPicker({
+  allModels,
+  fastModel,
+  smartModel,
+  onFastChange,
+  onSmartChange,
+}: {
+  allModels: ModelInfo[]
+  fastModel: string
+  smartModel: string
+  onFastChange: (id: string) => void
+  onSmartChange: (id: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [tierFilter, setTierFilter] = useState<TierFilter>('All')
+  const [providerFilter, setProviderFilter] = useState('All')
+  const [ctxFilter, setCtxFilter] = useState<CtxFilter>('Any')
+  const [sortBy, setSortBy] = useState<SortBy>('Cheapest')
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  const providers = useMemo(
+    () => Array.from(new Set(allModels.map((m) => m.provider))).sort(),
+    [allModels],
+  )
+
+  const filtered = useMemo(() => {
+    let list = allModels
+    if (tierFilter !== 'All') list = list.filter((m) => getTier(m.prompt_price) === tierFilter)
+    if (providerFilter !== 'All') list = list.filter((m) => m.provider === providerFilter)
+    if (ctxFilter !== 'Any') list = list.filter((m) => matchesCtx(m.context_length, ctxFilter))
+    if (query) {
+      const q = query.toLowerCase()
+      list = list.filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          m.id.toLowerCase().includes(q) ||
+          m.provider.toLowerCase().includes(q),
+      )
+    }
+    return list
+  }, [allModels, tierFilter, providerFilter, ctxFilter, query])
+
+  const sorted = useMemo(() => {
+    const list = [...filtered]
+    if (sortBy === 'Largest ctx') return list.sort((a, b) => b.context_length - a.context_length)
+    if (sortBy === 'Name A-Z') return list.sort((a, b) => a.name.localeCompare(b.name))
+    return list.sort((a, b) => a.prompt_price - b.prompt_price)
+  }, [filtered, sortBy])
+
+  useEffect(() => {
+    if (open) {
+      const t = setTimeout(() => searchRef.current?.focus(), 50)
+      return () => clearTimeout(t)
+    }
+  }, [open])
+
+  const fastInfo = allModels.find((m) => m.id === fastModel)
+  const smartInfo = allModels.find((m) => m.id === smartModel)
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ModelChip
+          label="Fast model"
+          hint="Pick a cheap model that runs frequently"
+          model={fastInfo}
+          onClear={() => onFastChange('')}
+        />
+        <ModelChip
+          label="Smart model"
+          hint="Pick a powerful model for complex tasks"
+          model={smartInfo}
+          onClear={() => onSmartChange('')}
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+      >
+        <svg
+          className="h-4 w-4 text-slate-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"
+          />
+        </svg>
+        {open ? 'Close browser' : 'Browse models'}
+        <span className="text-xs text-slate-400">({allModels.length})</span>
+      </button>
+
+      {open && (
+        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+          {(fastModel || smartModel) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-t-xl border-b border-blue-100 bg-blue-50 px-4 py-2.5 dark:border-blue-900/30 dark:bg-blue-950/20">
+              {fastModel && fastInfo && (
+                <span className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-300">
+                  <span className="font-semibold">Fast:</span>
+                  <span className="max-w-[200px] truncate">{fastInfo.name}</span>
+                </span>
+              )}
+              {smartModel && smartInfo && (
+                <span className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-300">
+                  <span className="font-semibold">Smart:</span>
+                  <span className="max-w-[200px] truncate">{smartInfo.name}</span>
+                </span>
+              )}
+            </div>
+          )}
+          <div className="flex flex-col gap-3 border-b border-slate-100 p-4 dark:border-slate-800 sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
+              <svg
+                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"
+                />
+              </svg>
+              <input
+                ref={searchRef}
+                type="search"
+                aria-label="Search models"
+                placeholder="Search by name, ID, or provider…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:bg-slate-800"
+              />
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <span className="text-xs text-slate-400">Sort:</span>
+              {SORTS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={sortBy === s}
+                  onClick={() => setSortBy(s)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                    sortBy === s
+                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                      : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3 border-b border-slate-100 p-4 dark:border-slate-800">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 w-14 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Tier
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {TIERS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={tierFilter === t}
+                    onClick={() => setTierFilter(t)}
+                    className={`${pill} ${tierFilter === t ? pillOn : pillOff}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 w-14 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Provider
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {['All', ...providers].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                      aria-pressed={providerFilter === p}
+                    onClick={() => setProviderFilter(p)}
+                    className={`${pill} ${providerFilter === p ? pillOn : pillOff}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 w-14 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Context
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {CTX_FILTERS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={ctxFilter === c}
+                    onClick={() => setCtxFilter(c)}
+                    className={`${pill} ${ctxFilter === c ? pillOn : pillOff}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-2 text-xs text-slate-400 dark:text-slate-500">
+            {sorted.length === 0
+              ? 'No models match — try different filters.'
+              : `${sorted.length} of ${allModels.length} models`}
+          </div>
+
+          <div
+            className="max-h-[28rem] divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800"
+            role="list"
+            aria-label="Available models"
+          >
+            {sorted.length === 0 ? (
+              <div className="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                No models match your current filters.
+              </div>
+            ) : (
+              sorted.map((model) => (
+                <ModelRow
+                  key={model.id}
+                  model={model}
+                  isFast={fastModel === model.id}
+                  isSmart={smartModel === model.id}
+                  onSetFast={() => onFastChange(model.id)}
+                  onSetSmart={() => onSmartChange(model.id)}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function PreferencesPage() {
   const [preferences, setPreferences] = useState<Preference[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{
-    text: string
-    type: 'success' | 'error'
-  } | null>(null)
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
-  // Form state
   const [city, setCity] = useState('')
   const [description, setDescription] = useState('')
   const [apiProvider, setApiProvider] = useState('openrouter')
   const [openrouterKey, setOpenrouterKey] = useState('')
   const [apifyToken, setApifyToken] = useState('')
+  const [removeOpenrouterKey, setRemoveOpenrouterKey] = useState(false)
+  const [removeApifyToken, setRemoveApifyToken] = useState(false)
+  const [fastModel, setFastModel] = useState('')
+  const [smartModel, setSmartModel] = useState('')
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
+  const [loadingModels, setLoadingModels] = useState(false)
+  const [fetchedModels, setFetchedModels] = useState(false)
+
+  const activePreference = preferences[0]
+  const canFetchModels =
+    openrouterKey.length >= 20 ||
+    (!!activePreference?.has_openrouter_api_key && !removeOpenrouterKey)
 
   useEffect(() => {
     fetch(`${API}/api/preferences`)
@@ -44,55 +436,108 @@ export default function PreferencesPage() {
           setCity(p.city)
           setDescription(p.description)
           setApiProvider(p.api_provider)
-          setOpenrouterKey(p.openrouter_api_key || '')
-          setApifyToken(p.apify_api_token || '')
+          setOpenrouterKey('')
+          setApifyToken('')
+          setFastModel(p.fast_model || '')
+          setSmartModel(p.smart_model || '')
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
+  const resetLoadedModels = () => {
+    setAvailableModels([])
+    setFetchedModels(false)
+  }
+
+  const handleLoadModels = async () => {
+    if (!canFetchModels) return
+    setLoadingModels(true)
+    setFetchedModels(false)
+    try {
+      const resp = await fetch(`${API}/api/openrouter/models`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: openrouterKey.trim() || undefined,
+          preference_id: activePreference?.id,
+          curated: false,
+        }),
+      })
+      if (!resp.ok) throw new Error('Could not load models')
+      const data: unknown = await resp.json()
+      setAvailableModels(Array.isArray(data) ? (data as ModelInfo[]) : [])
+    } catch {
+      setAvailableModels([])
+    } finally {
+      setLoadingModels(false)
+      setFetchedModels(true)
+    }
+  }
+
+  useEffect(() => {
+    if (message?.type === 'success') {
+      const t = setTimeout(() => setMessage(null), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [message])
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setMessage(null)
-
     try {
-      const body = {
+      const body: Record<string, string | null> = {
         city,
         description,
         api_provider: apiProvider,
-        openrouter_api_key: openrouterKey || null,
-        apify_api_token: apifyToken || null,
+        fast_model: fastModel || null,
+        smart_model: smartModel || null,
       }
-
+      if (openrouterKey.trim()) {
+        body.openrouter_api_key = openrouterKey.trim()
+      } else if (removeOpenrouterKey) {
+        body.openrouter_api_key = null
+      } else if (!activePreference) {
+        body.openrouter_api_key = null
+      }
+      if (apifyToken.trim()) {
+        body.apify_api_token = apifyToken.trim()
+      } else if (removeApifyToken) {
+        body.apify_api_token = null
+      } else if (!activePreference) {
+        body.apify_api_token = null
+      }
       let resp: Response
       if (preferences.length > 0) {
-        // Update existing
         resp = await fetch(`${API}/api/preferences/${preferences[0].id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       } else {
-        // Create new
         resp = await fetch(`${API}/api/preferences`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       }
-
       if (resp.ok) {
         const updated = await resp.json()
         setPreferences([updated])
+        setOpenrouterKey('')
+        setApifyToken('')
+        setRemoveOpenrouterKey(false)
+        setRemoveApifyToken(false)
         setMessage({ text: 'Preferences saved!', type: 'success' })
       } else {
         const err = await resp.json().catch(() => ({}))
-        setMessage({
-          text: `Failed: ${err.detail || resp.statusText}`,
-          type: 'error',
-        })
+        const detail: string = err.detail || resp.statusText
+        const msg = detail.toLowerCase().includes('secret_key')
+          ? 'Backend is missing SECRET_KEY. Add SECRET_KEY=any-random-string to your .env file and restart the server.'
+          : `Failed: ${detail}`
+        setMessage({ text: msg, type: 'error' })
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -120,33 +565,20 @@ export default function PreferencesPage() {
       <main className="flex-1">
         <Container className="py-16">
           <div className="mx-auto max-w-2xl">
-            <h1 className="font-display text-3xl font-medium tracking-tight text-slate-900">
+            <h1 className="font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-100">
               Preferences
             </h1>
-            <p className="mt-2 text-lg text-slate-600">
+            <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
               Configure your search criteria and API keys.
             </p>
 
-            {message && (
-              <div
-                className={`mt-6 rounded-lg px-4 py-3 text-sm font-medium ${
-                  message.type === 'success'
-                    ? 'bg-green-50 text-green-800'
-                    : 'bg-red-50 text-red-800'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-
             <form onSubmit={handleSave} className="mt-10 space-y-10">
-              {/* Search Preferences */}
               <fieldset>
-                <legend className="font-display text-xl font-medium text-slate-900">
+                <legend className="font-display text-xl font-medium text-slate-900 dark:text-slate-100">
                   Search Preferences
                 </legend>
-                <p className="mt-1 text-sm text-slate-500">
-                  Describe what you're looking for in natural language.
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  What are you looking for and where?
                 </p>
                 <div className="mt-6 space-y-6">
                   <TextField
@@ -160,7 +592,7 @@ export default function PreferencesPage() {
                   <div>
                     <label
                       htmlFor="description"
-                      className="mb-3 block text-sm font-medium text-gray-700"
+                      className="mb-3 block text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Description
                     </label>
@@ -168,7 +600,7 @@ export default function PreferencesPage() {
                       id="description"
                       name="description"
                       rows={4}
-                      className="block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-hidden focus:ring-blue-500 sm:text-sm"
+                      className="block w-full appearance-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-hidden focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 sm:text-sm"
                       placeholder="e.g. 2BR pet-friendly apartment under $2000 near downtown"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -178,14 +610,12 @@ export default function PreferencesPage() {
                 </div>
               </fieldset>
 
-              {/* API Configuration */}
               <fieldset>
-                <legend className="font-display text-xl font-medium text-slate-900">
+                <legend className="font-display text-xl font-medium text-slate-900 dark:text-slate-100">
                   API Configuration
                 </legend>
-                <p className="mt-1 text-sm text-slate-500">
-                  Configure your LLM provider and API keys. Keys are stored
-                  locally.
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Configure your LLM provider and API keys. Keys are stored locally.
                 </p>
                 <div className="mt-6 space-y-6">
                   <SelectField
@@ -195,28 +625,165 @@ export default function PreferencesPage() {
                     onChange={(e) => setApiProvider(e.target.value)}
                   >
                     <option value="openrouter">OpenRouter</option>
-                    <option value="openai">OpenAI (Direct)</option>
                   </SelectField>
+
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                    Required for discovery
+                  </p>
                   <TextField
                     label="OpenRouter API Key"
                     name="openrouter_api_key"
                     type="password"
-                    placeholder="sk-or-v1-..."
+                    placeholder={
+                      activePreference?.has_openrouter_api_key
+                        ? 'Leave blank to keep existing key'
+                        : 'sk-or-v1-...'
+                    }
                     value={openrouterKey}
-                    onChange={(e) => setOpenrouterKey(e.target.value)}
+                    onChange={(e) => {
+                      setOpenrouterKey(e.target.value)
+                      setRemoveOpenrouterKey(false)
+                      resetLoadedModels()
+                    }}
                   />
+                  {activePreference?.has_openrouter_api_key && (
+                    <div className="-mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                      <p>
+                        {removeOpenrouterKey
+                          ? 'Stored key will be removed on save.'
+                          : `Stored key ending in ${activePreference.openrouter_key_last4}. Enter a new key only if you want to replace it.`}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenrouterKey('')
+                          setRemoveOpenrouterKey((value) => !value)
+                          resetLoadedModels()
+                        }}
+                        className="min-h-[36px] shrink-0 rounded-md px-2 py-1 font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      >
+                        {removeOpenrouterKey ? 'Keep key' : 'Remove key'}
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                    Optional
+                  </p>
                   <TextField
                     label="Apify API Token (optional)"
                     name="apify_api_token"
                     type="password"
-                    placeholder="apify_api_..."
+                    placeholder={
+                      activePreference?.has_apify_api_token
+                        ? 'Leave blank to keep existing token'
+                        : 'apify_api_...'
+                    }
                     value={apifyToken}
-                    onChange={(e) => setApifyToken(e.target.value)}
+                    onChange={(e) => {
+                      setApifyToken(e.target.value)
+                      setRemoveApifyToken(false)
+                    }}
                   />
+                  {activePreference?.has_apify_api_token && (
+                    <div className="-mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                      <p>
+                        {removeApifyToken
+                          ? 'Stored token will be removed on save.'
+                          : `Stored token ending in ${activePreference.apify_token_last4}.`}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setApifyToken('')
+                          setRemoveApifyToken((value) => !value)
+                        }}
+                        className="min-h-[36px] shrink-0 rounded-md px-2 py-1 font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      >
+                        {removeApifyToken ? 'Keep token' : 'Remove token'}
+                      </button>
+                    </div>
+                  )}
+
+                  {canFetchModels && (
+                    <div className="border-t border-slate-200 pt-6 dark:border-slate-700">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Model selection
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            Click Fast or Smart on any row to assign it. Fast runs frequently; Smart
+                            handles complex tasks.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleLoadModels}
+                          disabled={loadingModels}
+                          className="min-h-[40px] shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+                        >
+                          {loadingModels ? 'Loading...' : 'Load models'}
+                        </button>
+                      </div>
+
+                      {loadingModels && (
+                        <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                          <svg
+                            className="h-3.5 w-3.5 motion-safe:animate-spin"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8z"
+                            />
+                          </svg>
+                          Fetching models from OpenRouter…
+                        </div>
+                      )}
+
+                      {!loadingModels && fetchedModels && availableModels.length === 0 && (
+                        <p className="mt-4 text-xs text-red-500 dark:text-red-400">
+                          Could not load models. Check your API key.
+                        </p>
+                      )}
+
+                      {!loadingModels && availableModels.length > 0 && (
+                        <div className="mt-5">
+                          <ModelPicker
+                            allModels={availableModels}
+                            fastModel={fastModel}
+                            smartModel={smartModel}
+                            onFastChange={setFastModel}
+                            onSmartChange={setSmartModel}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </fieldset>
 
               <div className="flex items-center justify-end gap-x-4">
+                <div role="status" aria-live="polite" className="text-sm">
+                  {message?.type === 'success' && (
+                    <span className="font-medium text-green-600 dark:text-green-400">Saved</span>
+                  )}
+                  {message?.type === 'error' && (
+                    <span className="text-red-600 dark:text-red-400">{message.text}</span>
+                  )}
+                </div>
                 <Button type="submit" color="blue" disabled={saving}>
                   {saving ? 'Saving…' : 'Save Preferences'}
                 </Button>

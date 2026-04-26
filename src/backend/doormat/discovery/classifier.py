@@ -31,16 +31,13 @@ Output:
 - confidence: 0.0 to 1.0 - your certainty.
 """
 
-DEFAULT_CLASSIFIER_MODEL = "google/gemma-4-31b-it:free"
-
-
 class PropertyManagerClassifier:
     """LLM-backed validator for DiscoveryCandidate -> ValidationResult."""
 
     def __init__(
         self,
         llm: Optional[LLMClient] = None,
-        model: str = DEFAULT_CLASSIFIER_MODEL,
+        model: Optional[str] = None,
     ) -> None:
         self._llm = llm or get_llm_client()
         self._model = model
@@ -64,6 +61,9 @@ class PropertyManagerClassifier:
             result = await self._llm.complete(
                 messages=messages,
                 model=self._model,
+                task="discovery",
+                component="discovery",
+                city=candidate.city,
                 response_model=ValidationResult,
             )
             validated = cast(ValidationResult, result)

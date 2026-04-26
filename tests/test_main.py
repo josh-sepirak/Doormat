@@ -45,12 +45,12 @@ def test_metrics_endpoint(client):
 
 def test_costs_endpoint(client):
     """Test cost tracking summary endpoint."""
-    response = client.get("/api/costs")
+    response = client.get("/api/costs/summary")
     assert response.status_code == 200
     data = response.json()
     assert "total_cost_usd" in data
-    assert "total_tokens" in data
-    assert "record_count" in data
+    assert "total_calls" in data
+    assert "budget_limit_usd" in data
 
 
 def test_cost_tracking():

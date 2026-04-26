@@ -1,13 +1,16 @@
 """Mode B: Agentic recovery extraction using Browser-Use."""
 
 import json
-from typing import Any
+from collections.abc import Mapping, Sequence
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 import structlog
 
 from doormat.config import settings
+from doormat.cost_tracking import track_cost
 from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
+from doormat.llm.client import MODEL_REASONING
 from doormat.schemas import PetsPolicy
 
 logger = structlog.get_logger(__name__)
@@ -131,26 +134,112 @@ def _allowed_domains(url: str) -> list[str]:
     return [host] if host else []
 
 
+def _token_usage_from_history(history: Any) -> tuple[int, int]:
+    """Best-effort extraction of token usage from Browser-Use/LiteLLM history objects."""
+    visited: set[int] = set()
+
+    def visit(value: Any, depth: int = 0) -> tuple[int, int]:
+        if value is None or depth > 5:
+            return (0, 0)
+        value_id = id(value)
+        if value_id in visited:
+            return (0, 0)
+        visited.add(value_id)
+
+        prompt_tokens = _extract_token_count(
+            value, "prompt_tokens", "input_tokens", "tokens_in"
+        )
+        completion_tokens = _extract_token_count(
+            value, "completion_tokens", "output_tokens", "tokens_out"
+        )
+        if prompt_tokens or completion_tokens:
+            return (prompt_tokens, completion_tokens)
+
+        if isinstance(value, Mapping):
+            nested = (
+                "usage",
+                "token_usage",
+                "model_usage",
+                "llm_usage",
+                "metadata",
+                "history",
+                "steps",
+            )
+            return _sum_usage(visit(value.get(key), depth + 1) for key in nested if key in value)
+
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            return _sum_usage(visit(item, depth + 1) for item in value)
+
+        nested_attrs = (
+            "usage",
+            "token_usage",
+            "model_usage",
+            "llm_usage",
+            "metadata",
+            "history",
+            "steps",
+        )
+        return _sum_usage(
+            visit(getattr(value, attr), depth + 1) for attr in nested_attrs if hasattr(value, attr)
+        )
+
+    return visit(history)
+
+
+def _sum_usage(usages: Any) -> tuple[int, int]:
+    prompt_tokens = 0
+    completion_tokens = 0
+    for prompt, completion in usages:
+        prompt_tokens += prompt
+        completion_tokens += completion
+    return prompt_tokens, completion_tokens
+
+
+def _extract_token_count(value: Any, *keys: str) -> int:
+    for key in keys:
+        raw = value.get(key) if isinstance(value, Mapping) else getattr(value, key, None)
+        parsed = _parse_token_count(raw)
+        if parsed is not None:
+            return parsed
+    return 0
+
+
+def _parse_token_count(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return max(value, 0)
+    if isinstance(value, float):
+        return max(int(value), 0)
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return None
+
+
 async def run_mode_b(
     url: str,
     source_id: str,
     prior_failure: dict[str, Any],
-    model: str = "google/gemma-4-31b-it:free",
+    city: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
 ) -> ListingExtractionResult:
     """Run Mode B agentic recovery extraction using Browser-Use."""
-    logger.info("extraction_mode_b_start", source_id=source_id, url=url)
+    model = model or MODEL_REASONING
+    logger.info("extraction_mode_b_start", source_id=source_id, url=url, city=city)
 
     if not BROWSER_USE_AVAILABLE:
         logger.warning("browser_use_unavailable_for_mode_b", source_id=source_id)
         return _low_confidence_result("browser-use not available locally")
 
-    if not settings.OPENROUTER_API_KEY:
+    resolved_api_key = api_key or settings.OPENROUTER_API_KEY
+    if not resolved_api_key:
         logger.warning("mode_b_missing_openrouter_key", source_id=source_id)
         return _low_confidence_result("OPENROUTER_API_KEY is not configured")
 
     llm = ChatLiteLLM(
         model=model,
-        api_key=settings.OPENROUTER_API_KEY or None,
+        api_key=resolved_api_key,
         api_base=settings.OPENROUTER_BASE_URL,
         temperature=0.0,
     )
@@ -171,11 +260,18 @@ async def run_mode_b(
         max_failures=2,
     )
 
-    # Run the agent
-    history: Any = await agent.run()
-
-    # Extract the final result from the agent history
     try:
+        async with track_cost(
+            service="openrouter",
+            model=model,
+            component="extraction",
+            city=city,
+        ) as cost:
+            history: Any = await agent.run()
+            prompt_tokens, completion_tokens = _token_usage_from_history(history)
+            cost.prompt_tokens = prompt_tokens
+            cost.completion_tokens = completion_tokens
+        # Extract the final result from the agent history
         final_state = history.history[-1]
         result_text = final_state.result[0].extracted_content
         if not isinstance(result_text, str):
@@ -185,9 +281,18 @@ async def run_mode_b(
         result = ListingExtractionResult.model_validate(data)
     except Exception as e:
         logger.error(
-            "extraction_mode_b_parse_error", error=str(e), history_len=len(history.history)
+            "extraction_mode_b_failed",
+            error=str(e),
+            error_type=type(e).__name__,
+            source_id=source_id,
         )
-        raise
+        return _low_confidence_result(f"Mode B failed: {type(e).__name__}")
+    finally:
+        close = getattr(browser_session, "close", None)
+        if close is not None:
+            maybe_awaitable = close()
+            if hasattr(maybe_awaitable, "__await__"):
+                await maybe_awaitable
 
     result.mode = "B"
     logger.info("extraction_mode_b_complete", source_id=source_id, confidence=result.confidence)

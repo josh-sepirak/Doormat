@@ -18,6 +18,7 @@ export function Footer() {
             <div className="-my-1 flex justify-center gap-x-6">
               <NavLink href="/">Dashboard</NavLink>
               <NavLink href="/listings">Listings</NavLink>
+              <NavLink href="/costs">Costs</NavLink>
               <NavLink href="/preferences">Preferences</NavLink>
             </div>
           </nav>

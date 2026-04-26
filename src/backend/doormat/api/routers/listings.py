@@ -4,6 +4,7 @@ import asyncio
 import json
 from collections.abc import Sequence
 from typing import Annotated, Any, AsyncIterator, Optional
+from urllib.parse import urlparse
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -15,10 +16,15 @@ from doormat.db.base import get_db
 from doormat.models.orm import Listing, Preference, PropertyManager
 from doormat.schemas import ListingResponse, ScoreListingsRequest, ScoreListingsResponse
 from doormat.scoring.scorer import ListingScorer
+from doormat.security.auth import require_bearer_auth
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/api/listings", tags=["listings"])
+router = APIRouter(
+    prefix="/api/listings",
+    tags=["listings"],
+    dependencies=[Depends(require_bearer_auth)],
+)
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 SerializedListing = dict[str, Any]
 
@@ -36,6 +42,16 @@ def _json_list(value: str | None) -> list[str]:
     return [str(item) for item in parsed if isinstance(item, str)]
 
 
+def _safe_http_url(value: str | None) -> str | None:
+    if not value:
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        logger.warning("listing_unsafe_url_dropped", scheme=parsed.scheme or "missing")
+        return None
+    return value
+
+
 def _serialize_listing(listing: Listing) -> SerializedListing:
     amenities = _json_list(listing.amenities)
     photos = _json_list(listing.photos)
@@ -48,7 +64,7 @@ def _serialize_listing(listing: Listing) -> SerializedListing:
         "bathrooms": listing.bathrooms,
         "sqft": listing.sqft,
         "price": listing.price,
-        "url": listing.url,
+        "url": _safe_http_url(listing.url),
         "pets_policy": listing.pets_policy,
         "amenities": amenities,
         "photos": photos,

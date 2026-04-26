@@ -115,6 +115,16 @@ def test_serialize_listing_tolerates_corrupt_json_fields():
     assert data["photos"] == []
 
 
+def test_serialize_listing_rejects_unsafe_url_schemes():
+    """Scraped listing URLs must not become javascript: links in the frontend."""
+    listing = make_db_listing()
+    listing.url = "javascript:alert(1)"
+
+    data = _serialize_listing(listing)
+
+    assert data["url"] is None
+
+
 def test_get_listing_by_id_returns_404_when_missing():
     """GET /api/listings/{id} should return 404 for unknown IDs."""
     app.dependency_overrides[get_db] = _fake_db_with_one(None)

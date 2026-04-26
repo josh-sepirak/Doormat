@@ -11,7 +11,8 @@ from doormat.extraction.mode_a import run_mode_a
 from doormat.extraction.mode_b import run_mode_b
 from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
 from doormat.extraction.strategy import StrategyCache
-from doormat.models.orm import Listing, PropertyManager
+from doormat.models.orm import Listing, Preference, PropertyManager
+from doormat.security.secrets import decrypt_secret
 
 logger = structlog.get_logger(__name__)
 
@@ -21,30 +22,60 @@ async def extract_listing(
     html: str,
     url: str,
     property_manager: PropertyManager,
+    preference: Preference | None = None,
 ) -> ListingExtractionResult:
     """Extract a listing using Mode A, falling back to Mode B if necessary."""
 
     source_id = property_manager.id
     strategy_cache = StrategyCache(session)
     strategy = await strategy_cache.get(source_id)
+    api_key = decrypt_secret(preference.openrouter_api_key) if preference else None
+    smart_model = preference.smart_model if preference else None
 
     # Mode A: trust the cached strategy (or attempt extraction if none exists yet).
-    result = await run_mode_a(html, url, source_id, strategy)
+    try:
+        result = await run_mode_a(
+            html,
+            url,
+            source_id,
+            strategy,
+            city=property_manager.city,
+            model=smart_model,
+            api_key=api_key,
+        )
+        prior_failure = {
+            "confidence": result.confidence,
+            "reasoning": result.reasoning,
+            "missing_fields": _identify_missing_fields(result.listing),
+        }
+    except Exception as exc:
+        logger.warning(
+            "extraction_mode_a_failed_escalating",
+            source_id=source_id,
+            url=url,
+            error_type=type(exc).__name__,
+        )
+        result = None
+        prior_failure = {
+            "confidence": "low",
+            "reasoning": f"Mode A failed before returning structured data: {exc}",
+            "missing_fields": ["rent", "address", "bedrooms"],
+        }
 
-    if _is_persistable_result(result):
+    if result is not None and _is_persistable_result(result):
         return await _save_listing(session, result, property_manager, url)
 
     # Mode A failed quality gates; escalate to Mode B with concrete failure context.
     logger.info("extraction_escalating_to_mode_b", source_id=source_id, url=url)
 
-    # Provide the prior failure context to Mode B
-    prior_failure = {
-        "confidence": result.confidence,
-        "reasoning": result.reasoning,
-        "missing_fields": _identify_missing_fields(result.listing),
-    }
-
-    mode_b_result = await run_mode_b(url, source_id, prior_failure=prior_failure)
+    mode_b_result = await run_mode_b(
+        url,
+        source_id,
+        prior_failure=prior_failure,
+        city=property_manager.city,
+        model=smart_model,
+        api_key=api_key,
+    )
 
     if mode_b_result.strategy_update:
         # We don't have a listing ID yet, but we'll merge it.
@@ -107,7 +138,7 @@ async def _save_listing(
         photos=json.dumps([str(p) for p in listing_data.photos]),
         description=listing_data.description,
         extraction_timestamp=datetime.now(UTC),
-        extraction_model="google/gemma-4-31b-it:free",
+        extraction_model=result.mode,
         validation_passed=(result.confidence == "high"),
     )
 

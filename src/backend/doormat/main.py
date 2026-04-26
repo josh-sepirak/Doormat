@@ -13,9 +13,11 @@ from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from doormat import metrics
+from doormat.api.routers.costs import router as costs_router
 from doormat.api.routers.discovery import router as discovery_router
 from doormat.api.routers.extraction import router as extraction_router
 from doormat.api.routers.listings import router as listings_router
+from doormat.api.routers.openrouter import router as openrouter_router
 from doormat.api.routers.preferences import router as preferences_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
@@ -54,10 +56,12 @@ app.add_middleware(
 )
 
 # Register API routers
+app.include_router(costs_router)
 app.include_router(discovery_router)
 app.include_router(extraction_router)
 app.include_router(listings_router)
 app.include_router(preferences_router)
+app.include_router(openrouter_router)
 
 
 @app.middleware("http")
@@ -122,11 +126,6 @@ async def get_metrics() -> PlainTextResponse:
 
     return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-
-@app.get("/api/costs", tags=["monitoring"])
-async def get_costs() -> dict[str, object]:
-    """Get cost tracking summary."""
-    return get_cost_summary()
 
 
 if __name__ == "__main__":

@@ -235,3 +235,27 @@ logs/
 
 # Template downloads
 tailwind-plus-salient/
+
+# Local agent/live-preview state
+.impeccable-live.json
+.agents/
+.claude/
+.commandcode/
+.continue/
+.crush/
+.factory/
+.goose/
+.kilocode/
+.kiro/
+.mcpjam/
+.neovate/
+.openhands/
+.pi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.windsurf/
+.zencoder/
+skills/
+skills-lock.json

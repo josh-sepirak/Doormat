@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from doormat.cost_tracking import get_cost_tracker
 from doormat.extraction import mode_a, mode_b
 from doormat.extraction.orchestrator import (
     _identify_missing_fields,
@@ -53,7 +54,7 @@ async def test_mode_a_uses_structured_llm_response(monkeypatch):
             assert kwargs["response_model"] is ListingExtractionResult
             return make_result(mode="A")
 
-    monkeypatch.setattr(mode_a, "get_llm_client", lambda: FakeLLM())
+    monkeypatch.setattr(mode_a, "get_llm_client", lambda api_key=None: FakeLLM())
 
     result = await mode_a.run_mode_a("<html></html>", "https://example.com", "pm-1", None)
 
@@ -71,7 +72,7 @@ async def test_mode_a_truncates_html_before_prompt(monkeypatch):
             captured_messages["messages"] = kwargs["messages"]
             return make_result(mode="A")
 
-    monkeypatch.setattr(mode_a, "get_llm_client", lambda: FakeLLM())
+    monkeypatch.setattr(mode_a, "get_llm_client", lambda api_key=None: FakeLLM())
     monkeypatch.setattr(mode_a, "MAX_MODE_A_HTML_CHARS", 8)
 
     result = await mode_a.run_mode_a("x" * 20, "https://example.com", "pm-1", None)
@@ -111,6 +112,64 @@ async def test_mode_b_falls_back_when_api_key_missing(monkeypatch):
     assert result.mode == "B"
     assert result.confidence == "low"
     assert "OPENROUTER_API_KEY" in (result.reasoning or "")
+
+
+@pytest.mark.asyncio
+async def test_mode_b_tracks_browser_use_openrouter_calls(monkeypatch):
+    """Browser-Use calls should show up in cost telemetry even though they bypass LLMClient."""
+    get_cost_tracker().clear()
+    monkeypatch.setattr(mode_b.settings, "TRACK_COSTS", False)
+    monkeypatch.setattr(mode_b.settings, "OPENROUTER_API_KEY", "test-openrouter-secret")
+    monkeypatch.setattr(mode_b, "BROWSER_USE_AVAILABLE", True)
+
+    class FakeChatLiteLLM:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    class FakeBrowserSession:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.closed = False
+
+        async def close(self):
+            self.closed = True
+
+    class FakeAgent:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        async def run(self):
+            extracted = make_result(confidence="high", mode="B").model_dump_json()
+            final_state = MagicMock()
+            final_state.result = [MagicMock(extracted_content=extracted)]
+            return MagicMock(
+                history=[final_state],
+                usage=MagicMock(prompt_tokens=123, completion_tokens=45),
+            )
+
+    monkeypatch.setattr(mode_b, "ChatLiteLLM", FakeChatLiteLLM)
+    monkeypatch.setattr(mode_b, "BrowserSession", FakeBrowserSession)
+    monkeypatch.setattr(mode_b, "Agent", FakeAgent)
+
+    result = await mode_b.run_mode_b(
+        "https://example.com/listing",
+        "pm-1",
+        prior_failure={"missing_fields": ["rent"]},
+        city="Austin",
+        model="openai/gpt-4o-mini",
+    )
+
+    assert result.mode == "B"
+    assert result.confidence == "high"
+
+    records = get_cost_tracker().records
+    assert len(records) == 1
+    assert records[0].component == "extraction"
+    assert records[0].model == "openai/gpt-4o-mini"
+    assert records[0].prompt_tokens == 123
+    assert records[0].completion_tokens == 45
+    assert records[0].city == "Austin"
+    get_cost_tracker().clear()
 
 
 def test_identify_missing_fields():
@@ -196,6 +255,46 @@ async def test_extract_listing_returns_low_confidence_without_persisting(monkeyp
     result = await extract_listing(session, "<html></html>", "https://example.com", manager)
 
     assert result.confidence == "low"
+    session.add.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_extract_listing_escalates_to_mode_b_when_mode_a_raises(monkeypatch):
+    """Mode A provider failures should still get the agentic recovery path."""
+    session = AsyncMock()
+    session.add = MagicMock()
+    manager = PropertyManager(
+        id="pm-1",
+        city="Austin",
+        name="Test PM",
+        website="https://example.com",
+        listing_page_url=None,
+        validated=True,
+        discovery_timestamp=datetime.now(UTC),
+    )
+
+    async def failing_mode_a(*args, **kwargs):
+        raise RuntimeError("provider unavailable")
+
+    async def recovering_mode_b(*args, **kwargs):
+        prior_failure = kwargs["prior_failure"]
+        assert "provider unavailable" in prior_failure["reasoning"]
+        return make_result(confidence="low", mode="B")
+
+    class FakeStrategyCache:
+        def __init__(self, session):
+            self.session = session
+
+        async def get(self, source_id):
+            return None
+
+    monkeypatch.setattr("doormat.extraction.orchestrator.run_mode_a", failing_mode_a)
+    monkeypatch.setattr("doormat.extraction.orchestrator.run_mode_b", recovering_mode_b)
+    monkeypatch.setattr("doormat.extraction.orchestrator.StrategyCache", FakeStrategyCache)
+
+    result = await extract_listing(session, "<html></html>", "https://example.com", manager)
+
+    assert result.mode == "B"
     session.add.assert_not_called()
 
 

@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 import structlog
 from pydantic import BaseModel, Field
 
-from doormat.discovery.models import DiscoveryCandidate
+from doormat.discovery.models import DiscoveryCandidate, RunLoggerProtocol
 from doormat.llm.client import LLMClient, get_llm_client
 
 logger = structlog.get_logger(__name__)
@@ -30,7 +30,6 @@ Bias toward locally-active mid-size PMs over national portals. Avoid aggregators
 Return between 5 and 15 candidates.
 """
 
-DEFAULT_SEARCH_MODEL = "google/gemma-4-31b-it:free"
 
 
 class _SearchCandidate(BaseModel):
@@ -47,22 +46,35 @@ class _SearchResponse(BaseModel):
     candidates: list[_SearchCandidate] = Field(default_factory=list)
 
 
+class DiscoverySearchError(RuntimeError):
+    """Raised when provider failure prevents candidate discovery."""
+
+
 class DiscoverySearch:
     """LLM-backed search for candidate PMs in a city."""
 
     def __init__(
         self,
         llm: Optional[LLMClient] = None,
-        model: str = DEFAULT_SEARCH_MODEL,
+        model: Optional[str] = None,
     ) -> None:
         self._llm = llm or get_llm_client()
         self._model = model
 
     async def find_candidates(
-        self, city: str, refinement: str | None = None
+        self,
+        city: str,
+        refinement: str | None = None,
+        run_logger: Optional[RunLoggerProtocol] = None,
     ) -> list[DiscoveryCandidate]:
-        """Return deduplicated candidates for a city; empty list on error."""
+        """Return deduplicated candidates for a city."""
+        model_label = self._model or "default"
         logger.info("search_start", city=city, refinement=bool(refinement))
+        if run_logger:
+            msg = f"Asking LLM for property managers in {city}"
+            if refinement:
+                msg += " (refined search)"
+            await run_logger.info(f"{msg} — model: {model_label}", component="search")
 
         user_prompt = self._build_user_prompt(city, refinement)
         messages: list[dict[str, str]] = [
@@ -74,12 +86,19 @@ class DiscoverySearch:
             response = await self._llm.complete(
                 messages=messages,
                 model=self._model,
+                task="discovery",
+                component="discovery",
+                city=city,
                 response_model=_SearchResponse,
             )
             parsed = cast(_SearchResponse, response)
         except Exception as exc:
             logger.error("search_failed", city=city, error=str(exc))
-            return []
+            if run_logger:
+                await run_logger.error(
+                    f"LLM search failed: {type(exc).__name__}: {exc}", component="search"
+                )
+            raise DiscoverySearchError("candidate search provider failed") from exc
 
         candidates = [
             DiscoveryCandidate(
@@ -99,6 +118,11 @@ class DiscoverySearch:
             raw_count=len(candidates),
             deduped_count=len(deduped),
         )
+        if run_logger:
+            await run_logger.info(
+                f"LLM returned {len(candidates)} candidates ({len(deduped)} after dedup)",
+                component="search",
+            )
         return deduped
 
     @staticmethod
