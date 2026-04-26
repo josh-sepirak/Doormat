@@ -15,6 +15,8 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from doormat import metrics
 from doormat.api.routers.discovery import router as discovery_router
 from doormat.api.routers.extraction import router as extraction_router
+from doormat.api.routers.listings import router as listings_router
+from doormat.api.routers.preferences import router as preferences_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
 from doormat.logging_config import get_logger, setup_logging
@@ -54,6 +56,8 @@ app.add_middleware(
 # Register API routers
 app.include_router(discovery_router)
 app.include_router(extraction_router)
+app.include_router(listings_router)
+app.include_router(preferences_router)
 
 
 @app.middleware("http")

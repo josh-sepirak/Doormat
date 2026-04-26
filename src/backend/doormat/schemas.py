@@ -127,6 +127,9 @@ class ListingResponse(BaseModel):
     tier1_cost: Optional[float] = None
     tier2_cost: Optional[float] = None
     validation_passed: bool
+    score: Optional[float] = None
+    score_explanation: Optional[str] = None
+    saved: bool = False
 
 
 class ListingFilterParams(BaseModel):
@@ -142,6 +145,23 @@ class ListingFilterParams(BaseModel):
     validated_only: bool = False
     limit: int = Field(50, ge=1, le=500)
     offset: int = Field(0, ge=0)
+
+
+class ScoreListingsRequest(BaseModel):
+    """Run preference scoring for persisted listings."""
+
+    preference_id: str
+    listing_ids: list[str] = Field(default_factory=list, max_length=100)
+    limit: int = Field(50, ge=1, le=200)
+    rescore: bool = False
+
+
+class ScoreListingsResponse(BaseModel):
+    """Summary of a listing scoring run."""
+
+    preference_id: str
+    scored_count: int
+    listing_ids: list[str]
 
 
 # ============================================================================
