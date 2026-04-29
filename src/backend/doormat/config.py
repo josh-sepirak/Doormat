@@ -56,6 +56,16 @@ class Settings(BaseSettings):
     # Feature flag: Mode A0 (zero-cost API recipe extraction)
     # Set to False by default until Phase E (rollout + observability complete)
     API_RECIPE_ENABLED: bool = False
+    
+    # Phase E: Recipe promotion policy
+    # Require held-out listing validation before promoting recipes to production
+    API_RECIPE_PROMOTION_REQUIRES_HELD_OUT: bool = True
+    
+    # Timeout for Mode A0 recipe execution (seconds)
+    API_RECIPE_EXECUTION_TIMEOUT: int = 10
+    
+    # Max consecutive failures before retiring a recipe
+    API_RECIPE_MAX_CONSECUTIVE_FAILURES: int = 3
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

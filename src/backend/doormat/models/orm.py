@@ -117,6 +117,7 @@ class ExtractionStrategy(Base):
         String(36), ForeignKey("property_managers.id"), nullable=False, index=True
     )
     strategy_json: Mapped[str] = mapped_column(Text, nullable=False)  # LLM output
+    api_recipe_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Serialized ApiRecipe
     tier1_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     tier2_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     validation_rate: Mapped[float] = mapped_column(Float, default=0.95)

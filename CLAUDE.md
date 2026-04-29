@@ -95,6 +95,20 @@ Optional:
 - `DATABASE_URL` — defaults to `sqlite+aiosqlite:///./doormat.db`
 - `DEBUG`, `LOG_LEVEL`, `LOG_FORMAT`
 
+### Feature Flags (Phase E)
+
+**API Recipe (Mode A0) — Zero-cost extraction**:
+- `API_RECIPE_ENABLED` — Enable Mode A0 fast path (default: `False`). Set to `True` to skip Mode A/B for JSON APIs once recipes are validated.
+- `API_RECIPE_PROMOTION_REQUIRES_HELD_OUT` — Require held-out listing validation before merging recipes (default: `True`). Set to `False` to promote recipes on Mode B success alone.
+- `API_RECIPE_EXECUTION_TIMEOUT` — Timeout for Mode A0 HTTP calls in seconds (default: `10`).
+- `API_RECIPE_MAX_CONSECUTIVE_FAILURES` — Max consecutive failures before retiring a recipe (default: `3`).
+
+**Rollout sequence**:
+1. Start with all flags off — baseline behavior unchanged
+2. After recipes accumulate (50+ validated per source), set `API_RECIPE_ENABLED=True` in dev
+3. Once soak test passes (extraction success rate maintained), enable globally
+4. Later: set `API_RECIPE_PROMOTION_REQUIRES_HELD_OUT=False` for faster refinement when desired
+
 ## Design Context
 
 ### Users
