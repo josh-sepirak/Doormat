@@ -29,6 +29,7 @@ from doormat.discovery.classifier import PropertyManagerClassifier
 from doormat.discovery.models import (
     DiscoveryCandidate,
     DiscoveryResult,
+    RunLoggerProtocol,
     ValidationResult,
 )
 from doormat.discovery.search import DiscoverySearch, _dedupe_by_domain
@@ -54,7 +55,12 @@ class DiscoveryAgent:
         self._browser = browser or BrowserDiscovery()
         self._classifier = classifier or PropertyManagerClassifier()
 
-    async def discover_city(self, city: str, preference_id: str | None = None) -> DiscoveryResult:
+    async def discover_city(
+        self,
+        city: str,
+        preference_id: str | None = None,
+        run_logger: Optional[RunLoggerProtocol] = None,
+    ) -> DiscoveryResult:
         """Run the discovery pipeline for `city`."""
         request_id = uuid.uuid4().hex[:12]
         log = logger.bind(request_id=request_id, city=city, preference_id=preference_id)
@@ -63,6 +69,11 @@ class DiscoveryAgent:
         cached_pm = await self._cached_managers(city)
         if cached_pm:
             log.info("discovery_cache_hit", validated_count=len(cached_pm))
+            if run_logger:
+                await run_logger.info(
+                    f"Cache hit — returning {len(cached_pm)} previously validated managers",
+                    component="agent",
+                )
             return DiscoveryResult(
                 city=city,
                 candidates_found=len(cached_pm),
@@ -75,7 +86,7 @@ class DiscoveryAgent:
         cost_before = get_cost_tracker().total_cost()
         start_time = time.monotonic()
 
-        candidates, validated_pairs = await self._search_and_classify(city, log)
+        candidates, validated_pairs = await self._search_and_classify(city, log, run_logger)
 
         validated_count = await self._persist_validated(city, validated_pairs, log)
 
@@ -111,7 +122,10 @@ class DiscoveryAgent:
         return list(rows)
 
     async def _search_and_classify(
-        self, city: str, log: structlog.stdlib.BoundLogger
+        self,
+        city: str,
+        log: structlog.stdlib.BoundLogger,
+        run_logger: Optional[RunLoggerProtocol] = None,
     ) -> tuple[list[DiscoveryCandidate], list[tuple[DiscoveryCandidate, ValidationResult]]]:
         """Run search + classification with up to MAX_RETRIES refinement loops."""
         all_candidates: list[DiscoveryCandidate] = []
@@ -120,21 +134,43 @@ class DiscoveryAgent:
 
         for attempt in range(MAX_RETRIES + 1):
             log.info("discovery_attempt", attempt=attempt + 1, max=MAX_RETRIES + 1)
-            llm_cands = await self._search.find_candidates(city, refinement=refinement)
+            if run_logger:
+                await run_logger.info(
+                    f"Search attempt {attempt + 1}/{MAX_RETRIES + 1}", component="agent"
+                )
+            llm_cands = await self._search.find_candidates(
+                city, refinement=refinement, run_logger=run_logger
+            )
             browser_cands = await self._browser.discover(city)
             attempt_candidates = _dedupe_by_domain(llm_cands + browser_cands)
+
+            if run_logger:
+                await run_logger.info(
+                    f"Classifying {len(attempt_candidates)} candidates", component="agent"
+                )
 
             # Track distinct candidates ever seen (for reporting).
             for cand in attempt_candidates:
                 if cand not in all_candidates:
                     all_candidates.append(cand)
 
-            attempt_validated = await self._classify_candidates(attempt_candidates, log)
+            if run_logger and not attempt_candidates:
+                await run_logger.warning(
+                    "LLM returned 0 candidates — model may not support structured output",
+                    component="agent",
+                )
+
+            attempt_validated = await self._classify_candidates(attempt_candidates, log, run_logger)
             validated.extend(attempt_validated)
 
             if attempt_validated:
                 break
 
+            if run_logger:
+                await run_logger.warning(
+                    f"Attempt {attempt + 1}: 0 validated — retrying with refined search",
+                    component="agent",
+                )
             refinement = (
                 "Previous attempt yielded zero validated property managers. "
                 "Focus on smaller, locally-active companies (not aggregators), "
@@ -147,13 +183,23 @@ class DiscoveryAgent:
         self,
         candidates: list[DiscoveryCandidate],
         log: structlog.stdlib.BoundLogger,
+        run_logger: Optional[RunLoggerProtocol] = None,
     ) -> list[tuple[DiscoveryCandidate, ValidationResult]]:
         """Classify each candidate; return only valid pairs."""
         validated: list[tuple[DiscoveryCandidate, ValidationResult]] = []
         for cand in candidates:
+            if run_logger:
+                await run_logger.debug(
+                    f"Classifying: {cand.name} ({cand.website})", component="classifier"
+                )
             result = await self._classifier.classify(cand)
             if result.is_valid:
                 validated.append((cand, result))
+                if run_logger:
+                    await run_logger.success(
+                        f"✓ {cand.name} — validated (confidence: {result.confidence:.0%})",
+                        component="classifier",
+                    )
             else:
                 log.info(
                     "candidate_rejected",
@@ -161,6 +207,11 @@ class DiscoveryAgent:
                     reason=result.reason,
                     confidence=result.confidence,
                 )
+                if run_logger:
+                    await run_logger.debug(
+                        f"✗ {cand.name} — rejected: {result.reason}",
+                        component="classifier",
+                    )
         return validated
 
     async def _persist_validated(

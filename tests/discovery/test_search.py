@@ -10,6 +10,7 @@ import pytest
 from doormat.discovery.models import DiscoveryCandidate
 from doormat.discovery.search import (
     DiscoverySearch,
+    DiscoverySearchError,
     _dedupe_by_domain,
     _normalize_host,
     _SearchCandidate,
@@ -82,14 +83,13 @@ async def test_find_candidates_dedupes_websites() -> None:
 
 
 @pytest.mark.asyncio
-async def test_find_candidates_returns_empty_on_llm_error() -> None:
-    """When the LLM raises, search degrades gracefully to []."""
+async def test_find_candidates_raises_on_llm_error() -> None:
+    """Provider outages should be visible to the orchestrator as errors."""
     stub = _StubLLM(RuntimeError("openrouter down"))
     search = DiscoverySearch(llm=stub)  # type: ignore[arg-type]
 
-    candidates = await search.find_candidates("Seattle")
-
-    assert candidates == []
+    with pytest.raises(DiscoverySearchError):
+        await search.find_candidates("Seattle")
 
 
 def test_dedupe_by_domain_unit() -> None:

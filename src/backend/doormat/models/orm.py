@@ -17,6 +17,11 @@ class Preference(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)  # Natural language
     city: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    api_provider: Mapped[str] = mapped_column(String(50), default="openrouter")
+    openrouter_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    apify_api_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    fast_model: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    smart_model: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
@@ -28,6 +33,34 @@ class Preference(Base):
     listings: Mapped[list["Listing"]] = relationship(back_populates="preference")
 
     __table_args__ = (Index("idx_city_created", "city", "created_at"),)
+
+    @property
+    def has_openrouter_api_key(self) -> bool:
+        """Expose key presence without returning the secret."""
+        from doormat.security.secrets import has_secret
+
+        return has_secret(self.openrouter_api_key)
+
+    @property
+    def openrouter_key_last4(self) -> Optional[str]:
+        """Expose a masked key hint for the UI."""
+        from doormat.security.secrets import secret_last4
+
+        return secret_last4(self.openrouter_api_key)
+
+    @property
+    def has_apify_api_token(self) -> bool:
+        """Expose token presence without returning the secret."""
+        from doormat.security.secrets import has_secret
+
+        return has_secret(self.apify_api_token)
+
+    @property
+    def apify_token_last4(self) -> Optional[str]:
+        """Expose a masked token hint for the UI."""
+        from doormat.security.secrets import secret_last4
+
+        return secret_last4(self.apify_api_token)
 
 
 class PropertyManager(Base):
@@ -165,3 +198,53 @@ class ExtractionFeedback(Base):
     strategy: Mapped[ExtractionStrategy] = relationship(back_populates="feedback")
 
     __table_args__ = (Index("idx_strategy_timestamp", "strategy_id", "timestamp"),)
+
+
+class DiscoveryRun(Base):
+    """Records each discovery run with status and timing."""
+
+    __tablename__ = "discovery_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    city: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    preference_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="running", nullable=False)
+    managers_found: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    logs: Mapped[list["DiscoveryRunLog"]] = relationship(
+        back_populates="run", order_by="DiscoveryRunLog.sequence"
+    )
+
+    __table_args__ = (Index("idx_run_city_started", "city", "started_at"),)
+
+
+class DiscoveryRunLog(Base):
+    """Individual log lines for a discovery run."""
+
+    __tablename__ = "discovery_run_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("discovery_runs.id"), nullable=False, index=True
+    )
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    level: Mapped[str] = mapped_column(
+        String(10), nullable=False
+    )  # info|success|error|debug|warning
+    component: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # discovery|extraction|scoring|agent
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    details: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON extra context
+
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+
+    run: Mapped["DiscoveryRun"] = relationship(back_populates="logs")
+
+    __table_args__ = (Index("idx_log_run_seq", "run_id", "sequence"),)

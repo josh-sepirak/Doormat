@@ -1,28 +1,32 @@
-"""Discovery API router.
-
-Endpoints:
-  POST /api/discovery/cities/{city}            -> trigger discovery
-  GET  /api/discovery/cities/{city}/managers   -> list discovered managers
-  GET  /api/discovery/cities/{city}/status     -> discovery status
-"""
+"""Discovery API router."""
 
 from __future__ import annotations
 
+import json
 import time
+import uuid
 from collections import deque
-from typing import Annotated, Any
+from datetime import datetime, timezone
+from typing import Annotated, Any, Optional
 
+import httpx
 import structlog
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.config import settings
-from doormat.db.base import get_db
+from doormat.db.base import AsyncSessionLocal, get_db
 from doormat.discovery.agent import DiscoveryAgent
+from doormat.discovery.classifier import PropertyManagerClassifier
 from doormat.discovery.models import DiscoveryResult
-from doormat.models.orm import PropertyManager
+from doormat.discovery.search import DiscoverySearch
+from doormat.llm.client import get_llm_client
+from doormat.models.orm import DiscoveryRun, DiscoveryRunLog, Preference, PropertyManager
+from doormat.schemas import DiscoveryRunResponse
+from doormat.security.auth import require_bearer_auth
+from doormat.security.secrets import decrypt_secret
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
@@ -35,14 +39,11 @@ _discovery_request_times: dict[str, deque[float]] = {}
 
 
 class TriggerRequest(BaseModel):
-    """Optional body for POST trigger."""
-
-    preference_id: str | None = None
+    city: str
+    preference_id: Optional[str] = None
 
 
 class ManagerOut(BaseModel):
-    """Public representation of a discovered manager."""
-
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -54,59 +55,123 @@ class ManagerOut(BaseModel):
 
 
 class CityStatus(BaseModel):
-    """Discovery status for a city."""
-
     city: str
     managers_total: int
     managers_validated: int
     has_been_discovered: bool
 
 
-async def require_discovery_auth(
-    authorization: Annotated[str | None, Header()] = None,
-) -> None:
-    """Require bearer auth when AUTH_BEARER_TOKEN is configured."""
-    if not settings.AUTH_BEARER_TOKEN:
-        return
+class ScrapeRequest(BaseModel):
+    preference_id: Optional[str] = None
+    max_managers: int = 5
 
-    expected = f"Bearer {settings.AUTH_BEARER_TOKEN}"
-    if authorization != expected:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="missing or invalid bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+
+class ScrapeResult(BaseModel):
+    city: str
+    managers_scraped: int
+    listings_extracted: int
+    listings_scored: int
+
+
+class RunLogger:
+    """Writes log lines to DiscoveryRunLog using independent committed sessions.
+
+    Each entry is committed immediately so polling requests see live progress.
+    """
+
+    def __init__(self, run_id: str) -> None:
+        self._run_id = run_id
+        self._seq = 0
+
+    async def log(
+        self,
+        message: str,
+        level: str = "info",
+        component: str = "discovery",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        async with AsyncSessionLocal() as session:
+            entry = DiscoveryRunLog(
+                id=str(uuid.uuid4()),
+                run_id=self._run_id,
+                sequence=self._seq,
+                level=level,
+                component=component,
+                message=message,
+                details=json.dumps(details) if details else None,
+            )
+            session.add(entry)
+            await session.commit()
+        self._seq += 1
+
+    async def info(self, message: str, component: str = "discovery", **kw: Any) -> None:
+        await self.log(message, "info", component, kw or None)
+
+    async def success(self, message: str, component: str = "discovery", **kw: Any) -> None:
+        await self.log(message, "success", component, kw or None)
+
+    async def error(self, message: str, component: str = "discovery", **kw: Any) -> None:
+        await self.log(message, "error", component, kw or None)
+
+    async def debug(self, message: str, component: str = "discovery", **kw: Any) -> None:
+        await self.log(message, "debug", component, kw or None)
+
+    async def warning(self, message: str, component: str = "discovery", **kw: Any) -> None:
+        await self.log(message, "warning", component, kw or None)
+
+
+require_discovery_auth = require_bearer_auth
 
 
 async def enforce_discovery_rate_limit(request: Request) -> None:
-    """Apply a simple in-process per-client limit before LLM-backed discovery."""
     limit = settings.DISCOVERY_RATE_LIMIT_PER_MINUTE
     if limit <= 0:
         return
-
     now = time.monotonic()
     client_host = request.client.host if request.client else "unknown"
     request_times = _discovery_request_times.setdefault(client_host, deque())
-
     while request_times and now - request_times[0] >= _RATE_WINDOW_SECONDS:
         request_times.popleft()
-
     if len(request_times) >= limit:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="too many discovery requests",
         )
-
     request_times.append(now)
 
 
 def reset_discovery_rate_limits() -> None:
-    """Clear rate-limit state for tests and local maintenance scripts."""
     _discovery_request_times.clear()
 
 
+def _build_run_response(run: DiscoveryRun, logs: list[DiscoveryRunLog]) -> DiscoveryRunResponse:
+    """Build response dict without triggering SQLAlchemy lazy loads."""
+    return DiscoveryRunResponse.model_validate(
+        {
+            "id": run.id,
+            "city": run.city,
+            "preference_id": run.preference_id,
+            "status": run.status,
+            "managers_found": run.managers_found,
+            "started_at": run.started_at,
+            "finished_at": run.finished_at,
+            "logs": [
+                {
+                    "id": log.id,
+                    "sequence": log.sequence,
+                    "level": log.level,
+                    "component": log.component,
+                    "message": log.message,
+                    "details": log.details,
+                    "timestamp": log.timestamp,
+                }
+                for log in logs
+            ],
+        }
+    )
+
+
 def _validate_city(city: str) -> str:
-    """Validate city path parameter at the API boundary."""
     cleaned = city.strip()
     if not cleaned or len(cleaned) < 2 or len(cleaned) > 100:
         raise HTTPException(
@@ -114,6 +179,172 @@ def _validate_city(city: str) -> str:
             detail="city must be 2-100 chars",
         )
     return cleaned
+
+
+async def _preferred_openrouter_settings(
+    session: AsyncSession, preference_id: str | None
+) -> tuple[str | None, str | None]:
+    """Return the saved fast model and decrypted key for a discovery run."""
+    if not preference_id:
+        return None, None
+    pref = await session.get(Preference, preference_id)
+    if not pref:
+        return None, None
+    return pref.fast_model, decrypt_secret(pref.openrouter_api_key)
+
+
+async def _run_discovery_agent(
+    session: AsyncSession,
+    city: str,
+    preference_id: str | None,
+    fast_model: str | None,
+    openrouter_api_key: str | None,
+    run_logger: RunLogger,
+) -> DiscoveryResult:
+    """Initialize model-aware discovery dependencies and execute the agent."""
+    llm = get_llm_client(api_key=openrouter_api_key)
+    search = DiscoverySearch(llm=llm, model=fast_model)
+    classifier = PropertyManagerClassifier(llm=llm, model=fast_model)
+    agent = DiscoveryAgent(session=session, search=search, classifier=classifier)
+    model_label = fast_model or "default"
+    await run_logger.info(f"Discovery agent initialized (model: {model_label})", component="agent")
+    return await agent.discover_city(city, preference_id=preference_id, run_logger=run_logger)
+
+
+async def _record_discovery_success(
+    run: DiscoveryRun,
+    result: DiscoveryResult,
+    run_logger: RunLogger,
+) -> None:
+    """Persist success status and user-facing run logs."""
+    managers_found = result.validated_count
+    if managers_found == 0 and result.candidates_found == 0:
+        await run_logger.warning(
+            "No candidates found — LLM search returned empty. "
+            "Model may be rate-limited or not support structured output. "
+            "Try switching to a paid model in Preferences.",
+            component="discovery",
+        )
+    await run_logger.success(
+        f"Discovery complete — found {managers_found} property managers",
+        component="discovery",
+        managers_found=managers_found,
+    )
+    run.status = "success"
+    run.managers_found = managers_found
+    run.finished_at = datetime.now(timezone.utc)
+
+
+# ─── Main trigger (what the frontend calls) ──────────────────────────────────
+
+
+async def _run_discovery_background(run_id: str, city: str, preference_id: str | None) -> None:
+    """Background task: runs discovery pipeline, updates run record, commits logs live."""
+    run_logger = RunLogger(run_id=run_id)
+    await run_logger.info(f"Starting discovery for {city}")
+
+    async with AsyncSessionLocal() as session:
+        run = await session.get(DiscoveryRun, run_id)
+        if run is None:
+            logger.error("background_run_not_found", run_id=run_id)
+            return
+        try:
+            fast_model, openrouter_api_key = await _preferred_openrouter_settings(
+                session, preference_id
+            )
+            result = await _run_discovery_agent(
+                session, city, preference_id, fast_model, openrouter_api_key, run_logger
+            )
+            await _record_discovery_success(run, result, run_logger)
+        except Exception as exc:
+            await run_logger.error(
+                f"Discovery failed: {exc}",
+                component="discovery",
+                error=str(exc),
+                error_type=type(exc).__name__,
+            )
+            run.status = "error"
+            run.finished_at = datetime.now(timezone.utc)
+            logger.error("trigger_discovery_failed", city=city, error=str(exc))
+        await session.commit()
+
+
+@router.post("/trigger", response_model=DiscoveryRunResponse)
+async def trigger_discovery_v2(
+    body: TriggerRequest,
+    background_tasks: BackgroundTasks,
+    _auth: Annotated[None, Depends(require_discovery_auth)],
+    _rate_limit: Annotated[None, Depends(enforce_discovery_rate_limit)],
+    session: DBSession,
+) -> DiscoveryRunResponse:
+    """Trigger a discovery run asynchronously.
+
+    Creates a run record, kicks off discovery as a background task, and returns
+    immediately. The frontend should poll GET /runs/{run_id} to track progress.
+    """
+    cleaned_city = _validate_city(body.city)
+    run_id = str(uuid.uuid4())
+
+    run = DiscoveryRun(
+        id=run_id,
+        city=cleaned_city,
+        preference_id=body.preference_id,
+        status="running",
+        started_at=datetime.now(timezone.utc),
+    )
+    session.add(run)
+    await session.commit()
+
+    background_tasks.add_task(_run_discovery_background, run_id, cleaned_city, body.preference_id)
+
+    return _build_run_response(run, [])
+
+
+# ─── Run history endpoints ────────────────────────────────────────────────────
+
+
+@router.get("/runs", response_model=list[DiscoveryRunResponse])
+async def list_runs(
+    session: DBSession,
+    limit: int = 20,
+) -> list[DiscoveryRunResponse]:
+    """List recent discovery runs, newest first."""
+    stmt = select(DiscoveryRun).order_by(DiscoveryRun.started_at.desc()).limit(min(limit, 100))
+    runs = (await session.execute(stmt)).scalars().all()
+
+    result = []
+    for run in runs:
+        log_stmt = (
+            select(DiscoveryRunLog)
+            .where(DiscoveryRunLog.run_id == run.id)
+            .order_by(DiscoveryRunLog.sequence)
+        )
+        logs = (await session.execute(log_stmt)).scalars().all()
+        result.append(_build_run_response(run, list(logs)))
+
+    return result
+
+
+@router.get("/runs/{run_id}", response_model=DiscoveryRunResponse)
+async def get_run(
+    run_id: str,
+    session: DBSession,
+) -> DiscoveryRunResponse:
+    """Get a single discovery run with all log lines."""
+    run = await session.get(DiscoveryRun, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+
+    stmt = (
+        select(DiscoveryRunLog)
+        .where(DiscoveryRunLog.run_id == run_id)
+        .order_by(DiscoveryRunLog.sequence)
+    )
+    logs = (await session.execute(stmt)).scalars().all()
+    return _build_run_response(run, list(logs))
+
+
+# ─── Legacy city-based endpoints (keep for backward compat) ──────────────────
 
 
 @router.post("/cities/{city}", response_model=DiscoveryResult)
@@ -124,11 +355,9 @@ async def trigger_discovery(
     session: DBSession,
     body: TriggerRequest | None = None,
 ) -> DiscoveryResult:
-    """Trigger a discovery run for the given city."""
     cleaned_city = _validate_city(city)
     pref_id = body.preference_id if body else None
     logger.info("api_trigger_discovery", city=cleaned_city, preference_id=pref_id)
-
     agent = DiscoveryAgent(session=session)
     try:
         return await agent.discover_city(cleaned_city, preference_id=pref_id)
@@ -141,11 +370,7 @@ async def trigger_discovery(
 
 
 @router.get("/cities/{city}/managers", response_model=list[ManagerOut])
-async def list_managers(
-    city: str,
-    session: DBSession,
-) -> list[ManagerOut]:
-    """List discovered managers for a city."""
+async def list_managers(city: str, session: DBSession) -> list[ManagerOut]:
     cleaned_city = _validate_city(city)
     stmt = select(PropertyManager).where(PropertyManager.city == cleaned_city)
     rows = (await session.execute(stmt)).scalars().all()
@@ -153,11 +378,7 @@ async def list_managers(
 
 
 @router.get("/cities/{city}/status", response_model=CityStatus)
-async def city_status(
-    city: str,
-    session: DBSession,
-) -> CityStatus:
-    """Return discovery status for a city."""
+async def city_status(city: str, session: DBSession) -> CityStatus:
     cleaned_city = _validate_city(city)
     stmt = select(PropertyManager).where(PropertyManager.city == cleaned_city)
     rows: list[Any] = list((await session.execute(stmt)).scalars().all())
@@ -167,4 +388,91 @@ async def city_status(
         managers_total=len(rows),
         managers_validated=validated_count,
         has_been_discovered=len(rows) > 0,
+    )
+
+
+@router.post("/cities/{city}/scrape", response_model=ScrapeResult)
+async def scrape_city_listings(
+    city: str,
+    session: DBSession,
+    body: Optional[ScrapeRequest] = None,
+) -> ScrapeResult:
+    """Fetch HTML from validated property managers and run listing extraction.
+
+    For each validated PM in the city (up to max_managers), fetches their
+    website HTML and runs Mode A extraction. Scores persisted results against
+    the given preference when preference_id is provided.
+    """
+    from doormat.extraction.orchestrator import extract_listing
+    from doormat.models.orm import Listing as ListingORM
+    from doormat.scoring.scorer import ListingScorer
+
+    cleaned_city = _validate_city(city)
+    preference_id = body.preference_id if body else None
+    max_managers = (body.max_managers if body else None) or 5
+
+    pm_stmt = (
+        select(PropertyManager)
+        .where(PropertyManager.city == cleaned_city, PropertyManager.validated.is_(True))
+        .limit(max_managers)
+    )
+    pms = list((await session.execute(pm_stmt)).scalars().all())
+
+    preference = await session.get(Preference, preference_id) if preference_id else None
+
+    listings_extracted = 0
+
+    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as http:
+        for pm in pms:
+            url = pm.listing_page_url or pm.website
+            if not url:
+                continue
+            try:
+                resp = await http.get(url, headers={"User-Agent": "Doormat/1.0"})
+                resp.raise_for_status()
+            except Exception as exc:
+                logger.warning("scrape_fetch_failed", pm=pm.name, url=url, error=str(exc))
+                continue
+            try:
+                result = await extract_listing(session, resp.text, url, pm, preference)
+                if result.confidence != "low":
+                    listings_extracted += 1
+            except Exception as exc:
+                logger.error("scrape_extract_failed", pm=pm.name, error=str(exc))
+                await session.rollback()
+
+    listings_scored = 0
+    if preference:
+        try:
+            score_stmt = (
+                select(ListingORM)
+                .join(PropertyManager, ListingORM.property_manager_id == PropertyManager.id)
+                .where(
+                    PropertyManager.city == cleaned_city,
+                    ListingORM.score.is_(None),
+                )
+                .order_by(ListingORM.extraction_timestamp.desc())
+                .limit(50)
+            )
+            unscored = list((await session.execute(score_stmt)).scalars().all())
+            if unscored:
+                scorer = ListingScorer()
+                await scorer.score_batch(unscored, preference)
+                await session.commit()
+                listings_scored = len(unscored)
+        except Exception as exc:
+            logger.error("scrape_scoring_failed", error=str(exc))
+
+    logger.info(
+        "scrape_complete",
+        city=cleaned_city,
+        managers_scraped=len(pms),
+        listings_extracted=listings_extracted,
+        listings_scored=listings_scored,
+    )
+    return ScrapeResult(
+        city=cleaned_city,
+        managers_scraped=len(pms),
+        listings_extracted=listings_extracted,
+        listings_scored=listings_scored,
     )

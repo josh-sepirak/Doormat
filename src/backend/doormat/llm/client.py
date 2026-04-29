@@ -21,6 +21,21 @@ logger = structlog.get_logger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 DEFAULT_MODEL = "openai/gpt-4o-mini"
+MODEL_CHEAP = "openai/gpt-4o-mini"
+MODEL_REASONING = "anthropic/claude-3.5-sonnet"
+
+
+def route_model(task: str) -> str:
+    """Route a task to the most cost-effective model.
+
+    Tasks:
+    - discovery: finding property managers (simple, high volume) -> CHEAP
+    - extraction: parsing listing data (medium complexity) -> CHEAP/REASONING
+    - scoring: ranking vs preferences (high reasoning) -> REASONING
+    """
+    if task == "scoring":
+        return MODEL_REASONING
+    return MODEL_CHEAP
 
 
 class LLMClient:
@@ -46,81 +61,107 @@ class LLMClient:
     async def complete(
         self,
         messages: list[dict[str, str]],
-        model: str = DEFAULT_MODEL,
+        model: Optional[str] = None,
+        task: str = "unknown",
         response_model: Optional[type[T]] = None,
         max_tokens: int = 1024,
         temperature: float = 0.2,
+        component: str = "unknown",
+        city: Optional[str] = None,
     ) -> str | T:
         """Run a chat completion. Returns a Pydantic model when `response_model` set.
 
+        If model is not provided, it is routed based on the 'task'.
         All token usage is tracked via `track_cost()`.
         """
+        model = model or route_model(task)
+
         logger.info(
             "llm_call_start",
             model=model,
+            task=task,
             message_count=len(messages),
             structured=response_model is not None,
+            component=component,
+            city=city,
         )
 
-        prompt_tokens = _estimate_prompt_tokens(messages)
+        prompt_tokens = 0
         completion_tokens = 0
+        reported_cost_usd: float | None = None
+        content: str = ""
+        parsed: Optional[T] = None
 
-        try:
-            if response_model is not None:
-                parsed: T = await self._instructor_client.chat.completions.create(
-                    model=model,
-                    messages=cast(Any, messages),
-                    response_model=response_model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
-                completion_tokens = _estimate_completion_tokens(parsed.model_dump_json())
-                logger.info(
-                    "llm_call_complete",
-                    model=model,
-                    completion_tokens=completion_tokens,
-                    structured=True,
-                )
-            else:
-                response = await self._raw_client.chat.completions.create(
-                    model=model,
-                    messages=cast(Any, messages),
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
-                content = response.choices[0].message.content or ""
-                completion_tokens = _estimate_completion_tokens(content)
-                logger.info(
-                    "llm_call_complete",
-                    model=model,
-                    completion_tokens=completion_tokens,
-                    structured=False,
-                )
-        except Exception as exc:
-            logger.error("llm_call_failed", model=model, error=str(exc))
-            raise
-
-        # Track cost after we have actual completion tokens
         async with track_cost(
             service="openrouter",
             model=model,
-            prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
-        ):
-            pass
+            component=component,
+            city=city,
+        ) as cost:
+            try:
+                if response_model is not None:
+                    # Use instructor with completion to get usage
+                    (
+                        parsed,
+                        completion,
+                    ) = await self._instructor_client.chat.completions.create_with_completion(
+                        model=model,
+                        messages=cast(Any, messages),
+                        response_model=response_model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    if completion.usage:
+                        prompt_tokens = completion.usage.prompt_tokens
+                        completion_tokens = completion.usage.completion_tokens
+                        reported_cost_usd = _usage_cost_usd(completion.usage)
+                else:
+                    response = await self._raw_client.chat.completions.create(
+                        model=model,
+                        messages=cast(Any, messages),
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    content = response.choices[0].message.content or ""
+                    if response.usage:
+                        prompt_tokens = response.usage.prompt_tokens
+                        completion_tokens = response.usage.completion_tokens
+                        reported_cost_usd = _usage_cost_usd(response.usage)
+                cost.prompt_tokens = prompt_tokens
+                cost.completion_tokens = completion_tokens
+                cost.cost_usd = reported_cost_usd
+                logger.info(
+                    "llm_call_complete",
+                    model=model,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    cost_usd=reported_cost_usd,
+                )
+            except Exception as exc:
+                logger.error("llm_call_failed", model=model, error=str(exc))
+                raise
 
-        # Return the result (stored above)
         if response_model is not None:
+            if parsed is None:
+                raise RuntimeError("Structured LLM response was empty")
             return parsed
-        else:
-            return content
+        return content
 
 
 _CLIENT_SINGLETON: Optional[LLMClient] = None
 
 
-def get_llm_client() -> LLMClient:
-    """Return the process-wide LLMClient singleton."""
+def get_llm_client(api_key: Optional[str] = None) -> LLMClient:
+    """Return an LLMClient.
+
+    If *api_key* is provided (e.g. from a user's stored preference), a fresh
+    client is created with that key.  Otherwise the process-wide singleton
+    backed by the .env OPENROUTER_API_KEY is returned.
+    """
+    if api_key:
+        return LLMClient(api_key=api_key)
+
     global _CLIENT_SINGLETON
     if _CLIENT_SINGLETON is None:
         _CLIENT_SINGLETON = LLMClient()
@@ -131,6 +172,16 @@ def reset_llm_client() -> None:
     """Reset the singleton (used in tests)."""
     global _CLIENT_SINGLETON
     _CLIENT_SINGLETON = None
+
+
+def _usage_cost_usd(usage: Any) -> float | None:
+    """Extract OpenRouter-reported cost when available on the usage object."""
+    value = getattr(usage, "cost", None)
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return max(float(value), 0.0)
+    return None
 
 
 def _estimate_prompt_tokens(messages: list[dict[str, str]]) -> int:

@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+from typing import Any, Protocol
+
 from pydantic import BaseModel, Field, field_validator
+
+
+class RunLoggerProtocol(Protocol):
+    async def info(self, message: str, component: str = "discovery", **kw: Any) -> None: ...
+    async def error(self, message: str, component: str = "discovery", **kw: Any) -> None: ...
+    async def warning(self, message: str, component: str = "discovery", **kw: Any) -> None: ...
+    async def success(self, message: str, component: str = "discovery", **kw: Any) -> None: ...
+    async def debug(self, message: str, component: str = "discovery", **kw: Any) -> None: ...
 
 
 class DiscoveryCandidate(BaseModel):

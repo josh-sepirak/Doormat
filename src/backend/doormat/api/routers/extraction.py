@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from doormat.api.routers.discovery import enforce_discovery_rate_limit, require_discovery_auth
 from doormat.db.base import get_db
 from doormat.extraction.orchestrator import extract_listing
-from doormat.models.orm import PropertyManager
+from doormat.models.orm import Preference, PropertyManager
 
 logger = structlog.get_logger(__name__)
 
@@ -20,6 +20,7 @@ router = APIRouter(prefix="/extraction", tags=["Extraction"])
 
 class ExtractionRequest(BaseModel):
     property_manager_id: str = Field(..., min_length=1, max_length=36)
+    preference_id: str | None = Field(None, min_length=1, max_length=36)
     url: HttpUrl
     html: str = Field(..., min_length=1, max_length=2_000_000)
 
@@ -49,9 +50,18 @@ async def trigger_extraction(
         raise HTTPException(status_code=404, detail="Property manager not found")
 
     try:
-        # Run extraction
+        preference = None
+        if request.preference_id:
+            preference = await db.get(Preference, request.preference_id)
+            if preference is None:
+                raise HTTPException(status_code=404, detail="Preference not found")
+
         extraction_result = await extract_listing(
-            session=db, html=request.html, url=str(request.url), property_manager=pm
+            session=db,
+            html=request.html,
+            url=str(request.url),
+            property_manager=pm,
+            preference=preference,
         )
         return ExtractionResponse(
             status="success",

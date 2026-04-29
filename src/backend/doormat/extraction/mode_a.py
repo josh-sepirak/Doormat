@@ -1,6 +1,6 @@
 """Mode A: Deterministic-first extraction."""
 
-from typing import cast
+from typing import Optional, cast
 
 import structlog
 
@@ -85,15 +85,17 @@ async def run_mode_a(
     url: str,
     source_id: str,
     strategy: ExtractionStrategy | None,
-    model: str = "openai/gpt-4o-mini",
+    city: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
 ) -> ListingExtractionResult:
     """Run Mode A deterministic extraction against raw HTML.
 
     Uses `instructor` to extract a structured payload.
     """
-    logger.info("extraction_mode_a_start", source_id=source_id, url=url)
+    logger.info("extraction_mode_a_start", source_id=source_id, url=url, city=city)
 
-    llm = get_llm_client()
+    llm = get_llm_client(api_key=api_key)
 
     strategy_version = strategy.id if strategy else "none"
 
@@ -114,6 +116,9 @@ async def run_mode_a(
         await llm.complete(
             messages=messages,
             model=model,
+            task="extraction",
+            component="extraction",
+            city=city,
             response_model=ListingExtractionResult,
             max_tokens=1000,
             temperature=0.0,

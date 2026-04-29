@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from doormat.llm.client import get_llm_client
 from doormat.models.orm import Listing, Preference
+from doormat.security.secrets import decrypt_secret
 
 logger = structlog.get_logger(__name__)
 
@@ -35,7 +36,7 @@ class ListingScorer:
 
     async def score(self, listing: Listing, preference: Preference) -> ListingScore:
         """Score a single listing against a preference."""
-        llm = get_llm_client()
+        llm = get_llm_client(api_key=decrypt_secret(preference.openrouter_api_key))
         user_content = build_listing_scoring_prompt(listing, preference)
 
         try:
@@ -45,7 +46,10 @@ class ListingScorer:
                     {"role": "user", "content": user_content},
                 ],
                 response_model=ListingScore,
-                model="openai/gpt-4o-mini",
+                model=preference.smart_model,
+                task="scoring",
+                component="scoring",
+                city=preference.city,
                 max_tokens=300,
                 temperature=0.0,
             )

@@ -1,9 +1,13 @@
 """Tests for main app."""
 
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
 
 from doormat.cost_tracking import CostRecord, get_cost_summary, get_cost_tracker
+from doormat.db.base import get_db
 from doormat.main import app
 
 
@@ -43,14 +47,29 @@ def test_metrics_endpoint(client):
     assert b"doormat_llm_calls_total" in response.content
 
 
-def test_costs_endpoint(client):
-    """Test cost tracking summary endpoint."""
-    response = client.get("/api/costs")
+def test_costs_endpoint():
+    """Test cost tracking summary endpoint returns correct shape."""
+    row = SimpleNamespace(total_cost=0.0, total_calls=0, total_tokens=0, cache_hits=0)
+    mock_result = MagicMock()
+    mock_result.one.return_value = row
+    mock_session = AsyncMock()
+    mock_session.execute = AsyncMock(return_value=mock_result)
+
+    async def _fake_db():
+        yield mock_session
+
+    app.dependency_overrides[get_db] = _fake_db
+    try:
+        with TestClient(app) as c:
+            response = c.get("/api/costs/summary")
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
     assert response.status_code == 200
     data = response.json()
     assert "total_cost_usd" in data
-    assert "total_tokens" in data
-    assert "record_count" in data
+    assert "total_calls" in data
+    assert "budget_limit_usd" in data
 
 
 def test_cost_tracking():
