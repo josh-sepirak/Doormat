@@ -4,10 +4,13 @@ import json
 import uuid
 from datetime import UTC, datetime
 
+import httpx
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from doormat.config import settings
 from doormat.extraction.mode_a import run_mode_a
+from doormat.extraction.mode_a0 import run_mode_a0
 from doormat.extraction.mode_b import run_mode_b
 from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
 from doormat.extraction.strategy import StrategyCache
@@ -24,13 +27,32 @@ async def extract_listing(
     property_manager: PropertyManager,
     preference: Preference | None = None,
 ) -> ListingExtractionResult:
-    """Extract a listing using Mode A, falling back to Mode B if necessary."""
+    """Extract a listing using Mode A0 (zero-cost), Mode A, falling back to Mode B if necessary."""
 
     source_id = property_manager.id
     strategy_cache = StrategyCache(session)
     strategy = await strategy_cache.get(source_id)
     api_key = decrypt_secret(preference.openrouter_api_key) if preference else None
     smart_model = preference.smart_model if preference else None
+
+    result = None
+    prior_failure = None
+
+    # Mode A0: zero-cost API recipe extraction (if enabled and recipe available).
+    if settings.API_RECIPE_ENABLED:
+        async with httpx.AsyncClient() as http_client:
+            try:
+                result = await run_mode_a0(url, source_id, strategy, http_client)
+                if result and _is_persistable_result(result):
+                    logger.info("extraction_mode_a0_succeeded", source_id=source_id, url=url)
+                    return await _save_listing(session, result, property_manager, url)
+            except Exception as exc:
+                logger.warning(
+                    "extraction_mode_a0_error",
+                    source_id=source_id,
+                    url=url,
+                    error_type=type(exc).__name__,
+                )
 
     # Mode A: trust the cached strategy (or attempt extraction if none exists yet).
     try:

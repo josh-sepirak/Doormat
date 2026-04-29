@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     # Expensive discovery endpoint protection
     DISCOVERY_RATE_LIMIT_PER_MINUTE: int = 10
 
+    # Feature flag: Mode A0 (zero-cost API recipe extraction)
+    # Set to False by default until Phase E (rollout + observability complete)
+    API_RECIPE_ENABLED: bool = False
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:

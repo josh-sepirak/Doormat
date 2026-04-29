@@ -17,9 +17,9 @@ Legend: `[ ]` pending · `[x]` done
 
 ## Phase B — Mode A0 + orchestrator wiring
 
-- [ ] **B1** Implement `extraction/mode_a0.py` (`run_mode_a0`, failure/success counters, retire after 3 failures).
-- [ ] **B2** Update `extraction/orchestrator.py`: call Mode A0 before Mode A; pass `httpx` client; preserve existing persist rules.
-- [ ] **B3** Wire `api_recipe_enabled` default **False** in `config.py` until Phase E.
+- [x] **B1** Implement `extraction/mode_a0.py` (`run_mode_a0`, failure/success counters, retire after 3 failures).
+- [x] **B2** Update `extraction/orchestrator.py`: call Mode A0 before Mode A; pass `httpx` client; preserve existing persist rules.
+- [x] **B3** Wire `api_recipe_enabled` default **False** in `config.py` until Phase E.
 
 ---
 
