@@ -6,32 +6,64 @@ Main FastAPI application entry point.
 import time
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from sqlalchemy import update
 
 from doormat import metrics
+from doormat.api.routers.config import router as config_router
 from doormat.api.routers.costs import router as costs_router
 from doormat.api.routers.discovery import router as discovery_router
 from doormat.api.routers.extraction import router as extraction_router
 from doormat.api.routers.listings import router as listings_router
 from doormat.api.routers.openrouter import router as openrouter_router
 from doormat.api.routers.preferences import router as preferences_router
+from doormat.api.routers.search_runs import router as search_runs_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
+from doormat.db.base import AsyncSessionLocal
 from doormat.logging_config import get_logger, setup_logging
+from doormat.models.orm import DiscoveryRun, SearchRun
 
 # Setup structured logging
 setup_logging()
 logger = get_logger("doormat.main")
 
 
+async def _cleanup_orphaned_runs() -> None:
+    """Mark any runs left in 'running' state (from a prior server crash) as 'error'."""
+    now = datetime.now(UTC)
+    async with AsyncSessionLocal() as session:
+        sr_result = await session.execute(
+            update(SearchRun)
+            .where(SearchRun.status == "running")
+            .values(status="error", finished_at=now)
+        )
+        dr_result = await session.execute(
+            update(DiscoveryRun)
+            .where(DiscoveryRun.status == "running")
+            .values(status="error", finished_at=now)
+        )
+        await session.commit()
+        sr_count = sr_result.rowcount
+        dr_count = dr_result.rowcount
+        if sr_count or dr_count:
+            logger.warning(
+                "orphaned_runs_cleaned_on_startup",
+                search_runs=sr_count,
+                discovery_runs=dr_count,
+            )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """App lifecycle context manager."""
     logger.info("doormat_startup", version="0.1.0")
+    await _cleanup_orphaned_runs()
     yield
     logger.info("doormat_shutdown")
 
@@ -56,11 +88,13 @@ app.add_middleware(
 )
 
 # Register API routers
+app.include_router(config_router)
 app.include_router(costs_router)
 app.include_router(discovery_router)
 app.include_router(extraction_router)
 app.include_router(listings_router)
 app.include_router(preferences_router)
+app.include_router(search_runs_router)
 app.include_router(openrouter_router)
 
 

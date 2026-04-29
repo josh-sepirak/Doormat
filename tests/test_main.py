@@ -1,7 +1,7 @@
 """Tests for main app."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -123,3 +123,46 @@ def test_cost_summary():
     assert "by_service" in summary
     assert "openrouter" in summary["by_service"]
     assert "apify" in summary["by_service"]
+
+
+@pytest.mark.asyncio
+async def test_cleanup_orphaned_runs_marks_stuck_runs() -> None:
+    """_cleanup_orphaned_runs must mark any 'running' SearchRun/DiscoveryRun as 'error'."""
+    from doormat.main import _cleanup_orphaned_runs
+
+    update_result = MagicMock()
+    update_result.rowcount = 1
+
+    session_mock = AsyncMock()
+    session_mock.execute = AsyncMock(return_value=update_result)
+    session_mock.commit = AsyncMock()
+    # Make the session work as an async context manager.
+    session_mock.__aenter__ = AsyncMock(return_value=session_mock)
+    session_mock.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("doormat.main.AsyncSessionLocal", return_value=session_mock):
+        await _cleanup_orphaned_runs()
+
+    # One UPDATE for SearchRun, one for DiscoveryRun.
+    assert session_mock.execute.await_count == 2
+    session_mock.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_cleanup_orphaned_runs_noop_when_no_stuck_runs() -> None:
+    """_cleanup_orphaned_runs should not log a warning when no runs are stuck."""
+    from doormat.main import _cleanup_orphaned_runs
+
+    update_result = MagicMock()
+    update_result.rowcount = 0  # nothing updated
+
+    session_mock = AsyncMock()
+    session_mock.execute = AsyncMock(return_value=update_result)
+    session_mock.commit = AsyncMock()
+    session_mock.__aenter__ = AsyncMock(return_value=session_mock)
+    session_mock.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("doormat.main.AsyncSessionLocal", return_value=session_mock):
+        await _cleanup_orphaned_runs()  # should not raise
+
+    session_mock.commit.assert_awaited_once()

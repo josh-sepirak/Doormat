@@ -1,3 +1,33 @@
+# Available Agents
+
+This repository includes **Spec Kit** agents for structured software development workflows. Use `/agent` in Copilot CLI to browse and select them, or invoke them directly with their names below.
+
+## Spec Kit Agents
+
+### Design & Discovery
+- **speckit.specify** — Generate specification from natural language requirements
+- **speckit.clarify** — Ask targeted clarification questions to refine specs
+- **speckit.constitution** — Create/update project constitution with principles
+
+### Planning & Implementation  
+- **speckit.plan** — Create detailed implementation plans from specs
+- **speckit.tasks** — Generate actionable, dependency-ordered tasks
+- **speckit.implement** — Execute implementation plan by processing all tasks
+- **speckit.tasks-to-issues** — Convert tasks to GitHub issues
+
+### Review & Validation
+- **speckit.checklist** — Generate feature checklist from requirements
+- **speckit.analyze** — Non-destructive cross-artifact consistency analysis
+
+### Git Integration
+- **speckit.git.initialize** — Initialize Git repo with initial commit
+- **speckit.git.feature** — Create feature branch (sequential/timestamp numbering)
+- **speckit.git.validate** — Validate branch follows feature naming conventions
+- **speckit.git.commit** — Auto-commit changes with semantic messages
+- **speckit.git.remote** — Detect and configure Git remote URL
+
+---
+
 # Doormat MCP Server & Agent Integration
 
 **Version**: 1.0  

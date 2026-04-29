@@ -13,23 +13,12 @@ import structlog
 
 from doormat.discovery.models import DiscoveryCandidate, ValidationResult
 from doormat.llm.client import LLMClient, get_llm_client
+from doormat.llm.prompt_registry import DEFAULT_PROMPTS, PromptKey, get_effective_prompt
+from doormat.models.orm import Preference
 
 logger = structlog.get_logger(__name__)
 
-# v1 - initial classifier prompt; bump comment when materially changed
-CLASSIFIER_SYSTEM_PROMPT = """You are an expert at validating whether a website is a legitimate property management company.
-
-For a candidate website, evaluate these signals and respond with structured JSON:
-- Does the website appear to be a real, active property management business?
-- Does it list rental properties available now or recently?
-- Does it look like spam, an aggregator, a directory, or a non-rental site?
-- Are there contact details (phone, address, email) that indicate legitimacy?
-
-Output:
-- is_valid: true only when the candidate is a real PM with rental listings.
-- reason: one short sentence (<=200 chars) explaining the decision.
-- confidence: 0.0 to 1.0 - your certainty.
-"""
+CLASSIFIER_SYSTEM_PROMPT = DEFAULT_PROMPTS[PromptKey.DISCOVERY_CLASSIFIER_SYSTEM]
 
 
 class PropertyManagerClassifier:
@@ -43,7 +32,11 @@ class PropertyManagerClassifier:
         self._llm = llm or get_llm_client()
         self._model = model
 
-    async def classify(self, candidate: DiscoveryCandidate) -> ValidationResult:
+    async def classify(
+        self,
+        candidate: DiscoveryCandidate,
+        preference: Preference | None = None,
+    ) -> ValidationResult:
         """Classify a candidate; on LLM error returns is_valid=False gracefully."""
         logger.info(
             "classify_start",
@@ -53,8 +46,9 @@ class PropertyManagerClassifier:
         )
 
         user_prompt = self._build_user_prompt(candidate)
+        system_prompt = get_effective_prompt(PromptKey.DISCOVERY_CLASSIFIER_SYSTEM, preference)
         messages: list[dict[str, str]] = [
-            {"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
 
@@ -66,6 +60,7 @@ class PropertyManagerClassifier:
                 component="discovery",
                 city=candidate.city,
                 response_model=ValidationResult,
+                cache_system_prompt=True,
             )
             validated = cast(ValidationResult, result)
             logger.info(

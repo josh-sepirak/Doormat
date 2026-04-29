@@ -9,6 +9,7 @@ export interface Preference {
   apify_token_last4: string | null
   fast_model: string | null
   smart_model: string | null
+  sources_enabled: string[]
 }
 
 export interface ModelInfo {

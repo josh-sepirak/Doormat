@@ -3,7 +3,18 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from doormat.db.base import Base
@@ -22,6 +33,10 @@ class Preference(Base):
     apify_api_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     fast_model: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
     smart_model: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    # JSON list of enabled listing sources, e.g. ["craigslist", "zillow", "facebook"]
+    sources_enabled: Mapped[str] = mapped_column(Text, nullable=False, default='["craigslist"]')
+    # LLM prompt key -> custom text (defaults live in code only).
+    prompt_overrides: Mapped[Optional[dict[str, str]]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
@@ -77,6 +92,11 @@ class PropertyManager(Base):
     discovery_timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
+    # Scrape health tracking — set on every fetch attempt so we can skip dead domains.
+    last_fetch_attempted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_fetch_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationships
     extraction_strategies: Mapped[list["ExtractionStrategy"]] = relationship(
@@ -127,6 +147,7 @@ class Listing(Base):
     sqft: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     url: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str] = mapped_column(String(50), nullable=False, default="pm_direct")
     pets_policy: Mapped[str] = mapped_column(String(50), nullable=False, default="unknown")
     amenities: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True
@@ -144,6 +165,8 @@ class Listing(Base):
     score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     score_explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     saved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Relationships
     property_manager: Mapped[PropertyManager] = relationship(back_populates="listings")
@@ -218,8 +241,100 @@ class DiscoveryRun(Base):
     logs: Mapped[list["DiscoveryRunLog"]] = relationship(
         back_populates="run", order_by="DiscoveryRunLog.sequence"
     )
+    search_run: Mapped[Optional["SearchRun"]] = relationship(
+        back_populates="discovery_run", uselist=False
+    )
 
     __table_args__ = (Index("idx_run_city_started", "city", "started_at"),)
+
+
+class SearchRun(Base):
+    """Parent durable run wrapping discovery/scrape/filter/score for the UI."""
+
+    __tablename__ = "search_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    discovery_run_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("discovery_runs.id"), nullable=False, unique=True, index=True
+    )
+    city: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    preference_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="running", nullable=False, index=True)
+    current_stage: Mapped[str] = mapped_column(String(64), default="discovery", nullable=False)
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    sources_checked: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    managers_validated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    listings_seen: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    extraction_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    great_matches: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    worth_a_look: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    near_misses: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    filtered_out: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    cost_usd_so_far: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    active_revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    filters_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    discovery_run: Mapped["DiscoveryRun"] = relationship(back_populates="search_run")
+    events: Mapped[list["SearchRunEvent"]] = relationship(
+        back_populates="run", order_by="SearchRunEvent.sequence"
+    )
+    listing_results: Mapped[list["RunListingResult"]] = relationship(back_populates="run")
+
+    __table_args__ = (Index("idx_search_run_status_started", "status", "started_at"),)
+
+
+class SearchRunEvent(Base):
+    """Typed, durable events for a search run."""
+
+    __tablename__ = "search_run_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("search_runs.id"), nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    stage: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    payload_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    visibility: Mapped[str] = mapped_column(String(16), default="user", nullable=False)
+
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+    )
+
+    run: Mapped["SearchRun"] = relationship(back_populates="events")
+
+    __table_args__ = (Index("idx_search_run_event_run_seq", "run_id", "sequence"),)
+
+
+class RunListingResult(Base):
+    """Per-run, per-revision classification for a canonical listing."""
+
+    __tablename__ = "run_listing_results"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(36), ForeignKey("search_runs.id"), nullable=False)
+    listing_id: Mapped[str] = mapped_column(String(36), ForeignKey("listings.id"), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    filter_reasons_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    run: Mapped["SearchRun"] = relationship(back_populates="listing_results")
+    listing: Mapped["Listing"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "listing_id", "revision", name="uq_run_listing_revision"),
+        Index("idx_run_listing_result_run_rev", "run_id", "revision"),
+        Index("idx_run_listing_result_run_cat", "run_id", "category"),
+    )
 
 
 class DiscoveryRunLog(Base):
@@ -248,3 +363,17 @@ class DiscoveryRunLog(Base):
     run: Mapped["DiscoveryRun"] = relationship(back_populates="logs")
 
     __table_args__ = (Index("idx_log_run_seq", "run_id", "sequence"),)
+
+
+class GeocodeCache(Base):
+    """Deduplicated Nominatim forward-geocode results (respect external rate limits)."""
+
+    __tablename__ = "geocode_cache"
+
+    cache_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    query_text: Mapped[str] = mapped_column(String(512), nullable=False)
+    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=True
+    )

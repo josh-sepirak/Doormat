@@ -91,6 +91,9 @@ class CostScope:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     cost_usd: float | None = None
+    cache_hit: bool = False
+    cache_read_tokens: int = 0
+    cache_creation_tokens: int = 0
 
 
 # Global instance
@@ -184,9 +187,7 @@ async def track_cost(
         from doormat.config import settings
 
         if settings.TRACK_COSTS:
-            # We pass cache_hit separately to the persister for now
-            # as it's not in the dataclass yet
-            await persist_cost_record(record, cache_hit=cache_hit)
+            await persist_cost_record(record, cache_hit=scope.cache_hit)
 
 
 def estimate_cost(

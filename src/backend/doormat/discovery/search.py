@@ -14,21 +14,13 @@ from pydantic import BaseModel, Field
 
 from doormat.discovery.models import DiscoveryCandidate, RunLoggerProtocol
 from doormat.llm.client import LLMClient, get_llm_client
+from doormat.llm.prompt_registry import DEFAULT_PROMPTS, PromptKey, get_effective_prompt
+from doormat.models.orm import Preference
 
 logger = structlog.get_logger(__name__)
 
-# v1 - initial search prompt
-SEARCH_SYSTEM_PROMPT = """You are an expert at identifying real property management companies operating in US cities.
-
-Given a city, list candidate property management companies most likely to manage rental units there. For each, provide:
-- name: company name
-- website: most likely public website URL (use https://)
-- confidence: 0.0-1.0 - how certain are you this PM operates in the city
-
-Bias toward locally-active mid-size PMs over national portals. Avoid aggregators (Zillow, Apartments.com).
-
-Return between 5 and 15 candidates.
-"""
+# Back-compat default text (effective prompts may come from Preference overrides).
+SEARCH_SYSTEM_PROMPT = DEFAULT_PROMPTS[PromptKey.DISCOVERY_SEARCH_SYSTEM]
 
 
 class _SearchCandidate(BaseModel):
@@ -65,6 +57,7 @@ class DiscoverySearch:
         city: str,
         refinement: str | None = None,
         run_logger: Optional[RunLoggerProtocol] = None,
+        preference: Preference | None = None,
     ) -> list[DiscoveryCandidate]:
         """Return deduplicated candidates for a city."""
         model_label = self._model or "default"
@@ -76,8 +69,9 @@ class DiscoverySearch:
             await run_logger.info(f"{msg} — model: {model_label}", component="search")
 
         user_prompt = self._build_user_prompt(city, refinement)
+        system_prompt = get_effective_prompt(PromptKey.DISCOVERY_SEARCH_SYSTEM, preference)
         messages: list[dict[str, str]] = [
-            {"role": "system", "content": SEARCH_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
 
@@ -89,6 +83,7 @@ class DiscoverySearch:
                 component="discovery",
                 city=city,
                 response_model=_SearchResponse,
+                cache_system_prompt=True,
             )
             parsed = cast(_SearchResponse, response)
         except Exception as exc:

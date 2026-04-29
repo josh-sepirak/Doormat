@@ -6,7 +6,7 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false)
 
   useEffect(() => {
-    setDark(document.documentElement.classList.contains('dark'))
+    queueMicrotask(() => setDark(document.documentElement.classList.contains('dark')))
   }, [])
 
   function toggle() {

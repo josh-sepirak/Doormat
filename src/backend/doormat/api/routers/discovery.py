@@ -6,6 +6,7 @@ import json
 import time
 import uuid
 from collections import deque
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from typing import Annotated, Any, Optional
 
@@ -23,7 +24,10 @@ from doormat.discovery.classifier import PropertyManagerClassifier
 from doormat.discovery.models import DiscoveryResult
 from doormat.discovery.search import DiscoverySearch
 from doormat.llm.client import get_llm_client
-from doormat.models.orm import DiscoveryRun, DiscoveryRunLog, Preference, PropertyManager
+from doormat.models.orm import DiscoveryRun, DiscoveryRunLog, Preference, PropertyManager, SearchRun
+from doormat.runs import events as run_events
+from doormat.runs import state as run_state
+from doormat.runs.errors import CooperativeCancel
 from doormat.schemas import DiscoveryRunResponse
 from doormat.security.auth import require_bearer_auth
 from doormat.security.secrets import decrypt_secret
@@ -64,6 +68,7 @@ class CityStatus(BaseModel):
 class ScrapeRequest(BaseModel):
     preference_id: Optional[str] = None
     max_managers: int = 5
+    search_run_id: Optional[str] = None
 
 
 class ScrapeResult(BaseModel):
@@ -118,6 +123,30 @@ class RunLogger:
 
     async def warning(self, message: str, component: str = "discovery", **kw: Any) -> None:
         await self.log(message, "warning", component, kw or None)
+
+
+class BridgedSearchRunLogger(RunLogger):
+    """Mirrors discovery logs into `SearchRunEvent` rows for the parent run."""
+
+    def __init__(self, discovery_run_id: str, search_run_id: str) -> None:
+        super().__init__(discovery_run_id)
+        self._search_run_id = search_run_id
+
+    async def log(
+        self,
+        message: str,
+        level: str = "info",
+        component: str = "discovery",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        await super().log(message, level, component, details)
+        await run_events.mirror_discovery_log_to_search_run(
+            search_run_id=self._search_run_id,
+            message=message,
+            level=level,
+            component=component,
+            details=details,
+        )
 
 
 require_discovery_auth = require_bearer_auth
@@ -200,6 +229,7 @@ async def _run_discovery_agent(
     fast_model: str | None,
     openrouter_api_key: str | None,
     run_logger: RunLogger,
+    cancel_check: Callable[[], Awaitable[bool]] | None = None,
 ) -> DiscoveryResult:
     """Initialize model-aware discovery dependencies and execute the agent."""
     llm = get_llm_client(api_key=openrouter_api_key)
@@ -208,7 +238,12 @@ async def _run_discovery_agent(
     agent = DiscoveryAgent(session=session, search=search, classifier=classifier)
     model_label = fast_model or "default"
     await run_logger.info(f"Discovery agent initialized (model: {model_label})", component="agent")
-    return await agent.discover_city(city, preference_id=preference_id, run_logger=run_logger)
+    return await agent.discover_city(
+        city,
+        preference_id=preference_id,
+        run_logger=run_logger,
+        cancel_check=cancel_check,
+    )
 
 
 async def _record_discovery_success(
@@ -238,24 +273,70 @@ async def _record_discovery_success(
 # ─── Main trigger (what the frontend calls) ──────────────────────────────────
 
 
-async def _run_discovery_background(run_id: str, city: str, preference_id: str | None) -> None:
+async def _run_discovery_background(  # noqa: C901
+    run_id: str,
+    city: str,
+    preference_id: str | None,
+    search_run_id: str | None = None,
+) -> None:
     """Background task: runs discovery pipeline, updates run record, commits logs live."""
-    run_logger = RunLogger(run_id=run_id)
+    run_logger: RunLogger = (
+        BridgedSearchRunLogger(run_id, search_run_id) if search_run_id else RunLogger(run_id=run_id)
+    )
     await run_logger.info(f"Starting discovery for {city}")
+
+    async def cancel_check() -> bool:
+        if not search_run_id:
+            return False
+        async with AsyncSessionLocal() as s2:
+            sr = await s2.get(SearchRun, search_run_id)
+            if sr is None:
+                return False
+            return bool(sr.cancel_requested or sr.status == "cancel_requested")
 
     async with AsyncSessionLocal() as session:
         run = await session.get(DiscoveryRun, run_id)
         if run is None:
             logger.error("background_run_not_found", run_id=run_id)
             return
+        search_outcome: str | None = None
         try:
             fast_model, openrouter_api_key = await _preferred_openrouter_settings(
                 session, preference_id
             )
             result = await _run_discovery_agent(
-                session, city, preference_id, fast_model, openrouter_api_key, run_logger
+                session,
+                city,
+                preference_id,
+                fast_model,
+                openrouter_api_key,
+                run_logger,
+                cancel_check=cancel_check,
             )
             await _record_discovery_success(run, result, run_logger)
+            if search_run_id:
+                sr = await session.get(SearchRun, search_run_id)
+                if sr:
+                    sr.managers_validated = int(result.validated_count)
+                    # keep status=running; pipeline.run_scraping_stage will finalize it
+                    run_events.sync_run_cost_from_tracker(session, sr)
+                    session.add(sr)
+            search_outcome = "success"
+        except CooperativeCancel:
+            await run_logger.warning(
+                "Discovery stopped after cancellation request", component="discovery"
+            )
+            if search_run_id:
+                sr = await session.get(SearchRun, search_run_id)
+                if sr:
+                    await run_state.apply_cancelled_terminal_state(session, sr, run)
+                else:
+                    run.status = "cancelled"
+                    run.finished_at = datetime.now(timezone.utc)
+            else:
+                run.status = "cancelled"
+                run.finished_at = datetime.now(timezone.utc)
+            search_outcome = "cancelled"
         except Exception as exc:
             await run_logger.error(
                 f"Discovery failed: {exc}",
@@ -265,8 +346,35 @@ async def _run_discovery_background(run_id: str, city: str, preference_id: str |
             )
             run.status = "error"
             run.finished_at = datetime.now(timezone.utc)
+            if search_run_id:
+                sr = await session.get(SearchRun, search_run_id)
+                if sr:
+                    sr.status = "error"
+                    sr.finished_at = datetime.now(timezone.utc)
+                    session.add(sr)
             logger.error("trigger_discovery_failed", city=city, error=str(exc))
+            search_outcome = "error"
         await session.commit()
+
+    if search_run_id and search_outcome == "success":
+        await run_events.append_search_run_event_standalone(
+            run_id=search_run_id,
+            event_type="stage_completed",
+            message="Discovery complete — starting scraping",
+            stage="discovery",
+            payload={"discovery_run_id": run_id},
+        )
+        from doormat.runs.pipeline import run_scraping_stage
+
+        await run_scraping_stage(search_run_id, city, preference_id)
+    elif search_run_id and search_outcome == "cancelled":
+        await run_events.append_search_run_event_standalone(
+            run_id=search_run_id,
+            event_type="cancelled",
+            message="Run cancelled",
+            stage="discovery",
+            payload={"discovery_run_id": run_id},
+        )
 
 
 @router.post("/trigger", response_model=DiscoveryRunResponse)
@@ -392,7 +500,7 @@ async def city_status(city: str, session: DBSession) -> CityStatus:
 
 
 @router.post("/cities/{city}/scrape", response_model=ScrapeResult)
-async def scrape_city_listings(
+async def scrape_city_listings(  # noqa: C901
     city: str,
     session: DBSession,
     body: Optional[ScrapeRequest] = None,
@@ -405,11 +513,15 @@ async def scrape_city_listings(
     """
     from doormat.extraction.orchestrator import extract_listing
     from doormat.models.orm import Listing as ListingORM
+    from doormat.runs import events as run_events
+    from doormat.runs import filters as run_filters
     from doormat.scoring.scorer import ListingScorer
+    from doormat.sources.scrape_targets import fetch_property_manager_scrape_pages
 
     cleaned_city = _validate_city(city)
     preference_id = body.preference_id if body else None
     max_managers = (body.max_managers if body else None) or 5
+    search_run_id = body.search_run_id if body else None
 
     pm_stmt = (
         select(PropertyManager)
@@ -419,49 +531,103 @@ async def scrape_city_listings(
     pms = list((await session.execute(pm_stmt)).scalars().all())
 
     preference = await session.get(Preference, preference_id) if preference_id else None
+    search_run = await session.get(SearchRun, search_run_id) if search_run_id else None
+    emitter = (
+        run_events.SearchRunEventEmitter(session, search_run.id) if search_run is not None else None
+    )
 
     listings_extracted = 0
 
     async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as http:
         for pm in pms:
-            url = pm.listing_page_url or pm.website
-            if not url:
-                continue
+            pm_validated = False
+            if search_run_id and await run_state.is_cancel_requested(session, search_run_id):
+                break
             try:
-                resp = await http.get(url, headers={"User-Agent": "Doormat/1.0"})
-                resp.raise_for_status()
+                pages = await fetch_property_manager_scrape_pages(http, pm, max_candidate_links=8)
             except Exception as exc:
-                logger.warning("scrape_fetch_failed", pm=pm.name, url=url, error=str(exc))
+                logger.warning("scrape_fetch_failed", pm=pm.name, error=str(exc))
                 continue
-            try:
-                result = await extract_listing(session, resp.text, url, pm, preference)
-                if result.confidence != "low":
-                    listings_extracted += 1
-            except Exception as exc:
-                logger.error("scrape_extract_failed", pm=pm.name, error=str(exc))
-                await session.rollback()
+            if not pages:
+                continue
+
+            if emitter is not None:
+                await emitter.emit(
+                    "stage_progress",
+                    f"Discovered {len(pages)} scrape page(s) for {pm.name}",
+                    stage="scraping",
+                    payload={"pm": pm.name, "count": len(pages)},
+                )
+
+            for page_url, page_html in pages:
+                if search_run_id and await run_state.is_cancel_requested(session, search_run_id):
+                    break
+                try:
+                    result = await extract_listing(session, page_html, page_url, pm, preference)
+                    if search_run is not None:
+                        search_run.extraction_attempts += 1
+                    if result.confidence != "low":
+                        listings_extracted += 1
+                        if search_run is not None:
+                            search_run.listings_seen += 1
+                            if not pm_validated:
+                                search_run.managers_validated += 1
+                                pm_validated = True
+                            if preference is not None:
+                                last_stmt = (
+                                    select(ListingORM)
+                                    .where(
+                                        ListingORM.property_manager_id == pm.id,
+                                        ListingORM.url == page_url,
+                                    )
+                                    .order_by(ListingORM.extraction_timestamp.desc())
+                                    .limit(1)
+                                )
+                                listing_row = (
+                                    await session.execute(last_stmt)
+                                ).scalar_one_or_none()
+                                if listing_row is not None:
+                                    await run_filters.persist_listing_classification(
+                                        session,
+                                        run=search_run,
+                                        listing=listing_row,
+                                        preference=preference,
+                                        emitter=emitter,
+                                    )
+                    if search_run is not None:
+                        session.add(search_run)
+                except Exception as exc:
+                    logger.error("scrape_extract_failed", pm=pm.name, url=page_url, error=str(exc))
+                    await session.rollback()
 
     listings_scored = 0
     if preference:
         try:
-            score_stmt = (
-                select(ListingORM)
-                .join(PropertyManager, ListingORM.property_manager_id == PropertyManager.id)
-                .where(
-                    PropertyManager.city == cleaned_city,
-                    ListingORM.score.is_(None),
+            if search_run_id and await run_state.is_cancel_requested(session, search_run_id):
+                pass
+            else:
+                score_stmt = (
+                    select(ListingORM)
+                    .join(PropertyManager, ListingORM.property_manager_id == PropertyManager.id)
+                    .where(
+                        PropertyManager.city == cleaned_city,
+                        ListingORM.score.is_(None),
+                    )
+                    .order_by(ListingORM.extraction_timestamp.desc())
+                    .limit(50)
                 )
-                .order_by(ListingORM.extraction_timestamp.desc())
-                .limit(50)
-            )
-            unscored = list((await session.execute(score_stmt)).scalars().all())
-            if unscored:
-                scorer = ListingScorer()
-                await scorer.score_batch(unscored, preference)
-                await session.commit()
-                listings_scored = len(unscored)
+                unscored = list((await session.execute(score_stmt)).scalars().all())
+                if unscored:
+                    scorer = ListingScorer()
+                    await scorer.score_batch(unscored, preference)
+                    await session.commit()
+                    listings_scored = len(unscored)
         except Exception as exc:
             logger.error("scrape_scoring_failed", error=str(exc))
+
+    if search_run is not None:
+        session.add(search_run)
+        await session.commit()
 
     logger.info(
         "scrape_complete",

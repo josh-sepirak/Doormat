@@ -44,7 +44,11 @@ dependencies = [
     "browser-use>=0.1.40",
     "sse-starlette>=3.3.4",
     "cryptography>=47.0.0",
+    "fastmcp>=2.0.0",
 ]
+
+[project.scripts]
+doormat-mcp = "doormat.mcp.server:run"
 
 [project.urls]
 Homepage = "https://github.com/josh-sepirak/Doormat"

@@ -1,0 +1,36 @@
+{
+  "austin_tx": {
+    "passed": true,
+    "candidate_count": 3,
+    "min_expected": 1,
+    "names": [
+      "Austin Realty Group",
+      "Capital City Rentals",
+      "Lone Star Property Management"
+    ]
+  },
+  "denver_co": {
+    "passed": true,
+    "candidate_count": 2,
+    "min_expected": 1,
+    "names": [
+      "Mile High Properties",
+      "Rocky Mountain Rentals"
+    ]
+  },
+  "dedup_same_domain": {
+    "passed": true,
+    "candidate_count": 2,
+    "min_expected": 1,
+    "names": [
+      "Austin PM",
+      "Different PM"
+    ]
+  },
+  "_summary": {
+    "pass_rate": 1.0,
+    "threshold": 0.8,
+    "passed": 3,
+    "total": 3
+  }
+}

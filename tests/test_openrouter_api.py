@@ -123,7 +123,8 @@ def test_models_endpoint_does_not_create_cost_records(monkeypatch):
     get_cost_tracker().clear()
 
 
-def test_models_endpoint_requires_a_key_or_preference():
+def test_models_endpoint_requires_a_key_or_preference(monkeypatch):
+    monkeypatch.setattr(settings, "OPENROUTER_API_KEY", None)
     app.dependency_overrides[get_db] = _fake_db
 
     try:
@@ -137,6 +138,7 @@ def test_models_endpoint_requires_a_key_or_preference():
 
 def test_models_endpoint_requires_bearer_when_configured(monkeypatch):
     monkeypatch.setattr(settings, "AUTH_BEARER_TOKEN", "test-token")
+    monkeypatch.setattr(settings, "OPENROUTER_API_KEY", None)
     app.dependency_overrides[get_db] = _fake_db
 
     try:

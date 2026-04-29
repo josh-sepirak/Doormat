@@ -68,6 +68,7 @@ class LLMClient:
         temperature: float = 0.2,
         component: str = "unknown",
         city: Optional[str] = None,
+        cache_system_prompt: bool = False,
     ) -> str | T:
         """Run a chat completion. Returns a Pydantic model when `response_model` set.
 
@@ -75,6 +76,7 @@ class LLMClient:
         All token usage is tracked via `track_cost()`.
         """
         model = model or route_model(task)
+        effective_messages = _apply_cache_control(messages, model, cache_system_prompt)
 
         logger.info(
             "llm_call_start",
@@ -107,7 +109,7 @@ class LLMClient:
                         completion,
                     ) = await self._instructor_client.chat.completions.create_with_completion(
                         model=model,
-                        messages=cast(Any, messages),
+                        messages=cast(Any, effective_messages),
                         response_model=response_model,
                         max_tokens=max_tokens,
                         temperature=temperature,
@@ -116,10 +118,15 @@ class LLMClient:
                         prompt_tokens = completion.usage.prompt_tokens
                         completion_tokens = completion.usage.completion_tokens
                         reported_cost_usd = _usage_cost_usd(completion.usage)
+                        cache_read = getattr(completion.usage, "cache_read_input_tokens", 0) or 0
+                        cache_creation = getattr(completion.usage, "cache_creation_input_tokens", 0) or 0
+                        cost.cache_hit = cache_read > 0
+                        cost.cache_read_tokens = cache_read
+                        cost.cache_creation_tokens = cache_creation
                 else:
                     response = await self._raw_client.chat.completions.create(
                         model=model,
-                        messages=cast(Any, messages),
+                        messages=cast(Any, effective_messages),
                         max_tokens=max_tokens,
                         temperature=temperature,
                     )
@@ -128,6 +135,11 @@ class LLMClient:
                         prompt_tokens = response.usage.prompt_tokens
                         completion_tokens = response.usage.completion_tokens
                         reported_cost_usd = _usage_cost_usd(response.usage)
+                        cache_read = getattr(response.usage, "cache_read_input_tokens", 0) or 0
+                        cache_creation = getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+                        cost.cache_hit = cache_read > 0
+                        cost.cache_read_tokens = cache_read
+                        cost.cache_creation_tokens = cache_creation
                 cost.prompt_tokens = prompt_tokens
                 cost.completion_tokens = completion_tokens
                 cost.cost_usd = reported_cost_usd
@@ -137,6 +149,8 @@ class LLMClient:
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
                     cost_usd=reported_cost_usd,
+                    cache_hit=cost.cache_hit,
+                    cache_read_tokens=cost.cache_read_tokens,
                 )
             except Exception as exc:
                 logger.error("llm_call_failed", model=model, error=str(exc))
@@ -193,3 +207,36 @@ def _estimate_prompt_tokens(messages: list[dict[str, str]]) -> int:
 def _estimate_completion_tokens(text: str) -> int:
     """Roughly estimate completion tokens from a text body."""
     return max(1, len(text) // 4)
+
+
+def _is_anthropic_model(model: str) -> bool:
+    return "anthropic" in model.lower() or "claude" in model.lower()
+
+
+def _apply_cache_control(
+    messages: list[dict[str, str]],
+    model: str,
+    cache: bool,
+) -> list[dict[str, Any]]:
+    """Return messages with cache_control on the last system message for Anthropic models."""
+    if not cache or not _is_anthropic_model(model):
+        return cast(Any, messages)
+
+    result: list[dict[str, Any]] = []
+    for msg in messages:
+        if msg.get("role") == "system":
+            result.append(
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": msg["content"],
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ],
+                }
+            )
+        else:
+            result.append(cast(Any, msg))
+    return result
