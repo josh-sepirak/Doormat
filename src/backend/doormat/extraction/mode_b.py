@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from typing import Any, Optional
 from urllib.parse import urlparse
 
@@ -9,7 +10,8 @@ import structlog
 
 from doormat.config import settings
 from doormat.cost_tracking import track_cost
-from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
+from doormat.extraction.network_capture import NetworkCapture, CDPCapturer
+from doormat.extraction.schemas import ApiRecipe, ExtractedListing, ListingExtractionResult
 from doormat.llm.client import MODEL_REASONING
 from doormat.llm.prompt_registry import DEFAULT_PROMPTS, PromptKey, get_effective_prompt
 from doormat.models.orm import Preference
@@ -132,6 +134,200 @@ def _parse_token_count(value: Any) -> int | None:
     return None
 
 
+def _try_synthesize_recipe(
+    capture: NetworkCapture,
+    url: str,
+    source_id: str,
+    extracted_listing: ExtractedListing,
+) -> Optional[ApiRecipe]:
+    """Attempt to synthesize an ApiRecipe from captured network traffic.
+    
+    If Mode B successfully extracted a listing, check if we captured any
+    JSON API calls that match the extracted fields. If so, create an
+    ApiRecipe for fast replay on future listings from this source.
+    
+    Args:
+        capture: NetworkCapture with recorded network calls.
+        url: Source URL that was processed.
+        source_id: Property manager ID.
+        extracted_listing: The ExtractedListing that Mode B produced.
+    
+    Returns:
+        An ApiRecipe if synthesis succeeds, None otherwise.
+    """
+    candidates = capture.get_listing_candidates()
+    if not candidates:
+        logger.debug("no_network_candidates_for_recipe", source_id=source_id)
+        return None
+
+    # Try to synthesize a recipe from the first candidate
+    # (In production, could score all candidates and pick the best)
+    for call in candidates:
+        try:
+            recipe = _synthesize_recipe_from_call(
+                call,
+                url,
+                extracted_listing,
+            )
+            if recipe:
+                logger.info(
+                    "recipe_synthesized",
+                    source_id=source_id,
+                    url=call.request.url,
+                    captured_fields=len(recipe.field_paths),
+                )
+                return recipe
+        except Exception as e:
+            logger.debug(
+                "recipe_synthesis_failed",
+                source_id=source_id,
+                error=str(e),
+            )
+            continue
+
+    return None
+
+
+def _synthesize_recipe_from_call(
+    call: Any,  # CapturedNetworkCall
+    listing_url: str,
+    extracted_listing: ExtractedListing,
+) -> Optional[ApiRecipe]:
+    """Synthesize an ApiRecipe from a captured network call.
+    
+    Args:
+        call: CapturedNetworkCall with request/response.
+        listing_url: The original listing URL.
+        extracted_listing: The listing extracted by Mode B.
+    
+    Returns:
+        An ApiRecipe with field_paths that can reproduce the extracted listing, or None.
+    """
+    response_json = call.response_json
+    if not response_json:
+        return None
+
+    # Try to map extracted fields to paths in the response
+    field_paths = _map_listing_fields_to_paths(response_json, extracted_listing)
+    if not field_paths:
+        return None
+
+    # Compute response_root (how to navigate from root to the listing object)
+    response_root = _compute_response_root(response_json, field_paths)
+
+    # Determine extractable_fields (which fields we can reliably extract)
+    extractable = list(field_paths.keys())
+
+    recipe = ApiRecipe(
+        method=call.request.method,
+        url_template=call.request.url,
+        headers=call.request.headers or {},
+        body_template=call.request.body,
+        response_root=response_root,
+        field_paths=field_paths,
+        extractable_fields=extractable,
+        captured_at=datetime.now(UTC),
+        captured_from_listing_id=_extract_listing_id(listing_url),
+        confidence="medium",  # Will be elevated to "high" after held-out validation
+        capture_notes=f"Synthesized from Mode B extraction on {listing_url}",
+    )
+
+    return recipe
+
+
+def _map_listing_fields_to_paths(
+    response_json: dict[str, Any],
+    extracted_listing: ExtractedListing,
+) -> dict[str, str]:
+    """Map ExtractedListing fields to JSONPath expressions in the response.
+    
+    Uses simple heuristics to find where listing fields are located
+    in the response JSON structure.
+    
+    Args:
+        response_json: The full response JSON from the API.
+        extracted_listing: The listing extracted by Mode B.
+    
+    Returns:
+        Dict mapping field name → JSONPath (e.g., {"rent": "$.price", "bedrooms": "$.beds"})
+    """
+    field_paths = {}
+
+    # Extract the listing object from the response (may be nested)
+    # Try common nesting patterns
+    listing_obj = response_json
+    if "listing" in response_json and isinstance(response_json["listing"], dict):
+        listing_obj = response_json["listing"]
+    elif "property" in response_json and isinstance(response_json["property"], dict):
+        listing_obj = response_json["property"]
+    elif "data" in response_json and isinstance(response_json["data"], dict):
+        potential_listing = response_json["data"]
+        if isinstance(potential_listing, dict) and len(potential_listing) > 0:
+            # If data has a "listing" subkey, use that
+            if "listing" in potential_listing:
+                listing_obj = potential_listing["listing"]
+            else:
+                listing_obj = potential_listing
+
+    # Map each field name to a path in the listing object
+    if isinstance(listing_obj, dict):
+        # Try exact matches first
+        for key in listing_obj.keys():
+            key_lower = key.lower()
+            if key_lower == "address" and extracted_listing.address:
+                field_paths["address"] = f"$.{key}"
+            elif key_lower in ("rent", "price") and extracted_listing.rent > 0:
+                field_paths["rent"] = f"$.{key}"
+            elif key_lower in ("bedrooms", "beds") and extracted_listing.bedrooms > 0:
+                field_paths["bedrooms"] = f"$.{key}"
+            elif key_lower in (
+                "bathrooms",
+                "baths",
+                "bath",
+            ) and extracted_listing.bathrooms > 0:
+                field_paths["bathrooms"] = f"$.{key}"
+
+    return field_paths
+
+
+def _compute_response_root(
+    response_json: dict[str, Any],
+    field_paths: dict[str, str],
+) -> str:
+    """Compute the response_root path given the response JSON and field mappings.
+    
+    Args:
+        response_json: The full response JSON.
+        field_paths: Mapped field paths (e.g., {"rent": "$.price"}).
+    
+    Returns:
+        A JSONPath root accessor (e.g., "$" or "$.listing" or "$.data.property").
+    """
+    # If field_paths have paths like "$.rent", they're already at root
+    if all(p.startswith("$.") for p in field_paths.values()):
+        # All fields are at top level; root is "$"
+        return "$"
+
+    # If all paths start with "$.listing.", the root is "$.listing"
+    if all(p.startswith("$.listing.") for p in field_paths.values()):
+        return "$.listing"
+
+    # Default to root
+    return "$"
+
+
+def _extract_listing_id(url: str) -> str:
+    """Extract a likely listing ID from the URL for reference.
+    
+    Args:
+        url: The listing URL.
+    
+    Returns:
+        The URL itself (will be used in replay validation).
+    """
+    return url
+
+
 async def run_mode_b(
     url: str,
     source_id: str,
@@ -141,7 +337,11 @@ async def run_mode_b(
     api_key: Optional[str] = None,
     preference: Preference | None = None,
 ) -> ListingExtractionResult:
-    """Run Mode B agentic recovery extraction using Browser-Use."""
+    """Run Mode B agentic recovery extraction using Browser-Use.
+    
+    Includes network capture to record JSON API calls, which can be
+    synthesized into ApiRecipe for faster Mode A0 extraction on future listings.
+    """
     model = model or MODEL_REASONING
     logger.info("extraction_mode_b_start", source_id=source_id, url=url, city=city)
 
@@ -162,6 +362,10 @@ async def run_mode_b(
     )
 
     browser_session = BrowserSession(headless=True, allowed_domains=_allowed_domains(url))
+    
+    # Initialize network capture for this session
+    capture = NetworkCapture()
+    capture.start()
 
     system_prompt = get_effective_prompt(PromptKey.EXTRACTION_MODE_B_SYSTEM, preference)
     user_tpl = get_effective_prompt(PromptKey.EXTRACTION_MODE_B_USER, preference)
@@ -179,6 +383,7 @@ async def run_mode_b(
         max_failures=2,
     )
 
+    result = None
     try:
         async with track_cost(
             service="openrouter",
@@ -205,6 +410,7 @@ async def run_mode_b(
             error_type=type(e).__name__,
             source_id=source_id,
         )
+        capture.stop()
         return _low_confidence_result(f"Mode B failed: {type(e).__name__}")
     finally:
         close = getattr(browser_session, "close", None)
@@ -215,4 +421,16 @@ async def run_mode_b(
 
     result.mode = "B"
     logger.info("extraction_mode_b_complete", source_id=source_id, confidence=result.confidence)
+    
+    # Try to synthesize a recipe from captured network traffic
+    if result.confidence in ("high", "medium") and result.listing:
+        recipe = _try_synthesize_recipe(capture, url, source_id, result.listing)
+        if recipe:
+            # Attach recipe to strategy_update so it gets merged later
+            if not result.strategy_update:
+                from doormat.extraction.schemas import StrategyUpdate
+                result.strategy_update = StrategyUpdate()
+            result.strategy_update.api_recipe = recipe
+    
+    capture.stop()
     return result

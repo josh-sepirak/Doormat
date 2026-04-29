@@ -25,9 +25,9 @@ Legend: `[ ]` pending · `[x]` done
 
 ## Phase C — Network capture + Mode B integration
 
-- [ ] **C1** Add `extraction/network_capture.py` (`NetworkCapture`, `CDPCapturer`, header scrubbing).
-- [ ] **C2** Integrate capture into `extraction/mode_b.py` (attach/detach, `_try_synthesize_recipe` — implement truncated helpers from patch).
-- [ ] **C3** Update Mode B system/user prompts in `prompt_registry` (API-first recovery guidance).
+- [x] **C1** Add `extraction/network_capture.py` (`NetworkCapture`, `CDPCapturer`, header scrubbing).
+- [x] **C2** Integrate capture into `extraction/mode_b.py` (attach/detach, `_try_synthesize_recipe` — implement truncated helpers from patch).
+- [x] **C3** Update Mode B system/user prompts in `prompt_registry` (API-first recovery guidance).
 
 ---
 
