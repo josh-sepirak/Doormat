@@ -126,6 +126,8 @@ async def test_full_flow_search_classify_persist() -> None:
     assert result.candidates_found == 2
     assert result.validated_count == 1
     assert session.add.call_count == 1
+    saved_pm = session.add.call_args.args[0]
+    assert saved_pm.listing_page_url == "https://acmepm.com"
     session.commit.assert_awaited()
 
 
@@ -162,7 +164,9 @@ async def test_cost_tracking_diff_recorded() -> None:
 
     session = make_session(cached_pm_rows=[])
 
-    async def classify_side_effect(candidate: DiscoveryCandidate) -> ValidationResult:
+    async def classify_side_effect(
+        candidate: DiscoveryCandidate, preference=None
+    ) -> ValidationResult:
         # Simulate LLM call cost via the cost tracker
         tracker.add_record(
             CostRecord(
@@ -214,3 +218,56 @@ async def test_max_retries_respected() -> None:
     assert search.find_candidates.await_count == 3
     assert result.validated_count == 0
     session.add.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_cached_managers_backfills_listing_page_url() -> None:
+    """_cached_managers must bulk-update listing_page_url=website for cached PMs with NULL."""
+    from datetime import UTC, datetime
+
+    cached_pm = PropertyManager(
+        id="pm-123",
+        city="Austin",
+        name="Old PM",
+        website="https://oldpm.com",
+        listing_page_url=None,  # simulate a PM persisted before listing_page_url existed
+        validated=True,
+        discovery_timestamp=datetime.now(UTC),
+    )
+    session = make_session(cached_pm_rows=[cached_pm])
+
+    agent = DiscoveryAgent(
+        session=session, search=AsyncMock(), browser=AsyncMock(), classifier=AsyncMock()
+    )
+    result = await agent.discover_city("Austin")
+
+    assert result.cached is True
+    # SELECT + UPDATE (backfill) calls.
+    assert session.execute.await_count == 2
+    # commit was called at least once (for the backfill).
+    session.commit.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_cached_managers_no_backfill_when_url_already_set() -> None:
+    """_cached_managers must NOT issue an UPDATE when listing_page_url is already set."""
+    from datetime import UTC, datetime
+
+    cached_pm = PropertyManager(
+        id="pm-456",
+        city="Austin",
+        name="New PM",
+        website="https://newpm.com",
+        listing_page_url="https://newpm.com/listings",
+        validated=True,
+        discovery_timestamp=datetime.now(UTC),
+    )
+    session = make_session(cached_pm_rows=[cached_pm])
+
+    agent = DiscoveryAgent(
+        session=session, search=AsyncMock(), browser=AsyncMock(), classifier=AsyncMock()
+    )
+    await agent.discover_city("Austin")
+
+    # Only the SELECT — no UPDATE needed.
+    assert session.execute.await_count == 1

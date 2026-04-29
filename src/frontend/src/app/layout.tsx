@@ -2,6 +2,7 @@ import { type Metadata } from 'next'
 import { Inter, Lexend } from 'next/font/google'
 import clsx from 'clsx'
 
+import { AppChrome } from '@/components/AppChrome'
 import '@/styles/tailwind.css'
 
 export const metadata: Metadata = {
@@ -46,7 +47,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="flex h-full flex-col">{children}</body>
+      <body className="flex h-full flex-col">
+        <AppChrome>{children}</AppChrome>
+      </body>
     </html>
   )
 }

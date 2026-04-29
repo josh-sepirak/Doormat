@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CityStatusApiDiscoveryCitiesCityStatusGetData, CityStatusApiDiscoveryCitiesCityStatusGetErrors, CityStatusApiDiscoveryCitiesCityStatusGetResponses, CostsByCityApiCostsByCityGetData, CostsByCityApiCostsByCityGetErrors, CostsByCityApiCostsByCityGetResponses, CostsByComponentApiCostsByComponentGetData, CostsByComponentApiCostsByComponentGetErrors, CostsByComponentApiCostsByComponentGetResponses, CostsByModelApiCostsByModelGetData, CostsByModelApiCostsByModelGetErrors, CostsByModelApiCostsByModelGetResponses, CostsTimeseriesApiCostsTimeseriesGetData, CostsTimeseriesApiCostsTimeseriesGetErrors, CostsTimeseriesApiCostsTimeseriesGetResponses, CostSummaryApiCostsSummaryGetData, CostSummaryApiCostsSummaryGetErrors, CostSummaryApiCostsSummaryGetResponses, CreatePreferenceApiPreferencesPostData, CreatePreferenceApiPreferencesPostErrors, CreatePreferenceApiPreferencesPostResponses, DeletePreferenceApiPreferencesPreferenceIdDeleteData, DeletePreferenceApiPreferencesPreferenceIdDeleteErrors, DeletePreferenceApiPreferencesPreferenceIdDeleteResponses, GetListingApiListingsListingIdGetData, GetListingApiListingsListingIdGetErrors, GetListingApiListingsListingIdGetResponses, GetListingsApiListingsGetData, GetListingsApiListingsGetErrors, GetListingsApiListingsGetResponses, GetMetricsMetricsGetData, GetMetricsMetricsGetResponses, GetRunApiDiscoveryRunsRunIdGetData, GetRunApiDiscoveryRunsRunIdGetErrors, GetRunApiDiscoveryRunsRunIdGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListCostsApiCostsGetData, ListCostsApiCostsGetErrors, ListCostsApiCostsGetResponses, ListManagersApiDiscoveryCitiesCityManagersGetData, ListManagersApiDiscoveryCitiesCityManagersGetErrors, ListManagersApiDiscoveryCitiesCityManagersGetResponses, ListModelsApiOpenrouterModelsPostData, ListModelsApiOpenrouterModelsPostErrors, ListModelsApiOpenrouterModelsPostResponses, ListPreferencesApiPreferencesGetData, ListPreferencesApiPreferencesGetErrors, ListPreferencesApiPreferencesGetResponses, ListRunsApiDiscoveryRunsGetData, ListRunsApiDiscoveryRunsGetErrors, ListRunsApiDiscoveryRunsGetResponses, RootGetData, RootGetResponses, ScoreListingsApiListingsScorePostData, ScoreListingsApiListingsScorePostErrors, ScoreListingsApiListingsScorePostResponses, StreamListingsApiListingsStreamGetData, StreamListingsApiListingsStreamGetErrors, StreamListingsApiListingsStreamGetResponses, ToggleSaveListingApiListingsListingIdSavePostData, ToggleSaveListingApiListingsListingIdSavePostErrors, ToggleSaveListingApiListingsListingIdSavePostResponses, TriggerDiscoveryApiDiscoveryCitiesCityPostData, TriggerDiscoveryApiDiscoveryCitiesCityPostErrors, TriggerDiscoveryApiDiscoveryCitiesCityPostResponses, TriggerDiscoveryV2ApiDiscoveryTriggerPostData, TriggerDiscoveryV2ApiDiscoveryTriggerPostErrors, TriggerDiscoveryV2ApiDiscoveryTriggerPostResponses, TriggerExtractionExtractionTriggerPostData, TriggerExtractionExtractionTriggerPostErrors, TriggerExtractionExtractionTriggerPostResponses, UpdatePreferenceApiPreferencesPreferenceIdPatchData, UpdatePreferenceApiPreferencesPreferenceIdPatchErrors, UpdatePreferenceApiPreferencesPreferenceIdPatchResponses } from './types.gen';
+import type { CityStatusApiDiscoveryCitiesCityStatusGetData, CityStatusApiDiscoveryCitiesCityStatusGetErrors, CityStatusApiDiscoveryCitiesCityStatusGetResponses, CostsByCityApiCostsByCityGetData, CostsByCityApiCostsByCityGetErrors, CostsByCityApiCostsByCityGetResponses, CostsByComponentApiCostsByComponentGetData, CostsByComponentApiCostsByComponentGetErrors, CostsByComponentApiCostsByComponentGetResponses, CostsByModelApiCostsByModelGetData, CostsByModelApiCostsByModelGetErrors, CostsByModelApiCostsByModelGetResponses, CostsTimeseriesApiCostsTimeseriesGetData, CostsTimeseriesApiCostsTimeseriesGetErrors, CostsTimeseriesApiCostsTimeseriesGetResponses, CostSummaryApiCostsSummaryGetData, CostSummaryApiCostsSummaryGetErrors, CostSummaryApiCostsSummaryGetResponses, CreatePreferenceApiPreferencesPostData, CreatePreferenceApiPreferencesPostErrors, CreatePreferenceApiPreferencesPostResponses, CreateSearchRunApiSearchRunsPostData, CreateSearchRunApiSearchRunsPostErrors, CreateSearchRunApiSearchRunsPostResponses, DeletePreferenceApiPreferencesPreferenceIdDeleteData, DeletePreferenceApiPreferencesPreferenceIdDeleteErrors, DeletePreferenceApiPreferencesPreferenceIdDeleteResponses, GeocodeListingEndpointApiListingsListingIdGeocodePostData, GeocodeListingEndpointApiListingsListingIdGeocodePostErrors, GeocodeListingEndpointApiListingsListingIdGeocodePostResponses, GetActiveSearchRunApiSearchRunsActiveGetData, GetActiveSearchRunApiSearchRunsActiveGetResponses, GetListingApiListingsListingIdGetData, GetListingApiListingsListingIdGetErrors, GetListingApiListingsListingIdGetResponses, GetListingsApiListingsGetData, GetListingsApiListingsGetErrors, GetListingsApiListingsGetResponses, GetMetricsMetricsGetData, GetMetricsMetricsGetResponses, GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetData, GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetErrors, GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponses, GetRunApiDiscoveryRunsRunIdGetData, GetRunApiDiscoveryRunsRunIdGetErrors, GetRunApiDiscoveryRunsRunIdGetResponses, GetSearchRunApiSearchRunsRunIdGetData, GetSearchRunApiSearchRunsRunIdGetErrors, GetSearchRunApiSearchRunsRunIdGetResponses, GetSystemConfigApiConfigGetData, GetSystemConfigApiConfigGetErrors, GetSystemConfigApiConfigGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListCostsApiCostsGetData, ListCostsApiCostsGetErrors, ListCostsApiCostsGetResponses, ListManagersApiDiscoveryCitiesCityManagersGetData, ListManagersApiDiscoveryCitiesCityManagersGetErrors, ListManagersApiDiscoveryCitiesCityManagersGetResponses, ListModelsApiOpenrouterModelsPostData, ListModelsApiOpenrouterModelsPostErrors, ListModelsApiOpenrouterModelsPostResponses, ListPreferencesApiPreferencesGetData, ListPreferencesApiPreferencesGetErrors, ListPreferencesApiPreferencesGetResponses, ListRunsApiDiscoveryRunsGetData, ListRunsApiDiscoveryRunsGetErrors, ListRunsApiDiscoveryRunsGetResponses, ListSearchRunEventsApiSearchRunsRunIdEventsGetData, ListSearchRunEventsApiSearchRunsRunIdEventsGetErrors, ListSearchRunEventsApiSearchRunsRunIdEventsGetResponses, ListSearchRunResultsApiSearchRunsRunIdResultsGetData, ListSearchRunResultsApiSearchRunsRunIdResultsGetErrors, ListSearchRunResultsApiSearchRunsRunIdResultsGetResponses, PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchData, PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchErrors, PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponses, PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchData, PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchErrors, PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponses, RootGetData, RootGetResponses, ScoreListingsApiListingsScorePostData, ScoreListingsApiListingsScorePostErrors, ScoreListingsApiListingsScorePostResponses, ScrapeCityListingsApiDiscoveryCitiesCityScrapePostData, ScrapeCityListingsApiDiscoveryCitiesCityScrapePostErrors, ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponses, StopSearchRunApiSearchRunsRunIdStopPostData, StopSearchRunApiSearchRunsRunIdStopPostErrors, StopSearchRunApiSearchRunsRunIdStopPostResponses, StreamListingsApiListingsStreamGetData, StreamListingsApiListingsStreamGetErrors, StreamListingsApiListingsStreamGetResponses, ToggleSaveListingApiListingsListingIdSavePostData, ToggleSaveListingApiListingsListingIdSavePostErrors, ToggleSaveListingApiListingsListingIdSavePostResponses, TriggerDiscoveryApiDiscoveryCitiesCityPostData, TriggerDiscoveryApiDiscoveryCitiesCityPostErrors, TriggerDiscoveryApiDiscoveryCitiesCityPostResponses, TriggerDiscoveryV2ApiDiscoveryTriggerPostData, TriggerDiscoveryV2ApiDiscoveryTriggerPostErrors, TriggerDiscoveryV2ApiDiscoveryTriggerPostResponses, TriggerExtractionExtractionTriggerPostData, TriggerExtractionExtractionTriggerPostErrors, TriggerExtractionExtractionTriggerPostResponses, UpdatePreferenceApiPreferencesPreferenceIdPatchData, UpdatePreferenceApiPreferencesPreferenceIdPatchErrors, UpdatePreferenceApiPreferencesPreferenceIdPatchResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+/**
+ * Get System Config
+ *
+ * Return whether system-wide keys are configured in .env.
+ */
+export const getSystemConfigApiConfigGet = <ThrowOnError extends boolean = false>(options?: Options<GetSystemConfigApiConfigGetData, ThrowOnError>) => (options?.client ?? client).get<GetSystemConfigApiConfigGetResponses, GetSystemConfigApiConfigGetErrors, ThrowOnError>({ url: '/api/config', ...options });
 
 /**
  * List Costs
@@ -63,7 +70,10 @@ export const costsTimeseriesApiCostsTimeseriesGet = <ThrowOnError extends boolea
 /**
  * Trigger Discovery V2
  *
- * Trigger a discovery run. Creates a persisted run record with logs.
+ * Trigger a discovery run asynchronously.
+ *
+ * Creates a run record, kicks off discovery as a background task, and returns
+ * immediately. The frontend should poll GET /runs/{run_id} to track progress.
  */
 export const triggerDiscoveryV2ApiDiscoveryTriggerPost = <ThrowOnError extends boolean = false>(options: Options<TriggerDiscoveryV2ApiDiscoveryTriggerPostData, ThrowOnError>) => (options.client ?? client).post<TriggerDiscoveryV2ApiDiscoveryTriggerPostResponses, TriggerDiscoveryV2ApiDiscoveryTriggerPostErrors, ThrowOnError>({
     url: '/api/discovery/trigger',
@@ -109,6 +119,24 @@ export const listManagersApiDiscoveryCitiesCityManagersGet = <ThrowOnError exten
  * City Status
  */
 export const cityStatusApiDiscoveryCitiesCityStatusGet = <ThrowOnError extends boolean = false>(options: Options<CityStatusApiDiscoveryCitiesCityStatusGetData, ThrowOnError>) => (options.client ?? client).get<CityStatusApiDiscoveryCitiesCityStatusGetResponses, CityStatusApiDiscoveryCitiesCityStatusGetErrors, ThrowOnError>({ url: '/api/discovery/cities/{city}/status', ...options });
+
+/**
+ * Scrape City Listings
+ *
+ * Fetch HTML from validated property managers and run listing extraction.
+ *
+ * For each validated PM in the city (up to max_managers), fetches their
+ * website HTML and runs Mode A extraction. Scores persisted results against
+ * the given preference when preference_id is provided.
+ */
+export const scrapeCityListingsApiDiscoveryCitiesCityScrapePost = <ThrowOnError extends boolean = false>(options: Options<ScrapeCityListingsApiDiscoveryCitiesCityScrapePostData, ThrowOnError>) => (options.client ?? client).post<ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponses, ScrapeCityListingsApiDiscoveryCitiesCityScrapePostErrors, ThrowOnError>({
+    url: '/api/discovery/cities/{city}/scrape',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Trigger Extraction
@@ -160,6 +188,13 @@ export const scoreListingsApiListingsScorePost = <ThrowOnError extends boolean =
 export const getListingApiListingsListingIdGet = <ThrowOnError extends boolean = false>(options: Options<GetListingApiListingsListingIdGetData, ThrowOnError>) => (options.client ?? client).get<GetListingApiListingsListingIdGetResponses, GetListingApiListingsListingIdGetErrors, ThrowOnError>({ url: '/api/listings/{listing_id}', ...options });
 
 /**
+ * Geocode Listing Endpoint
+ *
+ * Resolve lat/lon via Nominatim (cached) and persist on the listing.
+ */
+export const geocodeListingEndpointApiListingsListingIdGeocodePost = <ThrowOnError extends boolean = false>(options: Options<GeocodeListingEndpointApiListingsListingIdGeocodePostData, ThrowOnError>) => (options.client ?? client).post<GeocodeListingEndpointApiListingsListingIdGeocodePostResponses, GeocodeListingEndpointApiListingsListingIdGeocodePostErrors, ThrowOnError>({ url: '/api/listings/{listing_id}/geocode', ...options });
+
+/**
  * Toggle Save Listing
  *
  * Toggle the saved state of a listing.
@@ -201,6 +236,78 @@ export const deletePreferenceApiPreferencesPreferenceIdDelete = <ThrowOnError ex
  */
 export const updatePreferenceApiPreferencesPreferenceIdPatch = <ThrowOnError extends boolean = false>(options: Options<UpdatePreferenceApiPreferencesPreferenceIdPatchData, ThrowOnError>) => (options.client ?? client).patch<UpdatePreferenceApiPreferencesPreferenceIdPatchResponses, UpdatePreferenceApiPreferencesPreferenceIdPatchErrors, ThrowOnError>({
     url: '/api/preferences/{preference_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Preference Prompts
+ *
+ * Return default vs effective LLM prompts for this preference.
+ */
+export const getPreferencePromptsApiPreferencesPreferenceIdPromptsGet = <ThrowOnError extends boolean = false>(options: Options<GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetData, ThrowOnError>) => (options.client ?? client).get<GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponses, GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetErrors, ThrowOnError>({ url: '/api/preferences/{preference_id}/prompts', ...options });
+
+/**
+ * Patch Preference Prompts
+ *
+ * Update or reset per-key LLM prompt overrides (defaults remain in code).
+ */
+export const patchPreferencePromptsApiPreferencesPreferenceIdPromptsPatch = <ThrowOnError extends boolean = false>(options: Options<PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchData, ThrowOnError>) => (options.client ?? client).patch<PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponses, PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchErrors, ThrowOnError>({
+    url: '/api/preferences/{preference_id}/prompts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Search Run
+ *
+ * Create a parent `SearchRun` and start wrapped discovery in the background.
+ */
+export const createSearchRunApiSearchRunsPost = <ThrowOnError extends boolean = false>(options: Options<CreateSearchRunApiSearchRunsPostData, ThrowOnError>) => (options.client ?? client).post<CreateSearchRunApiSearchRunsPostResponses, CreateSearchRunApiSearchRunsPostErrors, ThrowOnError>({
+    url: '/api/search-runs',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Active Search Run
+ */
+export const getActiveSearchRunApiSearchRunsActiveGet = <ThrowOnError extends boolean = false>(options?: Options<GetActiveSearchRunApiSearchRunsActiveGetData, ThrowOnError>) => (options?.client ?? client).get<GetActiveSearchRunApiSearchRunsActiveGetResponses, unknown, ThrowOnError>({ url: '/api/search-runs/active', ...options });
+
+/**
+ * Get Search Run
+ */
+export const getSearchRunApiSearchRunsRunIdGet = <ThrowOnError extends boolean = false>(options: Options<GetSearchRunApiSearchRunsRunIdGetData, ThrowOnError>) => (options.client ?? client).get<GetSearchRunApiSearchRunsRunIdGetResponses, GetSearchRunApiSearchRunsRunIdGetErrors, ThrowOnError>({ url: '/api/search-runs/{run_id}', ...options });
+
+/**
+ * List Search Run Events
+ */
+export const listSearchRunEventsApiSearchRunsRunIdEventsGet = <ThrowOnError extends boolean = false>(options: Options<ListSearchRunEventsApiSearchRunsRunIdEventsGetData, ThrowOnError>) => (options.client ?? client).get<ListSearchRunEventsApiSearchRunsRunIdEventsGetResponses, ListSearchRunEventsApiSearchRunsRunIdEventsGetErrors, ThrowOnError>({ url: '/api/search-runs/{run_id}/events', ...options });
+
+/**
+ * Stop Search Run
+ */
+export const stopSearchRunApiSearchRunsRunIdStopPost = <ThrowOnError extends boolean = false>(options: Options<StopSearchRunApiSearchRunsRunIdStopPostData, ThrowOnError>) => (options.client ?? client).post<StopSearchRunApiSearchRunsRunIdStopPostResponses, StopSearchRunApiSearchRunsRunIdStopPostErrors, ThrowOnError>({ url: '/api/search-runs/{run_id}/stop', ...options });
+
+/**
+ * List Search Run Results
+ */
+export const listSearchRunResultsApiSearchRunsRunIdResultsGet = <ThrowOnError extends boolean = false>(options: Options<ListSearchRunResultsApiSearchRunsRunIdResultsGetData, ThrowOnError>) => (options.client ?? client).get<ListSearchRunResultsApiSearchRunsRunIdResultsGetResponses, ListSearchRunResultsApiSearchRunsRunIdResultsGetErrors, ThrowOnError>({ url: '/api/search-runs/{run_id}/results', ...options });
+
+/**
+ * Patch Search Run Filters
+ */
+export const patchSearchRunFiltersApiSearchRunsRunIdFiltersPatch = <ThrowOnError extends boolean = false>(options: Options<PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchData, ThrowOnError>) => (options.client ?? client).patch<PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponses, PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchErrors, ThrowOnError>({
+    url: '/api/search-runs/{run_id}/filters',
     ...options,
     headers: {
         'Content-Type': 'application/json',

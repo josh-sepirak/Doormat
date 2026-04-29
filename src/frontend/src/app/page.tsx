@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
+import { createSearchRun } from '@/client/search-runs'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Container } from '@/components/Container'
@@ -18,6 +20,13 @@ interface Preference {
   has_openrouter_api_key: boolean
   openrouter_key_last4: string | null
   has_apify_api_token: boolean
+  apify_token_last4: string | null
+}
+
+interface SystemConfig {
+  has_openrouter_key: boolean
+  openrouter_key_last4: string | null
+  has_apify_token: boolean
   apify_token_last4: string | null
 }
 
@@ -80,6 +89,7 @@ interface ScrapeResult {
 }
 
 export default function Dashboard() {
+  const router = useRouter()
   const [preferences, setPreferences] = useState<Preference[]>([])
   const [running, setRunning] = useState(false)
   const [events, setEvents] = useState<DiscoveryEvent[]>([])
@@ -89,15 +99,7 @@ export default function Dashboard() {
   const [managers, setManagers] = useState<PropertyManager[]>([])
   const [listings, setListings] = useState<Listing[]>([])
   const [scraping, setScraping] = useState(false)
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const seenLogIdsRef = useRef<Set<string>>(new Set())
-
-  const stopPolling = useCallback(() => {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current)
-      pollIntervalRef.current = null
-    }
-  }, [])
+  const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
 
   const fetchManagers = useCallback((city: string) => {
     fetch(`${API}/api/discovery/cities/${encodeURIComponent(city)}/managers`)
@@ -137,6 +139,11 @@ export default function Dashboard() {
       })
       .catch(() => {})
 
+    fetch(`${API}/api/config`)
+      .then((r) => r.json())
+      .then((data) => setSystemConfig(data))
+      .catch(() => {})
+
     fetchRuns()
   }, [fetchManagers, fetchRuns, fetchListings])
 
@@ -150,54 +157,6 @@ export default function Dashboard() {
     [],
   )
 
-  const levelToType = (level: RunLog['level']): DiscoveryEvent['type'] => {
-    if (level === 'success') return 'success'
-    if (level === 'error') return 'error'
-    if (level === 'warning') return 'warning'
-    if (level === 'debug') return 'info'
-    return 'info'
-  }
-
-  const startPolling = useCallback(
-    (runId: string, city: string) => {
-      seenLogIdsRef.current = new Set()
-      pollIntervalRef.current = setInterval(async () => {
-        try {
-          const resp = await fetch(`${API}/api/discovery/runs/${runId}`)
-          if (!resp.ok) return
-          const run: DiscoveryRun = await resp.json()
-
-          const newLogs = run.logs.filter((l) => !seenLogIdsRef.current.has(l.id))
-          newLogs.forEach((l) => seenLogIdsRef.current.add(l.id))
-
-          if (newLogs.length > 0) {
-            const now = Date.now()
-            setEvents((prev) => [
-              ...prev,
-              ...newLogs.map((log, i) => ({
-                id: now + i,
-                message: `[${log.component}] ${log.message}`,
-                type: levelToType(log.level),
-                timestamp: new Date(log.timestamp).toLocaleTimeString(),
-              })),
-            ])
-          }
-
-          if (run.status !== 'running') {
-            stopPolling()
-            setRunning(false)
-            fetchRuns()
-            fetchManagers(city)
-            fetchListings(city)
-          }
-        } catch {
-          // transient network error — keep polling
-        }
-      }, 2000)
-    },
-    [stopPolling, fetchRuns, fetchManagers, fetchListings],
-  )
-
   const runDiscovery = async () => {
     if (preferences.length === 0) {
       addEvent('No preferences configured. Go to Preferences first.', 'error')
@@ -205,44 +164,33 @@ export default function Dashboard() {
     }
 
     const pref = preferences[0]
-    if (!pref.has_openrouter_api_key) {
+    const hasKey = pref.has_openrouter_api_key || systemConfig?.has_openrouter_key
+    if (!hasKey) {
       addEvent('No OpenRouter API key configured. Go to Preferences to add one.', 'error')
       return
     }
 
-    stopPolling()
     setRunning(true)
     setEvents([])
-    addEvent(`Starting discovery for "${pref.city}"…`, 'info')
+    addEvent(`Starting search run for "${pref.city}"…`, 'info')
 
     try {
-      const resp = await fetch(`${API}/api/discovery/trigger`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ city: pref.city, preference_id: pref.id }),
-      })
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ detail: resp.statusText }))
-        addEvent(`Discovery failed: ${err.detail || resp.statusText}`, 'error')
-        setRunning(false)
-        return
-      }
-
-      const data: DiscoveryRun = await resp.json()
-      startPolling(data.id, pref.city)
+      const searchRun = await createSearchRun({ city: pref.city, preference_id: pref.id })
+      addEvent(`Run started — opening report…`, 'success')
+      fetchRuns()
+      fetchManagers(pref.city)
+      router.push(`/runs/${searchRun.id}`)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e)
-      addEvent(`Network error: ${msg}`, 'error')
+      addEvent(`Could not start run: ${msg}`, 'error')
+    } finally {
       setRunning(false)
     }
   }
 
   const handleCancel = () => {
-    stopPolling()
     setRunning(false)
-    addEvent('Discovery polling stopped. Backend run may still be in progress.', 'warning')
-    fetchRuns()
+    addEvent('Start cancelled before launch.', 'warning')
   }
 
   const scrapeListings = async () => {
@@ -335,9 +283,11 @@ export default function Dashboard() {
                 value={
                   pref?.has_openrouter_api_key
                     ? `••••${pref.openrouter_key_last4 ?? ''}`
+                    : systemConfig?.has_openrouter_key
+                    ? `••••${systemConfig.openrouter_key_last4 ?? ''} (sys)`
                     : 'Not configured'
                 }
-                muted={!pref?.has_openrouter_api_key}
+                muted={!pref?.has_openrouter_api_key && !systemConfig?.has_openrouter_key}
               />
             </div>
 

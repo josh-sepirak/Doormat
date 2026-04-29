@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from doormat.extraction.orchestrator import extract_listing
 from doormat.extraction.schemas import ListingExtractionResult
 from doormat.models.orm import PropertyManager
+from doormat.sources.urls import resolve_property_manager_scrape_url
 
 logger = structlog.get_logger(__name__)
 
@@ -81,7 +82,7 @@ class BatchExtractor:
         self._extractor = extractor
         self._sleep = sleep
 
-        url = property_manager.listing_page_url or property_manager.website or ""
+        url = resolve_property_manager_scrape_url(property_manager) or ""
         parsed = urlparse(url)
         self.origin_netloc = parsed.netloc.lower()
         self.scheme = parsed.scheme or "https"

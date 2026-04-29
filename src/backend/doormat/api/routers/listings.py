@@ -14,7 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
 from doormat.models.orm import Listing, Preference, PropertyManager
-from doormat.schemas import ListingResponse, ScoreListingsRequest, ScoreListingsResponse
+from doormat.geocoding.nominatim import geocode_listing
+from doormat.schemas import ListingResponse, PetsPolicy, ScoreListingsRequest, ScoreListingsResponse
 from doormat.scoring.scorer import ListingScorer
 from doormat.security.auth import require_bearer_auth
 
@@ -77,6 +78,9 @@ def _serialize_listing(listing: Listing) -> SerializedListing:
         "score": listing.score,
         "score_explanation": listing.score_explanation,
         "saved": listing.saved,
+        "source": listing.source or "pm_direct",
+        "latitude": listing.latitude,
+        "longitude": listing.longitude,
     }
 
 
@@ -88,6 +92,9 @@ async def get_listings(
     max_price: Optional[float] = Query(None, ge=0),
     min_bedrooms: Optional[int] = Query(None, ge=0),
     max_bedrooms: Optional[int] = Query(None, ge=0),
+    min_bathrooms: Optional[float] = Query(None, ge=0),
+    max_bathrooms: Optional[float] = Query(None, ge=0),
+    pets_policy: Optional[PetsPolicy] = Query(None),
     saved_only: bool = Query(False),
     min_score: Optional[float] = Query(None, ge=0.0, le=1.0),
     limit: int = Query(50, ge=1, le=500),
@@ -106,6 +113,12 @@ async def get_listings(
         stmt = stmt.where(Listing.bedrooms >= min_bedrooms)
     if max_bedrooms is not None:
         stmt = stmt.where(Listing.bedrooms <= max_bedrooms)
+    if min_bathrooms is not None:
+        stmt = stmt.where(Listing.bathrooms >= min_bathrooms)
+    if max_bathrooms is not None:
+        stmt = stmt.where(Listing.bathrooms <= max_bathrooms)
+    if pets_policy is not None:
+        stmt = stmt.where(Listing.pets_policy == pets_policy.value)
     if saved_only:
         stmt = stmt.where(Listing.saved.is_(True))
     if min_score is not None:
@@ -194,6 +207,22 @@ async def get_listing(
     if listing is None:
         raise HTTPException(status_code=404, detail="Listing not found")
     return _serialize_listing(listing)
+
+
+@router.post("/{listing_id}/geocode", response_model=ListingResponse)
+async def geocode_listing_endpoint(
+    listing_id: str,
+    session: DbSession,
+) -> SerializedListing:
+    """Resolve lat/lon via Nominatim (cached) and persist on the listing."""
+    result = await session.execute(select(Listing).where(Listing.id == listing_id))
+    listing = result.scalar_one_or_none()
+    if listing is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    await geocode_listing(session, listing_id)
+    listing2 = await session.get(Listing, listing_id)
+    assert listing2 is not None
+    return _serialize_listing(listing2)
 
 
 @router.post("/{listing_id}/save", response_model=ListingResponse)

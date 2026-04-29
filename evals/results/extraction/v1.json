@@ -1,0 +1,26 @@
+{
+  "standard_apartment": {
+    "passed": true,
+    "confidence": "high",
+    "rent": 1850,
+    "bedrooms": 2
+  },
+  "minimal_listing": {
+    "passed": true,
+    "confidence": "high",
+    "rent": 950,
+    "bedrooms": 0
+  },
+  "multi_bedroom_listing": {
+    "passed": true,
+    "confidence": "high",
+    "rent": 2400,
+    "bedrooms": 3
+  },
+  "_summary": {
+    "pass_rate": 1.0,
+    "threshold": 0.8,
+    "passed": 3,
+    "total": 3
+  }
+}

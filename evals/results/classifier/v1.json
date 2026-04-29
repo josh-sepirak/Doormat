@@ -1,0 +1,38 @@
+{
+  "legitimate_pm": {
+    "passed": true,
+    "is_valid": true,
+    "expected": true,
+    "confidence": 0.9
+  },
+  "large_pm_company": {
+    "passed": true,
+    "is_valid": true,
+    "expected": true,
+    "confidence": 0.9
+  },
+  "obvious_non_pm": {
+    "passed": true,
+    "is_valid": false,
+    "expected": false,
+    "confidence": 0.85
+  },
+  "aggregator_not_pm": {
+    "passed": true,
+    "is_valid": false,
+    "expected": false,
+    "confidence": 0.85
+  },
+  "low_confidence_candidate": {
+    "passed": true,
+    "is_valid": true,
+    "expected": true,
+    "confidence": 0.9
+  },
+  "_summary": {
+    "pass_rate": 1.0,
+    "threshold": 0.8,
+    "passed": 5,
+    "total": 5
+  }
+}

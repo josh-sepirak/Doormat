@@ -1,5 +1,6 @@
 """Preference API endpoints."""
 
+import json
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated
@@ -11,7 +12,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
 from doormat.models.orm import Preference
-from doormat.schemas import PreferenceCreate, PreferenceResponse, PreferenceUpdate
+from doormat.llm.prompt_registry import (
+    PromptKey,
+    get_effective_prompt,
+    merge_overrides,
+    parse_prompt_overrides,
+    prompts_catalog_for_api,
+    validate_override,
+)
+from doormat.schemas import (
+    PreferenceCreate,
+    PreferencePromptEntry,
+    PreferencePromptsEnvelope,
+    PreferencePromptsPatch,
+    PreferenceResponse,
+    PreferenceUpdate,
+)
 from doormat.security.auth import require_bearer_auth
 from doormat.security.secrets import encrypt_secret, is_encrypted_secret
 
@@ -84,6 +100,9 @@ async def create_preference(body: PreferenceCreate, session: DbSession) -> Prefe
         apify_api_token=_encrypt_optional_secret(body.apify_api_token),
         fast_model=_clean_optional_string(body.fast_model),
         smart_model=_clean_optional_string(body.smart_model),
+        sources_enabled=json.dumps(body.sources_enabled)
+        if body.sources_enabled is not None
+        else '["craigslist"]',
         created_at=now,
         updated_at=now,
     )
@@ -121,11 +140,75 @@ async def update_preference(
         preference.fast_model = _clean_optional_string(body.fast_model)
     if body.smart_model is not None:
         preference.smart_model = _clean_optional_string(body.smart_model)
+    if body.sources_enabled is not None:
+        preference.sources_enabled = json.dumps(body.sources_enabled)
     preference.updated_at = datetime.now(UTC)
 
     await session.commit()
     logger.info("preference_updated", preference_id=preference.id)
     return preference
+
+
+def _preference_prompts_envelope(preference: Preference) -> PreferencePromptsEnvelope:
+    overrides_map = parse_prompt_overrides(preference)
+    entries: list[PreferencePromptEntry] = []
+    for meta in prompts_catalog_for_api():
+        key = PromptKey(meta["key"])
+        default_text = meta["default_text"]
+        effective = get_effective_prompt(key, preference)
+        entries.append(
+            PreferencePromptEntry(
+                key=key.value,
+                title=meta["title"],
+                description=meta["description"],
+                max_length=meta["max_length"],
+                placeholders=list(meta.get("placeholders", [])),
+                default_text=default_text,
+                effective_text=effective,
+                is_custom=key.value in overrides_map,
+            )
+        )
+    return PreferencePromptsEnvelope(prompts=entries)
+
+
+@router.get("/{preference_id}/prompts", response_model=PreferencePromptsEnvelope)
+async def get_preference_prompts(preference_id: str, session: DbSession) -> PreferencePromptsEnvelope:
+    """Return default vs effective LLM prompts for this preference."""
+    result = await session.execute(select(Preference).where(Preference.id == preference_id))
+    preference = result.scalar_one_or_none()
+    if preference is None:
+        raise HTTPException(status_code=404, detail="Preference not found")
+    return _preference_prompts_envelope(preference)
+
+
+@router.patch("/{preference_id}/prompts", response_model=PreferencePromptsEnvelope)
+async def patch_preference_prompts(
+    preference_id: str,
+    body: PreferencePromptsPatch,
+    session: DbSession,
+) -> PreferencePromptsEnvelope:
+    """Update or reset per-key LLM prompt overrides (defaults remain in code)."""
+    result = await session.execute(select(Preference).where(Preference.id == preference_id))
+    preference = result.scalar_one_or_none()
+    if preference is None:
+        raise HTTPException(status_code=404, detail="Preference not found")
+
+    current = parse_prompt_overrides(preference)
+    merged = merge_overrides(
+        current,
+        patch=body.overrides,
+        reset_keys=body.reset_keys,
+        reset_all=body.reset_all,
+    )
+    for k, v in merged.items():
+        validate_override(PromptKey(k), v)
+
+    preference.prompt_overrides = merged if merged else None
+    preference.updated_at = datetime.now(UTC)
+    await session.commit()
+    await session.refresh(preference)
+    logger.info("preference_prompts_updated", preference_id=preference_id)
+    return _preference_prompts_envelope(preference)
 
 
 @router.delete("/{preference_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -21,6 +21,9 @@ from doormat.models.orm import (  # noqa: F401
     Listing,
     Preference,
     PropertyManager,
+    RunListingResult,
+    SearchRun,
+    SearchRunEvent,
 )
 
 # this is the Alembic Config object, which provides

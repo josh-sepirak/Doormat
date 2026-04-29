@@ -5,6 +5,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Container } from '@/components/Container'
 import { Button } from '@/components/Button'
+import { PreferencePromptsPanel } from '@/components/preferences/PreferencePromptsPanel'
 import { TextField, SelectField } from '@/components/Fields'
 import {
   CTX_FILTERS,
@@ -22,6 +23,13 @@ import {
   type SortBy,
   type TierFilter,
 } from './model-utils'
+
+interface SystemConfig {
+  has_openrouter_key: boolean
+  openrouter_key_last4: string | null
+  has_apify_token: boolean
+  apify_token_last4: string | null
+}
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -415,18 +423,27 @@ export default function PreferencesPage() {
   const [apifyToken, setApifyToken] = useState('')
   const [removeOpenrouterKey, setRemoveOpenrouterKey] = useState(false)
   const [removeApifyToken, setRemoveApifyToken] = useState(false)
+  const [sourcesEnabled, setSourcesEnabled] = useState<string[]>(['craigslist'])
   const [fastModel, setFastModel] = useState('')
   const [smartModel, setSmartModel] = useState('')
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
   const [loadingModels, setLoadingModels] = useState(false)
   const [fetchedModels, setFetchedModels] = useState(false)
+  const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
 
   const activePreference = preferences[0]
   const canFetchModels =
     openrouterKey.length >= 20 ||
-    (!!activePreference?.has_openrouter_api_key && !removeOpenrouterKey)
+    (!!activePreference?.has_openrouter_api_key && !removeOpenrouterKey) ||
+    (!!systemConfig?.has_openrouter_key && !removeOpenrouterKey)
 
   useEffect(() => {
+    // Fetch system config (defaults from .env)
+    fetch(`${API}/api/config`)
+      .then((r) => r.json())
+      .then((data) => setSystemConfig(data))
+      .catch(() => {})
+
     fetch(`${API}/api/preferences`)
       .then((r) => r.json())
       .then((data: Preference[]) => {
@@ -440,6 +457,7 @@ export default function PreferencesPage() {
           setApifyToken('')
           setFastModel(p.fast_model || '')
           setSmartModel(p.smart_model || '')
+          setSourcesEnabled(p.sources_enabled?.length ? p.sources_enabled : ['craigslist'])
         }
       })
       .catch(() => {})
@@ -488,25 +506,25 @@ export default function PreferencesPage() {
     setSaving(true)
     setMessage(null)
     try {
-      const body: Record<string, string | null> = {
+      const body: Record<string, unknown> = {
         city,
         description,
         api_provider: apiProvider,
         fast_model: fastModel || null,
         smart_model: smartModel || null,
+        sources_enabled: sourcesEnabled,
       }
       if (openrouterKey.trim()) {
         body.openrouter_api_key = openrouterKey.trim()
       } else if (removeOpenrouterKey) {
         body.openrouter_api_key = null
-      } else if (!activePreference) {
-        body.openrouter_api_key = null
       }
+      // If no key provided and no active preference exists, we leave it out 
+      // so it falls back to the system key in the backend.
+
       if (apifyToken.trim()) {
         body.apify_api_token = apifyToken.trim()
       } else if (removeApifyToken) {
-        body.apify_api_token = null
-      } else if (!activePreference) {
         body.apify_api_token = null
       }
       let resp: Response
@@ -635,8 +653,12 @@ export default function PreferencesPage() {
                     name="openrouter_api_key"
                     type="password"
                     placeholder={
-                      activePreference?.has_openrouter_api_key
+                      openrouterKey.length > 0
+                        ? ''
+                        : activePreference?.has_openrouter_api_key
                         ? 'Leave blank to keep existing key'
+                        : systemConfig?.has_openrouter_key
+                        ? `Auto-loaded from system (ends in ${systemConfig.openrouter_key_last4})`
                         : 'sk-or-v1-...'
                     }
                     value={openrouterKey}
@@ -646,6 +668,27 @@ export default function PreferencesPage() {
                       resetLoadedModels()
                     }}
                   />
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      {activePreference?.has_openrouter_api_key && !removeOpenrouterKey && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400">
+                          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4.13-5.682z" clipRule="evenodd" />
+                          </svg>
+                          Profile Key Active
+                        </span>
+                      )}
+                      {systemConfig?.has_openrouter_key && !activePreference?.has_openrouter_api_key && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/20 dark:text-blue-400">
+                          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                            <path fillRule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                          </svg>
+                          System Default Active
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   {activePreference?.has_openrouter_api_key && (
                     <div className="-mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <p>
@@ -675,8 +718,12 @@ export default function PreferencesPage() {
                     name="apify_api_token"
                     type="password"
                     placeholder={
-                      activePreference?.has_apify_api_token
+                      apifyToken.length > 0
+                        ? ''
+                        : activePreference?.has_apify_api_token
                         ? 'Leave blank to keep existing token'
+                        : systemConfig?.has_apify_token
+                        ? `Auto-loaded from system (ends in ${systemConfig.apify_token_last4})`
                         : 'apify_api_...'
                     }
                     value={apifyToken}
@@ -685,6 +732,27 @@ export default function PreferencesPage() {
                       setRemoveApifyToken(false)
                     }}
                   />
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      {activePreference?.has_apify_api_token && !removeApifyToken && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400">
+                          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4.13-5.682z" clipRule="evenodd" />
+                          </svg>
+                          Profile Token Active
+                        </span>
+                      )}
+                      {systemConfig?.has_apify_token && !activePreference?.has_apify_api_token && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/20 dark:text-blue-400">
+                          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                            <path fillRule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                          </svg>
+                          System Default Active
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   {activePreference?.has_apify_api_token && (
                     <div className="-mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <p>
@@ -775,6 +843,48 @@ export default function PreferencesPage() {
                 </div>
               </fieldset>
 
+              <fieldset>
+                <legend className="text-sm font-semibold leading-6 text-slate-900 dark:text-white">
+                  Listing sources
+                </legend>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Choose which platforms to search. Zillow and Facebook require an Apify token.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    { id: 'craigslist', label: 'Craigslist', requiresApify: false },
+                    { id: 'zillow', label: 'Zillow', requiresApify: true },
+                    { id: 'facebook', label: 'Facebook Marketplace', requiresApify: true },
+                  ].map(({ id, label, requiresApify }) => {
+                    const active = sourcesEnabled.includes(id)
+                    const needsToken = requiresApify && !apifyToken.trim() && !activePreference?.has_apify_api_token
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        disabled={needsToken}
+                        title={needsToken ? 'Add an Apify token to enable this source' : undefined}
+                        onClick={() =>
+                          setSourcesEnabled((prev) =>
+                            prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+                          )
+                        }
+                        className={[
+                          'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+                          active && !needsToken
+                            ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500'
+                            : needsToken
+                              ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600'
+                              : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-500',
+                        ].join(' ')}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+
               <div className="flex items-center justify-end gap-x-4">
                 <div role="status" aria-live="polite" className="text-sm">
                   {message?.type === 'success' && (
@@ -789,6 +899,8 @@ export default function PreferencesPage() {
                 </Button>
               </div>
             </form>
+
+            {activePreference ? <PreferencePromptsPanel preferenceId={activePreference.id} /> : null}
           </div>
         </Container>
       </main>

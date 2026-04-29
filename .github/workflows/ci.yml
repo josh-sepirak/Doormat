@@ -48,6 +48,9 @@ jobs:
       - name: Run tests with pytest
         run: uv run pytest tests -v --cov=src/backend --cov-report=xml
 
+      - name: Run eval harness (mocked, no LLM keys required)
+        run: uv run pytest evals/ -v
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:

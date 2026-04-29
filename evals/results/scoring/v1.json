@@ -1,0 +1,38 @@
+{
+  "perfect_match": {
+    "passed": true,
+    "score": 0.85,
+    "direction": "high",
+    "explanation_length": 34
+  },
+  "over_budget": {
+    "passed": true,
+    "score": 0.25,
+    "direction": "low",
+    "explanation_length": 32
+  },
+  "wrong_city": {
+    "passed": true,
+    "score": 0.2,
+    "direction": "low",
+    "explanation_length": 31
+  },
+  "good_match_pets_ok": {
+    "passed": true,
+    "score": 0.8,
+    "direction": "high",
+    "explanation_length": 39
+  },
+  "no_laundry_required": {
+    "passed": true,
+    "score": 0.5,
+    "direction": "any",
+    "explanation_length": 40
+  },
+  "_summary": {
+    "pass_rate": 1.0,
+    "threshold": 0.8,
+    "passed": 5,
+    "total": 5
+  }
+}

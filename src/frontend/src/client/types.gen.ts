@@ -357,7 +357,11 @@ export type ListingResponse = {
     /**
      * Url
      */
-    url: string;
+    url?: string | null;
+    /**
+     * Source
+     */
+    source?: string;
     pets_policy: PetsPolicy;
     /**
      * Amenities
@@ -403,6 +407,14 @@ export type ListingResponse = {
      * Saved
      */
     saved?: boolean;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
 };
 
 /**
@@ -524,6 +536,84 @@ export type PreferenceCreate = {
      * Smart Model
      */
     smart_model?: string | null;
+    /**
+     * Sources Enabled
+     */
+    sources_enabled?: Array<string> | null;
+};
+
+/**
+ * PreferencePromptEntry
+ *
+ * One editable prompt with default vs effective text.
+ */
+export type PreferencePromptEntry = {
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Max Length
+     */
+    max_length: number;
+    /**
+     * Placeholders
+     */
+    placeholders?: Array<string>;
+    /**
+     * Default Text
+     */
+    default_text: string;
+    /**
+     * Effective Text
+     */
+    effective_text: string;
+    /**
+     * Is Custom
+     */
+    is_custom: boolean;
+};
+
+/**
+ * PreferencePromptsEnvelope
+ *
+ * GET /api/preferences/{id}/prompts
+ */
+export type PreferencePromptsEnvelope = {
+    /**
+     * Prompts
+     */
+    prompts: Array<PreferencePromptEntry>;
+};
+
+/**
+ * PreferencePromptsPatch
+ *
+ * PATCH /api/preferences/{id}/prompts
+ */
+export type PreferencePromptsPatch = {
+    /**
+     * Overrides
+     */
+    overrides?: {
+        [key: string]: string;
+    } | null;
+    /**
+     * Reset Keys
+     */
+    reset_keys?: Array<string> | null;
+    /**
+     * Reset All
+     */
+    reset_all?: boolean;
 };
 
 /**
@@ -573,6 +663,16 @@ export type PreferenceResponse = {
      */
     smart_model?: string | null;
     /**
+     * Sources Enabled
+     */
+    sources_enabled?: Array<string>;
+    /**
+     * Prompt Overrides
+     */
+    prompt_overrides?: {
+        [key: string]: string;
+    } | null;
+    /**
      * Created At
      */
     created_at: string;
@@ -597,6 +697,10 @@ export type PreferenceUpdate = {
      */
     city?: string | null;
     /**
+     * Sources Enabled
+     */
+    sources_enabled?: Array<string> | null;
+    /**
      * Api Provider
      */
     api_provider?: string | null;
@@ -616,6 +720,40 @@ export type PreferenceUpdate = {
      * Smart Model
      */
     smart_model?: string | null;
+};
+
+/**
+ * RunListingResultOut
+ */
+export type RunListingResultOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Listing Id
+     */
+    listing_id: string;
+    /**
+     * Revision
+     */
+    revision: number;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Score
+     */
+    score?: number | null;
+    /**
+     * Filter Reasons Json
+     */
+    filter_reasons_json?: string | null;
+    /**
+     * Explanation
+     */
+    explanation?: string | null;
 };
 
 /**
@@ -663,6 +801,291 @@ export type ScoreListingsResponse = {
 };
 
 /**
+ * ScrapeRequest
+ */
+export type ScrapeRequest = {
+    /**
+     * Preference Id
+     */
+    preference_id?: string | null;
+    /**
+     * Max Managers
+     */
+    max_managers?: number;
+    /**
+     * Search Run Id
+     */
+    search_run_id?: string | null;
+};
+
+/**
+ * ScrapeResult
+ */
+export type ScrapeResult = {
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * Managers Scraped
+     */
+    managers_scraped: number;
+    /**
+     * Listings Extracted
+     */
+    listings_extracted: number;
+    /**
+     * Listings Scored
+     */
+    listings_scored: number;
+};
+
+/**
+ * SearchRunActiveEnvelope
+ */
+export type SearchRunActiveEnvelope = {
+    /**
+     * Active
+     */
+    active: boolean;
+    run?: SearchRunResponse | null;
+};
+
+/**
+ * SearchRunCreate
+ *
+ * Start a wrapped discovery run under a durable parent `SearchRun`.
+ */
+export type SearchRunCreate = {
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * Preference Id
+     */
+    preference_id?: string | null;
+};
+
+/**
+ * SearchRunEventOut
+ */
+export type SearchRunEventOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Sequence
+     */
+    sequence: number;
+    /**
+     * Event Type
+     */
+    event_type: string;
+    /**
+     * Stage
+     */
+    stage?: string | null;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Payload Json
+     */
+    payload_json?: string | null;
+    /**
+     * Visibility
+     */
+    visibility: string;
+    /**
+     * Timestamp
+     */
+    timestamp: string;
+};
+
+/**
+ * SearchRunFiltersPatch
+ *
+ * Mutable filters for the current run; disallows next-run-only scope changes.
+ */
+export type SearchRunFiltersPatch = {
+    /**
+     * Max Price
+     */
+    max_price?: number | null;
+    /**
+     * Min Bedrooms
+     */
+    min_bedrooms?: number | null;
+    /**
+     * Min Bathrooms
+     */
+    min_bathrooms?: number | null;
+    /**
+     * Pets Required
+     */
+    pets_required?: boolean | null;
+    /**
+     * Score Great Threshold
+     */
+    score_great_threshold?: number | null;
+    /**
+     * Score Worth Threshold
+     */
+    score_worth_threshold?: number | null;
+    /**
+     * Next Run City
+     */
+    next_run_city?: string | null;
+    /**
+     * Next Run Change Openrouter Key
+     */
+    next_run_change_openrouter_key?: boolean | null;
+};
+
+/**
+ * SearchRunResponse
+ *
+ * Full parent run snapshot for polling and report.
+ */
+export type SearchRunResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Discovery Run Id
+     */
+    discovery_run_id: string;
+    /**
+     * City
+     */
+    city: string;
+    /**
+     * Preference Id
+     */
+    preference_id?: string | null;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Current Stage
+     */
+    current_stage: string;
+    /**
+     * Cancel Requested
+     */
+    cancel_requested: boolean;
+    /**
+     * Sources Checked
+     */
+    sources_checked: number;
+    /**
+     * Managers Validated
+     */
+    managers_validated: number;
+    /**
+     * Listings Seen
+     */
+    listings_seen: number;
+    /**
+     * Extraction Attempts
+     */
+    extraction_attempts?: number;
+    /**
+     * Great Matches
+     */
+    great_matches: number;
+    /**
+     * Worth A Look
+     */
+    worth_a_look: number;
+    /**
+     * Near Misses
+     */
+    near_misses: number;
+    /**
+     * Filtered Out
+     */
+    filtered_out: number;
+    /**
+     * Cost Usd So Far
+     */
+    cost_usd_so_far: number;
+    /**
+     * Active Revision
+     */
+    active_revision: number;
+    /**
+     * Started At
+     */
+    started_at: string;
+    /**
+     * Finished At
+     */
+    finished_at?: string | null;
+    /**
+     * Filter Summary
+     */
+    filter_summary?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Suggestions
+     */
+    suggestions?: Array<SearchRunSuggestion>;
+    /**
+     * Suggestions Early Signal
+     */
+    suggestions_early_signal?: boolean;
+};
+
+/**
+ * SearchRunSuggestion
+ *
+ * Deterministic, aggregated suggestion for UI display.
+ */
+export type SearchRunSuggestion = {
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Count
+     */
+    count?: number;
+};
+
+/**
+ * SystemConfig
+ */
+export type SystemConfig = {
+    /**
+     * Has Openrouter Key
+     */
+    has_openrouter_key: boolean;
+    /**
+     * Openrouter Key Last4
+     */
+    openrouter_key_last4: string | null;
+    /**
+     * Has Apify Token
+     */
+    has_apify_token: boolean;
+    /**
+     * Apify Token Last4
+     */
+    apify_token_last4: string | null;
+};
+
+/**
  * TriggerRequest
  */
 export type TriggerRequest = {
@@ -703,6 +1126,37 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
+
+export type GetSystemConfigApiConfigGetData = {
+    body?: never;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/config';
+};
+
+export type GetSystemConfigApiConfigGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetSystemConfigApiConfigGetError = GetSystemConfigApiConfigGetErrors[keyof GetSystemConfigApiConfigGetErrors];
+
+export type GetSystemConfigApiConfigGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SystemConfig;
+};
+
+export type GetSystemConfigApiConfigGetResponse = GetSystemConfigApiConfigGetResponses[keyof GetSystemConfigApiConfigGetResponses];
 
 export type ListCostsApiCostsGetData = {
     body?: never;
@@ -1160,6 +1614,39 @@ export type CityStatusApiDiscoveryCitiesCityStatusGetResponses = {
 
 export type CityStatusApiDiscoveryCitiesCityStatusGetResponse = CityStatusApiDiscoveryCitiesCityStatusGetResponses[keyof CityStatusApiDiscoveryCitiesCityStatusGetResponses];
 
+export type ScrapeCityListingsApiDiscoveryCitiesCityScrapePostData = {
+    /**
+     * Body
+     */
+    body?: ScrapeRequest | null;
+    path: {
+        /**
+         * City
+         */
+        city: string;
+    };
+    query?: never;
+    url: '/api/discovery/cities/{city}/scrape';
+};
+
+export type ScrapeCityListingsApiDiscoveryCitiesCityScrapePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ScrapeCityListingsApiDiscoveryCitiesCityScrapePostError = ScrapeCityListingsApiDiscoveryCitiesCityScrapePostErrors[keyof ScrapeCityListingsApiDiscoveryCitiesCityScrapePostErrors];
+
+export type ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ScrapeResult;
+};
+
+export type ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponse = ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponses[keyof ScrapeCityListingsApiDiscoveryCitiesCityScrapePostResponses];
+
 export type TriggerExtractionExtractionTriggerPostData = {
     body: ExtractionRequest;
     headers?: {
@@ -1221,6 +1708,18 @@ export type GetListingsApiListingsGetData = {
          * Max Bedrooms
          */
         max_bedrooms?: number | null;
+        /**
+         * Min Bathrooms
+         */
+        min_bathrooms?: number | null;
+        /**
+         * Max Bathrooms
+         */
+        max_bathrooms?: number | null;
+        /**
+         * Pets Policy
+         */
+        pets_policy?: PetsPolicy | null;
         /**
          * Saved Only
          */
@@ -1356,6 +1855,42 @@ export type GetListingApiListingsListingIdGetResponses = {
 };
 
 export type GetListingApiListingsListingIdGetResponse = GetListingApiListingsListingIdGetResponses[keyof GetListingApiListingsListingIdGetResponses];
+
+export type GeocodeListingEndpointApiListingsListingIdGeocodePostData = {
+    body?: never;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Listing Id
+         */
+        listing_id: string;
+    };
+    query?: never;
+    url: '/api/listings/{listing_id}/geocode';
+};
+
+export type GeocodeListingEndpointApiListingsListingIdGeocodePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GeocodeListingEndpointApiListingsListingIdGeocodePostError = GeocodeListingEndpointApiListingsListingIdGeocodePostErrors[keyof GeocodeListingEndpointApiListingsListingIdGeocodePostErrors];
+
+export type GeocodeListingEndpointApiListingsListingIdGeocodePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ListingResponse;
+};
+
+export type GeocodeListingEndpointApiListingsListingIdGeocodePostResponse = GeocodeListingEndpointApiListingsListingIdGeocodePostResponses[keyof GeocodeListingEndpointApiListingsListingIdGeocodePostResponses];
 
 export type ToggleSaveListingApiListingsListingIdSavePostData = {
     body?: never;
@@ -1528,6 +2063,321 @@ export type UpdatePreferenceApiPreferencesPreferenceIdPatchResponses = {
 };
 
 export type UpdatePreferenceApiPreferencesPreferenceIdPatchResponse = UpdatePreferenceApiPreferencesPreferenceIdPatchResponses[keyof UpdatePreferenceApiPreferencesPreferenceIdPatchResponses];
+
+export type GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetData = {
+    body?: never;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Preference Id
+         */
+        preference_id: string;
+    };
+    query?: never;
+    url: '/api/preferences/{preference_id}/prompts';
+};
+
+export type GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetError = GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetErrors[keyof GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetErrors];
+
+export type GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PreferencePromptsEnvelope;
+};
+
+export type GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponse = GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponses[keyof GetPreferencePromptsApiPreferencesPreferenceIdPromptsGetResponses];
+
+export type PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchData = {
+    body: PreferencePromptsPatch;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Preference Id
+         */
+        preference_id: string;
+    };
+    query?: never;
+    url: '/api/preferences/{preference_id}/prompts';
+};
+
+export type PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchError = PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchErrors[keyof PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchErrors];
+
+export type PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: PreferencePromptsEnvelope;
+};
+
+export type PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponse = PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponses[keyof PatchPreferencePromptsApiPreferencesPreferenceIdPromptsPatchResponses];
+
+export type CreateSearchRunApiSearchRunsPostData = {
+    body: SearchRunCreate;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/search-runs';
+};
+
+export type CreateSearchRunApiSearchRunsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSearchRunApiSearchRunsPostError = CreateSearchRunApiSearchRunsPostErrors[keyof CreateSearchRunApiSearchRunsPostErrors];
+
+export type CreateSearchRunApiSearchRunsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: SearchRunResponse;
+};
+
+export type CreateSearchRunApiSearchRunsPostResponse = CreateSearchRunApiSearchRunsPostResponses[keyof CreateSearchRunApiSearchRunsPostResponses];
+
+export type GetActiveSearchRunApiSearchRunsActiveGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/search-runs/active';
+};
+
+export type GetActiveSearchRunApiSearchRunsActiveGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SearchRunActiveEnvelope;
+};
+
+export type GetActiveSearchRunApiSearchRunsActiveGetResponse = GetActiveSearchRunApiSearchRunsActiveGetResponses[keyof GetActiveSearchRunApiSearchRunsActiveGetResponses];
+
+export type GetSearchRunApiSearchRunsRunIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Run Id
+         */
+        run_id: string;
+    };
+    query?: never;
+    url: '/api/search-runs/{run_id}';
+};
+
+export type GetSearchRunApiSearchRunsRunIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetSearchRunApiSearchRunsRunIdGetError = GetSearchRunApiSearchRunsRunIdGetErrors[keyof GetSearchRunApiSearchRunsRunIdGetErrors];
+
+export type GetSearchRunApiSearchRunsRunIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: SearchRunResponse;
+};
+
+export type GetSearchRunApiSearchRunsRunIdGetResponse = GetSearchRunApiSearchRunsRunIdGetResponses[keyof GetSearchRunApiSearchRunsRunIdGetResponses];
+
+export type ListSearchRunEventsApiSearchRunsRunIdEventsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Run Id
+         */
+        run_id: string;
+    };
+    query?: {
+        /**
+         * After Sequence
+         */
+        after_sequence?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Visibility
+         */
+        visibility?: string | null;
+    };
+    url: '/api/search-runs/{run_id}/events';
+};
+
+export type ListSearchRunEventsApiSearchRunsRunIdEventsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListSearchRunEventsApiSearchRunsRunIdEventsGetError = ListSearchRunEventsApiSearchRunsRunIdEventsGetErrors[keyof ListSearchRunEventsApiSearchRunsRunIdEventsGetErrors];
+
+export type ListSearchRunEventsApiSearchRunsRunIdEventsGetResponses = {
+    /**
+     * Response List Search Run Events Api Search Runs  Run Id  Events Get
+     *
+     * Successful Response
+     */
+    200: Array<SearchRunEventOut>;
+};
+
+export type ListSearchRunEventsApiSearchRunsRunIdEventsGetResponse = ListSearchRunEventsApiSearchRunsRunIdEventsGetResponses[keyof ListSearchRunEventsApiSearchRunsRunIdEventsGetResponses];
+
+export type StopSearchRunApiSearchRunsRunIdStopPostData = {
+    body?: never;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Run Id
+         */
+        run_id: string;
+    };
+    query?: never;
+    url: '/api/search-runs/{run_id}/stop';
+};
+
+export type StopSearchRunApiSearchRunsRunIdStopPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type StopSearchRunApiSearchRunsRunIdStopPostError = StopSearchRunApiSearchRunsRunIdStopPostErrors[keyof StopSearchRunApiSearchRunsRunIdStopPostErrors];
+
+export type StopSearchRunApiSearchRunsRunIdStopPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: SearchRunResponse;
+};
+
+export type StopSearchRunApiSearchRunsRunIdStopPostResponse = StopSearchRunApiSearchRunsRunIdStopPostResponses[keyof StopSearchRunApiSearchRunsRunIdStopPostResponses];
+
+export type ListSearchRunResultsApiSearchRunsRunIdResultsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Run Id
+         */
+        run_id: string;
+    };
+    query?: {
+        /**
+         * Category
+         */
+        category?: string | null;
+        /**
+         * Revision
+         */
+        revision?: number | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/api/search-runs/{run_id}/results';
+};
+
+export type ListSearchRunResultsApiSearchRunsRunIdResultsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListSearchRunResultsApiSearchRunsRunIdResultsGetError = ListSearchRunResultsApiSearchRunsRunIdResultsGetErrors[keyof ListSearchRunResultsApiSearchRunsRunIdResultsGetErrors];
+
+export type ListSearchRunResultsApiSearchRunsRunIdResultsGetResponses = {
+    /**
+     * Response List Search Run Results Api Search Runs  Run Id  Results Get
+     *
+     * Successful Response
+     */
+    200: Array<RunListingResultOut>;
+};
+
+export type ListSearchRunResultsApiSearchRunsRunIdResultsGetResponse = ListSearchRunResultsApiSearchRunsRunIdResultsGetResponses[keyof ListSearchRunResultsApiSearchRunsRunIdResultsGetResponses];
+
+export type PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchData = {
+    body: SearchRunFiltersPatch;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Run Id
+         */
+        run_id: string;
+    };
+    query?: never;
+    url: '/api/search-runs/{run_id}/filters';
+};
+
+export type PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchError = PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchErrors[keyof PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchErrors];
+
+export type PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: SearchRunResponse;
+};
+
+export type PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponse = PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponses[keyof PatchSearchRunFiltersApiSearchRunsRunIdFiltersPatchResponses];
 
 export type ListModelsApiOpenrouterModelsPostData = {
     body: ModelsRequest;

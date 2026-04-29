@@ -42,6 +42,7 @@ async def extract_listing(
             city=property_manager.city,
             model=smart_model,
             api_key=api_key,
+            preference=preference,
         )
         prior_failure = {
             "confidence": result.confidence,
@@ -75,6 +76,7 @@ async def extract_listing(
         city=property_manager.city,
         model=smart_model,
         api_key=api_key,
+        preference=preference,
     )
 
     if mode_b_result.strategy_update:
@@ -133,6 +135,7 @@ async def _save_listing(
         sqft=listing_data.sqft,
         price=listing_data.rent,
         url=url,
+        source="pm_direct",
         pets_policy=listing_data.pets_policy.value,
         amenities=json.dumps(listing_data.amenities),
         photos=json.dumps([str(p) for p in listing_data.photos]),

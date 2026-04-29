@@ -6,6 +6,56 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/config": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get System Config",
+        "description": "Return whether system-wide keys are configured in .env.",
+        "operationId": "get_system_config_api_config_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemConfig"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/costs": {
       "get": {
         "tags": [
@@ -547,7 +597,7 @@
           "discovery"
         ],
         "summary": "Trigger Discovery V2",
-        "description": "Trigger a discovery run. Creates a persisted run record with logs.",
+        "description": "Trigger a discovery run asynchronously.\n\nCreates a run record, kicks off discovery as a background task, and returns\nimmediately. The frontend should poll GET /runs/{run_id} to track progress.",
         "operationId": "trigger_discovery_v2_api_discovery_trigger_post",
         "parameters": [
           {
@@ -855,6 +905,66 @@
         }
       }
     },
+    "/api/discovery/cities/{city}/scrape": {
+      "post": {
+        "tags": [
+          "discovery"
+        ],
+        "summary": "Scrape City Listings",
+        "description": "Fetch HTML from validated property managers and run listing extraction.\n\nFor each validated PM in the city (up to max_managers), fetches their\nwebsite HTML and runs Mode A extraction. Scores persisted results against\nthe given preference when preference_id is provided.",
+        "operationId": "scrape_city_listings_api_discovery_cities__city__scrape_post",
+        "parameters": [
+          {
+            "name": "city",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "City"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ScrapeRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/extraction/trigger": {
       "post": {
         "tags": [
@@ -1006,6 +1116,56 @@
                 }
               ],
               "title": "Max Bedrooms"
+            }
+          },
+          {
+            "name": "min_bathrooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Bathrooms"
+            }
+          },
+          {
+            "name": "max_bathrooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Bathrooms"
+            }
+          },
+          {
+            "name": "pets_policy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PetsPolicy"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pets Policy"
             }
           },
           {
@@ -1215,6 +1375,65 @@
         "summary": "Get Listing",
         "description": "Return a single listing by ID.",
         "operationId": "get_listing_api_listings__listing_id__get",
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/listings/{listing_id}/geocode": {
+      "post": {
+        "tags": [
+          "listings"
+        ],
+        "summary": "Geocode Listing Endpoint",
+        "description": "Resolve lat/lon via Nominatim (cached) and persist on the listing.",
+        "operationId": "geocode_listing_endpoint_api_listings__listing_id__geocode_post",
         "parameters": [
           {
             "name": "listing_id",
@@ -1542,6 +1761,561 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/preferences/{preference_id}/prompts": {
+      "get": {
+        "tags": [
+          "preferences"
+        ],
+        "summary": "Get Preference Prompts",
+        "description": "Return default vs effective LLM prompts for this preference.",
+        "operationId": "get_preference_prompts_api_preferences__preference_id__prompts_get",
+        "parameters": [
+          {
+            "name": "preference_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preference Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencePromptsEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "preferences"
+        ],
+        "summary": "Patch Preference Prompts",
+        "description": "Update or reset per-key LLM prompt overrides (defaults remain in code).",
+        "operationId": "patch_preference_prompts_api_preferences__preference_id__prompts_patch",
+        "parameters": [
+          {
+            "name": "preference_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preference Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencePromptsPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencePromptsEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs": {
+      "post": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "Create Search Run",
+        "description": "Create a parent `SearchRun` and start wrapped discovery in the background.",
+        "operationId": "create_search_run_api_search_runs_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRunCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/active": {
+      "get": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "Get Active Search Run",
+        "operationId": "get_active_search_run_api_search_runs_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchRunActiveEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/{run_id}": {
+      "get": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "Get Search Run",
+        "operationId": "get_search_run_api_search_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "List Search Run Events",
+        "operationId": "list_search_run_events_api_search_runs__run_id__events_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "after_sequence",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": -1,
+              "title": "After Sequence"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "visibility",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Visibility"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchRunEventOut"
+                  },
+                  "title": "Response List Search Run Events Api Search Runs  Run Id  Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/{run_id}/stop": {
+      "post": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "Stop Search Run",
+        "operationId": "stop_search_run_api_search_runs__run_id__stop_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/{run_id}/results": {
+      "get": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "List Search Run Results",
+        "operationId": "list_search_run_results_api_search_runs__run_id__results_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RunListingResultOut"
+                  },
+                  "title": "Response List Search Run Results Api Search Runs  Run Id  Results Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-runs/{run_id}/filters": {
+      "patch": {
+        "tags": [
+          "search-runs"
+        ],
+        "summary": "Patch Search Run Filters",
+        "operationId": "patch_search_run_filters_api_search_runs__run_id__filters_patch",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRunFiltersPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchRunResponse"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -2214,8 +2988,20 @@
             "title": "Price"
           },
           "url": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Url"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "pm_direct"
           },
           "pets_policy": {
             "$ref": "#/components/schemas/PetsPolicy"
@@ -2313,6 +3099,28 @@
             "type": "boolean",
             "title": "Saved",
             "default": false
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
           }
         },
         "type": "object",
@@ -2321,7 +3129,6 @@
           "property_manager_id",
           "address",
           "price",
-          "url",
           "pets_policy",
           "amenities",
           "photos",
@@ -2535,6 +3342,20 @@
               }
             ],
             "title": "Smart Model"
+          },
+          "sources_enabled": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources Enabled"
           }
         },
         "type": "object",
@@ -2544,6 +3365,114 @@
         ],
         "title": "PreferenceCreate",
         "description": "Create a new preference."
+      },
+      "PreferencePromptEntry": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "max_length": {
+            "type": "integer",
+            "title": "Max Length"
+          },
+          "placeholders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Placeholders"
+          },
+          "default_text": {
+            "type": "string",
+            "title": "Default Text"
+          },
+          "effective_text": {
+            "type": "string",
+            "title": "Effective Text"
+          },
+          "is_custom": {
+            "type": "boolean",
+            "title": "Is Custom"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "title",
+          "description",
+          "max_length",
+          "default_text",
+          "effective_text",
+          "is_custom"
+        ],
+        "title": "PreferencePromptEntry",
+        "description": "One editable prompt with default vs effective text."
+      },
+      "PreferencePromptsEnvelope": {
+        "properties": {
+          "prompts": {
+            "items": {
+              "$ref": "#/components/schemas/PreferencePromptEntry"
+            },
+            "type": "array",
+            "title": "Prompts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompts"
+        ],
+        "title": "PreferencePromptsEnvelope",
+        "description": "GET /api/preferences/{id}/prompts"
+      },
+      "PreferencePromptsPatch": {
+        "properties": {
+          "overrides": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overrides"
+          },
+          "reset_keys": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Keys"
+          },
+          "reset_all": {
+            "type": "boolean",
+            "title": "Reset All",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "PreferencePromptsPatch",
+        "description": "PATCH /api/preferences/{id}/prompts"
       },
       "PreferenceResponse": {
         "properties": {
@@ -2617,6 +3546,27 @@
             ],
             "title": "Smart Model"
           },
+          "sources_enabled": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources Enabled"
+          },
+          "prompt_overrides": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Overrides"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -2667,6 +3617,20 @@
               }
             ],
             "title": "City"
+          },
+          "sources_enabled": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources Enabled"
           },
           "api_provider": {
             "anyOf": [
@@ -2733,6 +3697,67 @@
         "title": "PreferenceUpdate",
         "description": "Update an existing preference."
       },
+      "RunListingResultOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "listing_id": {
+            "type": "string",
+            "title": "Listing Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "filter_reasons_json": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter Reasons Json"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "listing_id",
+          "revision",
+          "category"
+        ],
+        "title": "RunListingResultOut"
+      },
       "ScoreListingsRequest": {
         "properties": {
           "preference_id": {
@@ -2793,6 +3818,481 @@
         ],
         "title": "ScoreListingsResponse",
         "description": "Summary of a listing scoring run."
+      },
+      "ScrapeRequest": {
+        "properties": {
+          "preference_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preference Id"
+          },
+          "max_managers": {
+            "type": "integer",
+            "title": "Max Managers",
+            "default": 5
+          },
+          "search_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Run Id"
+          }
+        },
+        "type": "object",
+        "title": "ScrapeRequest"
+      },
+      "ScrapeResult": {
+        "properties": {
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "managers_scraped": {
+            "type": "integer",
+            "title": "Managers Scraped"
+          },
+          "listings_extracted": {
+            "type": "integer",
+            "title": "Listings Extracted"
+          },
+          "listings_scored": {
+            "type": "integer",
+            "title": "Listings Scored"
+          }
+        },
+        "type": "object",
+        "required": [
+          "city",
+          "managers_scraped",
+          "listings_extracted",
+          "listings_scored"
+        ],
+        "title": "ScrapeResult"
+      },
+      "SearchRunActiveEnvelope": {
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchRunResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "active"
+        ],
+        "title": "SearchRunActiveEnvelope"
+      },
+      "SearchRunCreate": {
+        "properties": {
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "City"
+          },
+          "preference_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preference Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "city"
+        ],
+        "title": "SearchRunCreate",
+        "description": "Start a wrapped discovery run under a durable parent `SearchRun`."
+      },
+      "SearchRunEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "payload_json": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload Json"
+          },
+          "visibility": {
+            "type": "string",
+            "title": "Visibility"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "event_type",
+          "message",
+          "visibility",
+          "timestamp"
+        ],
+        "title": "SearchRunEventOut"
+      },
+      "SearchRunFiltersPatch": {
+        "properties": {
+          "max_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Price"
+          },
+          "min_bedrooms": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Bedrooms"
+          },
+          "min_bathrooms": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Bathrooms"
+          },
+          "pets_required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pets Required"
+          },
+          "score_great_threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Great Threshold"
+          },
+          "score_worth_threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Worth Threshold"
+          },
+          "next_run_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run City"
+          },
+          "next_run_change_openrouter_key": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run Change Openrouter Key"
+          }
+        },
+        "type": "object",
+        "title": "SearchRunFiltersPatch",
+        "description": "Mutable filters for the current run; disallows next-run-only scope changes."
+      },
+      "SearchRunResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "discovery_run_id": {
+            "type": "string",
+            "title": "Discovery Run Id"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "preference_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preference Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "current_stage": {
+            "type": "string",
+            "title": "Current Stage"
+          },
+          "cancel_requested": {
+            "type": "boolean",
+            "title": "Cancel Requested"
+          },
+          "sources_checked": {
+            "type": "integer",
+            "title": "Sources Checked"
+          },
+          "managers_validated": {
+            "type": "integer",
+            "title": "Managers Validated"
+          },
+          "listings_seen": {
+            "type": "integer",
+            "title": "Listings Seen"
+          },
+          "extraction_attempts": {
+            "type": "integer",
+            "title": "Extraction Attempts",
+            "default": 0
+          },
+          "great_matches": {
+            "type": "integer",
+            "title": "Great Matches"
+          },
+          "worth_a_look": {
+            "type": "integer",
+            "title": "Worth A Look"
+          },
+          "near_misses": {
+            "type": "integer",
+            "title": "Near Misses"
+          },
+          "filtered_out": {
+            "type": "integer",
+            "title": "Filtered Out"
+          },
+          "cost_usd_so_far": {
+            "type": "number",
+            "title": "Cost Usd So Far"
+          },
+          "active_revision": {
+            "type": "integer",
+            "title": "Active Revision"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "filter_summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Filter Summary"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SearchRunSuggestion"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          },
+          "suggestions_early_signal": {
+            "type": "boolean",
+            "title": "Suggestions Early Signal",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "discovery_run_id",
+          "city",
+          "status",
+          "current_stage",
+          "cancel_requested",
+          "sources_checked",
+          "managers_validated",
+          "listings_seen",
+          "great_matches",
+          "worth_a_look",
+          "near_misses",
+          "filtered_out",
+          "cost_usd_so_far",
+          "active_revision",
+          "started_at"
+        ],
+        "title": "SearchRunResponse",
+        "description": "Full parent run snapshot for polling and report."
+      },
+      "SearchRunSuggestion": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "message"
+        ],
+        "title": "SearchRunSuggestion",
+        "description": "Deterministic, aggregated suggestion for UI display."
+      },
+      "SystemConfig": {
+        "properties": {
+          "has_openrouter_key": {
+            "type": "boolean",
+            "title": "Has Openrouter Key"
+          },
+          "openrouter_key_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openrouter Key Last4"
+          },
+          "has_apify_token": {
+            "type": "boolean",
+            "title": "Has Apify Token"
+          },
+          "apify_token_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apify Token Last4"
+          }
+        },
+        "type": "object",
+        "required": [
+          "has_openrouter_key",
+          "openrouter_key_last4",
+          "has_apify_token",
+          "apify_token_last4"
+        ],
+        "title": "SystemConfig"
       },
       "TriggerRequest": {
         "properties": {
