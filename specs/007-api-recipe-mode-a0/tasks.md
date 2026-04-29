@@ -33,17 +33,17 @@ Legend: `[ ]` pending · `[x]` done
 
 ## Phase D — Strategy merge + database
 
-- [ ] **D1** Extend `StrategyCache.merge` with recipe validation gate + held-out listing query (implement `_select_held_out_listings` against ORM).
-- [ ] **D2** Alembic migration: `api_recipe_json` on `extraction_strategies` (and optional `api_recipe_rejections` table per patch).
-- [ ] **D3** Load/save `api_recipe` in strategy JSON (de)serialization in `strategy.py`.
+- [x] **D1** Extend `StrategyCache.merge` with recipe validation gate + held-out listing query (implement `_select_held_out_listings` against ORM).
+- [x] **D2** Alembic migration: `api_recipe_json` on `extraction_strategies` (and optional `api_recipe_rejections` table per patch).
+- [x] **D3** Load/save `api_recipe` in strategy JSON (de)serialization in `strategy.py`.
 
 ---
 
 ## Phase E — Rollout & observability
 
-- [ ] **E1** Feature flags + timeouts in `config.py` (`api_recipe_enabled`, `api_recipe_promotion_requires_held_out`, etc.).
-- [ ] **E2** Metrics or structured logs: `mode_a0_calls`, successes, fallthrough to A/B (extend `cost_tracking` or component tags).
-- [ ] **E3** Document flags in `CLAUDE.md` or COST-GUIDE snippet; enable default after validation.
+- [x] **E1** Feature flags + timeouts in `config.py` (`api_recipe_enabled`, `api_recipe_promotion_requires_held_out`, etc.).
+- [x] **E2** Metrics or structured logs: `mode_a0_calls`, successes, fallthrough to A/B (extend `cost_tracking` or component tags).
+- [x] **E3** Document flags in `CLAUDE.md` or COST-GUIDE snippet; enable default after validation.
 
 ---
 
