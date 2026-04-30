@@ -79,8 +79,8 @@
 - [ ] T025 [US1] Add typed frontend search run API helpers for active run polling and run creation in `src/frontend/src/client/search-runs.ts`
 - [ ] T026 [US1] Implement `ActiveRunProvider` with 2 to 5 second polling and reload hydration in `src/frontend/src/components/runs/ActiveRunProvider.tsx`
 - [ ] T027 [US1] Implement global `ActiveRunStrip` with stage, counters, elapsed time, cost, and report link in `src/frontend/src/components/runs/ActiveRunStrip.tsx`
-- [ ] T028 [US1] Mount `ActiveRunProvider` and `ActiveRunStrip` globally in `src/frontend/src/app/layout.tsx`
-- [ ] T029 [US1] Change dashboard run start action to call `POST /api/search-runs` instead of relying only on local discovery polling in `src/frontend/src/app/page.tsx`
+- [x] T028 [US1] Mount `ActiveRunProvider` and `ActiveRunStrip` globally in `src/frontend/src/app/layout.tsx`
+- [x] T029 [US1] Change dashboard run start action to call `POST /api/search-runs` instead of relying only on local discovery polling in `src/frontend/src/app/page.tsx`
 
 **Checkpoint**: User Story 1 is independently shippable as the MVP background run and reconnect experience.
 
@@ -100,14 +100,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Implement `GET /api/search-runs/{run_id}/events` with `after_sequence`, `limit`, and visibility filters in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T034 [US2] Extend `SearchRunEventEmitter` with stage, discovery, scraping, extraction, scoring, cost, warning, error, and cancellation event builders in `src/backend/doormat/runs/events.py`
-- [ ] T035 [US2] Emit user-visible discovery events for query start/completion, candidate found, candidate rejected, manager validated, and stage completion in `src/backend/doormat/discovery/agent.py`
-- [ ] T036 [US2] Add bounded developer diagnostic payload construction for model, cost, latency, URL, HTTP status, confidence, retry, and sanitized error metadata in `src/backend/doormat/runs/events.py`
-- [ ] T037 [US2] Add frontend run event polling helper with `after_sequence` support in `src/frontend/src/client/search-runs.ts`
-- [ ] T038 [US2] Create run report page route that loads run details and event history in `src/frontend/src/app/runs/[runId]/page.tsx`
-- [ ] T039 [US2] Implement `RunReport` sections for current stage, current task, counters, recent wins, warnings, and final state in `src/frontend/src/components/runs/RunReport.tsx`
-- [ ] T040 [US2] Implement expandable technical details with sanitized metadata defaults in `src/frontend/src/components/runs/RunTechnicalDetails.tsx`
+- [x] T033 [US2] Implement `GET /api/search-runs/{run_id}/events` with `after_sequence`, `limit`, and visibility filters in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T034 [US2] Extend `SearchRunEventEmitter` with stage, discovery, scraping, extraction, scoring, cost, warning, error, and cancellation event builders in `src/backend/doormat/runs/events.py`
+- [x] T035 [US2] Emit user-visible discovery events for query start/completion, candidate found, candidate rejected, manager validated, and stage completion in `src/backend/doormat/discovery/agent.py`
+- [x] T036 [US2] Add bounded developer diagnostic payload construction for model, cost, latency, URL, HTTP status, confidence, retry, and sanitized error metadata in `src/backend/doormat/runs/events.py`
+- [x] T037 [US2] Add frontend run event polling helper with `after_sequence` support in `src/frontend/src/client/search-runs.ts`
+- [x] T038 [US2] Create run report page route that loads run details and event history in `src/frontend/src/app/runs/[runId]/page.tsx`
+- [x] T039 [US2] Implement `RunReport` sections for current stage, current task, counters, recent wins, warnings, and final state in `src/frontend/src/components/runs/RunReport.tsx`
+- [x] T040 [US2] Implement expandable technical details with sanitized metadata defaults in `src/frontend/src/components/runs/RunTechnicalDetails.tsx`
 
 **Checkpoint**: User Story 2 adds a live, understandable report on top of the MVP run backbone.
 
