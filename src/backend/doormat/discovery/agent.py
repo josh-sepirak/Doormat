@@ -51,11 +51,13 @@ class DiscoveryAgent:
         search: Optional[DiscoverySearch] = None,
         browser: Optional[BrowserDiscovery] = None,
         classifier: Optional[PropertyManagerClassifier] = None,
+        event_emitter: Optional[Any] = None,
     ) -> None:
         self._session = session
         self._search = search or DiscoverySearch()
         self._browser = browser or BrowserDiscovery()
         self._classifier = classifier or PropertyManagerClassifier()
+        self._event_emitter = event_emitter
 
     async def discover_city(
         self,
@@ -63,11 +65,15 @@ class DiscoveryAgent:
         preference_id: str | None = None,
         run_logger: Optional[RunLoggerProtocol] = None,
         cancel_check: Optional[Callable[[], Awaitable[bool]]] = None,
+        event_emitter: Optional[Any] = None,
     ) -> DiscoveryResult:
         """Run the discovery pipeline for `city`."""
         request_id = uuid.uuid4().hex[:12]
         log = logger.bind(request_id=request_id, city=city, preference_id=preference_id)
         log.info("discovery_start")
+
+        # Use event emitter from parameter or constructor
+        emitter = event_emitter or self._event_emitter
 
         preference_row: Preference | None = None
         if preference_id:
@@ -262,6 +268,13 @@ class DiscoveryAgent:
                         f"✓ {cand.name} — validated (confidence: {result.confidence:.0%})",
                         component="classifier",
                     )
+                # Emit typed event for validated manager
+                if self._event_emitter and hasattr(self._event_emitter, "manager_validated"):
+                    await self._event_emitter.manager_validated(
+                        manager_name=cand.name,
+                        url=cand.website,
+                        listings_found=0,
+                    )
             else:
                 log.info(
                     "candidate_rejected",
@@ -273,6 +286,12 @@ class DiscoveryAgent:
                     await run_logger.debug(
                         f"✗ {cand.name} — rejected: {result.reason}",
                         component="classifier",
+                    )
+                # Emit typed event for rejected candidate
+                if self._event_emitter and hasattr(self._event_emitter, "candidate_rejected"):
+                    await self._event_emitter.candidate_rejected(
+                        reason=result.reason,
+                        details={"candidate": cand.name, "confidence": result.confidence},
                     )
         return validated
 

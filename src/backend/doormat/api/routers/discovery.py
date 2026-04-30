@@ -230,12 +230,15 @@ async def _run_discovery_agent(
     openrouter_api_key: str | None,
     run_logger: RunLogger,
     cancel_check: Callable[[], Awaitable[bool]] | None = None,
+    event_emitter: Any | None = None,
 ) -> DiscoveryResult:
     """Initialize model-aware discovery dependencies and execute the agent."""
     llm = get_llm_client(api_key=openrouter_api_key)
     search = DiscoverySearch(llm=llm, model=fast_model)
     classifier = PropertyManagerClassifier(llm=llm, model=fast_model)
-    agent = DiscoveryAgent(session=session, search=search, classifier=classifier)
+    agent = DiscoveryAgent(
+        session=session, search=search, classifier=classifier, event_emitter=event_emitter
+    )
     model_label = fast_model or "default"
     await run_logger.info(f"Discovery agent initialized (model: {model_label})", component="agent")
     return await agent.discover_city(
@@ -243,6 +246,7 @@ async def _run_discovery_agent(
         preference_id=preference_id,
         run_logger=run_logger,
         cancel_check=cancel_check,
+        event_emitter=event_emitter,
     )
 
 
@@ -300,6 +304,12 @@ async def _run_discovery_background(  # noqa: C901
             logger.error("background_run_not_found", run_id=run_id)
             return
         search_outcome: str | None = None
+        
+        # Create event emitter if this is a search run
+        event_emitter = None
+        if search_run_id:
+            event_emitter = run_events.SearchRunEventEmitter(session, search_run_id)
+        
         try:
             fast_model, openrouter_api_key = await _preferred_openrouter_settings(
                 session, preference_id
@@ -312,6 +322,7 @@ async def _run_discovery_background(  # noqa: C901
                 openrouter_api_key,
                 run_logger,
                 cancel_check=cancel_check,
+                event_emitter=event_emitter,
             )
             await _record_discovery_success(run, result, run_logger)
             if search_run_id:
