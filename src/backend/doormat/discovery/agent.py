@@ -102,11 +102,22 @@ class DiscoveryAgent:
         cost_before = get_cost_tracker().total_cost()
         start_time = time.monotonic()
 
+        # Emit discovery stage started
+        if emitter and hasattr(emitter, "stage_started"):
+            await emitter.stage_started("discovery", f"Starting property manager discovery for {city}")
+
         candidates, validated_pairs = await self._search_and_classify(
             city, log, run_logger, cancel_check, preference_row
         )
 
         validated_count = await self._persist_validated(city, validated_pairs, log)
+
+        # Emit discovery stage completed
+        if emitter and hasattr(emitter, "stage_completed"):
+            await emitter.stage_completed(
+                "discovery",
+                f"Discovery complete: found {validated_count} validated property managers",
+            )
 
         duration = time.monotonic() - start_time
         cost_after = get_cost_tracker().total_cost()
