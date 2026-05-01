@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { CircleMarker, MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -13,21 +13,7 @@ const MAP_BOX = 'h-[5.5rem] w-[7.5rem] max-w-full'
 
 /** Small non-interactive OSM preview for a geocoded listing. */
 export function ListingMiniMap({ latitude, longitude }: ListingMiniMapProps) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const center = useMemo((): [number, number] => [latitude, longitude], [latitude, longitude])
-
-  if (!mounted) {
-    return (
-      <div
-        className={`${MAP_BOX} rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800`}
-        aria-hidden
-      />
-    )
-  }
 
   return (
     <div

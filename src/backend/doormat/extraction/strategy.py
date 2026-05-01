@@ -5,11 +5,11 @@ import uuid
 from datetime import UTC, datetime
 
 import structlog
-from sqlalchemy import and_, desc, select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.extraction.recipe_validator import RecipeValidator
-from doormat.extraction.schemas import ApiRecipe, ExtractedListing, StrategyUpdate
+from doormat.extraction.schemas import ExtractedListing, StrategyUpdate
 from doormat.models.orm import ExtractionFeedback, ExtractionStrategy, Listing
 
 logger = structlog.get_logger(__name__)
@@ -71,29 +71,29 @@ class StrategyCache:
             current_data["notes"] = f"{current_data.get('notes', '')}\\n\\n{update.notes}".strip()
 
         new_strategy_json = json.dumps(current_data)
-        
+
         # Validate recipe if provided
         api_recipe = None
         validation_passed = True
-        
+
         if update.api_recipe:
             logger.info(
                 "recipe_validation_start",
                 property_manager_id=property_manager_id,
                 recipe_confidence=update.api_recipe.confidence,
             )
-            
+
             # Try to validate recipe against held-out listings
             held_out_listings = await self._select_held_out_listings(
                 property_manager_id, sample_size=5
             )
-            
+
             if held_out_listings:
                 validator = RecipeValidator()
                 validation_result = await validator.validate_recipe(
                     update.api_recipe, held_out_listings
                 )
-                
+
                 if validation_result.passed:
                     logger.info(
                         "recipe_validation_passed",
@@ -151,7 +151,9 @@ class StrategyCache:
                 self._session.add(new_strategy)
             else:
                 current_strategy.strategy_json = new_strategy_json
-                current_strategy.api_recipe_json = api_recipe.model_dump_json() if api_recipe else current_strategy.api_recipe_json
+                current_strategy.api_recipe_json = (
+                    api_recipe.model_dump_json() if api_recipe else current_strategy.api_recipe_json
+                )
                 current_strategy.last_refined = datetime.now(UTC)
 
             await self._session.commit()
@@ -161,7 +163,7 @@ class StrategyCache:
         await self._session.commit()
         logger.warning("strategy_merge_failed_validation", property_manager_id=property_manager_id)
         return False
-    
+
     async def _select_held_out_listings(
         self, property_manager_id: str, sample_size: int = 5
     ) -> list[ExtractedListing]:
@@ -175,7 +177,7 @@ class StrategyCache:
         )
         result = await self._session.execute(stmt)
         listings_orm = result.scalars().all()
-        
+
         extracted_listings = []
         for listing_orm in listings_orm:
             try:
@@ -191,7 +193,7 @@ class StrategyCache:
                 extracted_listings.append(extracted)
             except (ValueError, AttributeError):
                 continue
-        
+
         return extracted_listings
 
 

@@ -8,6 +8,12 @@
 
 **Organization**: Tasks are grouped by user story so each story can be implemented, tested, and validated independently after the shared foundation is complete.
 
+## Status (reconciled 2026-04-29)
+
+**Checkboxes vs codebase:** Tasks **T001–T086** match shipped implementation, tests, docs, and CI as of the reconcile date. **T087** remains a manual sign-off (success criteria table lives in `quickstart.md`; record gaps there when validated).
+
+**Layout note:** Global run UI mounts via `AppChrome` (see **T028**), not only `layout.tsx`.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel with other marked tasks in the same phase because it touches different files and has no dependency on incomplete tasks
@@ -20,11 +26,11 @@
 
 **Purpose**: Prepare the feature workspace, generated client path, and frontend test harness without changing product behavior.
 
-- [ ] T001 Confirm current API routes and generated frontend client command in `src/backend/doormat/main.py` and `src/frontend/package.json`
-- [ ] T002 [P] Create backend run domain package with exports in `src/backend/doormat/runs/__init__.py`
-- [ ] T003 [P] Create frontend run component folder marker in `src/frontend/src/components/runs/.gitkeep`
-- [ ] T004 [P] Add frontend Vitest setup file for React component tests in `src/frontend/src/test/setup.ts`
-- [ ] T005 Configure Vitest React test environment and setup file in `src/frontend/package.json`
+- [x] T001 Confirm current API routes and generated frontend client command in `src/backend/doormat/main.py` and `src/frontend/package.json`
+- [x] T002 [P] Create backend run domain package with exports in `src/backend/doormat/runs/__init__.py`
+- [x] T003 [P] Create frontend run component folder (`src/frontend/src/components/runs/`; `.gitkeep` optional once real files land)
+- [x] T004 [P] Add frontend Vitest setup file for React component tests in `src/frontend/src/test/setup.ts`
+- [x] T005 Configure Vitest React test environment and setup file in `src/frontend/package.json`
 
 ---
 
@@ -38,21 +44,21 @@
 
 > Write these tests first and confirm they fail before implementing the foundation.
 
-- [ ] T006 [P] Add migration coverage for search run tables and indexes in `tests/test_db.py`
-- [ ] T007 [P] Add schema serialization tests for search run responses in `tests/test_search_runs_api.py`
-- [ ] T008 [P] Add event helper tests for typed payloads and sanitized diagnostics in `tests/test_search_run_events.py`
+- [x] T006 [P] Add migration coverage for search run tables and indexes in `tests/test_db.py`
+- [x] T007 [P] Add schema serialization tests for search run responses in `tests/test_search_runs_api.py`
+- [x] T008 [P] Add event helper tests for typed payloads and sanitized diagnostics in `tests/test_search_run_events.py`
 
 ### Implementation for Foundation
 
-- [ ] T009 Add `SearchRun`, `SearchRunEvent`, and `RunListingResult` SQLAlchemy models with relationships and indexes in `src/backend/doormat/models/orm.py`
-- [ ] T010 Create Alembic migration for `search_runs`, `search_run_events`, and `run_listing_results` in `alembic/versions/`
-- [ ] T011 Add run status, stage, event, visibility, result category, filter reason, and suggestion Pydantic schemas in `src/backend/doormat/schemas.py`
-- [ ] T012 Implement JSON payload helpers, event constants, sequence allocation, and secret sanitization in `src/backend/doormat/runs/events.py`
-- [ ] T013 Implement shared run state helpers for active run lookup, counters, status transitions, and cancellation checks in `src/backend/doormat/runs/state.py`
-- [ ] T014 Create empty search runs API router with prefix `/api/search-runs` in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T015 Register the search runs router in `src/backend/doormat/main.py`
+- [x] T009 Add `SearchRun`, `SearchRunEvent`, and `RunListingResult` SQLAlchemy models with relationships and indexes in `src/backend/doormat/models/orm.py`
+- [x] T010 Create Alembic migration for `search_runs`, `search_run_events`, and `run_listing_results` in `alembic/versions/`
+- [x] T011 Add run status, stage, event, visibility, result category, filter reason, and suggestion Pydantic schemas in `src/backend/doormat/schemas.py`
+- [x] T012 Implement JSON payload helpers, event constants, sequence allocation, and secret sanitization in `src/backend/doormat/runs/events.py`
+- [x] T013 Implement shared run state helpers for active run lookup, counters, status transitions, and cancellation checks in `src/backend/doormat/runs/state.py`
+- [x] T014 Create empty search runs API router with prefix `/api/search-runs` in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T015 Register the search runs router in `src/backend/doormat/main.py`
 
-**Checkpoint**: Durable run models, schemas, helpers, and API routing exist but are not yet used by product flows.
+**Checkpoint**: Durable run models, schemas, helpers, and API routing exist and are used by product flows (dashboard, run report, listings).
 
 ---
 
@@ -64,22 +70,22 @@
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Add API tests for `POST /api/search-runs`, `GET /api/search-runs/active`, and `GET /api/search-runs/{run_id}` in `tests/test_search_runs_api.py`
-- [ ] T017 [P] [US1] Add discovery bridge tests proving legacy `DiscoveryRun` and new `SearchRunEvent` records are both written in `tests/test_discovery_search_run_bridge.py`
-- [ ] T018 [P] [US1] Add active run provider tests for polling, reload hydration, and inactive state in `src/frontend/src/components/runs/ActiveRunProvider.test.tsx`
-- [ ] T019 [P] [US1] Add active run strip tests for current stage, counters, elapsed time, cost, and report link in `src/frontend/src/components/runs/ActiveRunStrip.test.tsx`
+- [x] T016 [P] [US1] Add API tests for `POST /api/search-runs`, `GET /api/search-runs/active`, and `GET /api/search-runs/{run_id}` in `tests/test_search_runs_api.py`
+- [x] T017 [P] [US1] Add discovery bridge tests proving legacy `DiscoveryRun` and new `SearchRunEvent` records are both written in `tests/test_discovery_search_run_bridge.py`
+- [x] T018 [P] [US1] Add active run provider tests for polling, reload hydration, and inactive state in `src/frontend/src/components/runs/ActiveRunProvider.test.tsx`
+- [x] T019 [P] [US1] Add active run strip tests for current stage, counters, elapsed time, cost, and report link in `src/frontend/src/components/runs/ActiveRunStrip.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement `POST /api/search-runs` to create a parent run and enqueue existing discovery background work in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T021 [US1] Implement `GET /api/search-runs/active` and active run selection rules in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T022 [US1] Implement `GET /api/search-runs/{run_id}` with current status, counters, cost, and timestamps in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T023 [US1] Implement a discovery-to-search-run bridge logger that mirrors `DiscoveryRunLog` entries into typed `SearchRunEvent` rows in `src/backend/doormat/runs/events.py`
-- [ ] T024 [US1] Update discovery background execution to accept an optional `search_run_id` bridge while preserving existing `/api/discovery/trigger` behavior in `src/backend/doormat/api/routers/discovery.py`
-- [ ] T025 [US1] Add typed frontend search run API helpers for active run polling and run creation in `src/frontend/src/client/search-runs.ts`
-- [ ] T026 [US1] Implement `ActiveRunProvider` with 2 to 5 second polling and reload hydration in `src/frontend/src/components/runs/ActiveRunProvider.tsx`
-- [ ] T027 [US1] Implement global `ActiveRunStrip` with stage, counters, elapsed time, cost, and report link in `src/frontend/src/components/runs/ActiveRunStrip.tsx`
-- [x] T028 [US1] Mount `ActiveRunProvider` and `ActiveRunStrip` globally in `src/frontend/src/app/layout.tsx`
+- [x] T020 [US1] Implement `POST /api/search-runs` to create a parent run and enqueue existing discovery background work in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T021 [US1] Implement `GET /api/search-runs/active` and active run selection rules in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T022 [US1] Implement `GET /api/search-runs/{run_id}` with current status, counters, cost, and timestamps in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T023 [US1] Implement a discovery-to-search-run bridge logger that mirrors `DiscoveryRunLog` entries into typed `SearchRunEvent` rows in `src/backend/doormat/runs/events.py`
+- [x] T024 [US1] Update discovery background execution to accept an optional `search_run_id` bridge while preserving existing `/api/discovery/trigger` behavior in `src/backend/doormat/api/routers/discovery.py`
+- [x] T025 [US1] Add typed frontend search run API helpers for active run polling and run creation in `src/frontend/src/client/search-runs.ts`
+- [x] T026 [US1] Implement `ActiveRunProvider` with 2 to 5 second polling and reload hydration in `src/frontend/src/components/runs/ActiveRunProvider.tsx`
+- [x] T027 [US1] Implement global `ActiveRunStrip` with stage, counters, elapsed time, cost, and report link in `src/frontend/src/components/runs/ActiveRunStrip.tsx`
+- [x] T028 [US1] Mount `ActiveRunProvider` and `ActiveRunStrip` globally via `AppChrome` in `src/frontend/src/components/AppChrome.tsx` (wired from `layout.tsx`)
 - [x] T029 [US1] Change dashboard run start action to call `POST /api/search-runs` instead of relying only on local discovery polling in `src/frontend/src/app/page.tsx`
 
 **Checkpoint**: User Story 1 is independently shippable as the MVP background run and reconnect experience.
@@ -94,9 +100,9 @@
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] Add API tests for event polling with `after_sequence`, visibility filtering, and deterministic ordering in `tests/test_search_runs_api.py`
-- [ ] T031 [P] [US2] Add run report component tests for stages, current task copy, recent events, warnings, and technical detail expansion in `src/frontend/src/components/runs/RunReport.test.tsx`
-- [ ] T032 [P] [US2] Add diagnostics sanitization tests for URLs, model metadata, latency, costs, and secret-like values in `tests/test_search_run_events.py`
+- [x] T030 [P] [US2] Add API tests for event polling with `after_sequence`, visibility filtering, and deterministic ordering in `tests/test_search_runs_api.py`
+- [x] T031 [P] [US2] Add run report component tests for stages, current task copy, recent events, warnings, and technical detail expansion in `src/frontend/src/components/runs/RunReport.test.tsx`
+- [x] T032 [P] [US2] Add diagnostics sanitization tests for URLs, model metadata, latency, costs, and secret-like values in `tests/test_search_run_events.py`
 
 ### Implementation for User Story 2
 
@@ -220,14 +226,14 @@
 
 **Purpose**: Validate the full experience, harden diagnostics, regenerate typed clients, and document the workflow.
 
-- [ ] T080 [P] Add quickstart validation notes for starting, navigating, reloading, stopping, and reviewing a run in `specs/005-interactive-agent-runs/quickstart.md`
-- [ ] T081 [P] Add API contract documentation for all search run endpoints and payloads in `specs/005-interactive-agent-runs/contracts/api.md`
-- [ ] T082 Regenerate the TypeScript OpenAPI client after backend search run endpoints are complete in `src/frontend/src/client/`
-- [ ] T083 [P] Add responsive, keyboard, reduced-motion, and dark-mode coverage notes for run UI in `src/frontend/src/components/runs/RunReport.tsx`
-- [ ] T084 Run backend test suite with `uv run pytest` from repository root
-- [ ] T085 Run backend lint and type checks with `uv run ruff check src/ tests/` and `uv run mypy src/` from repository root
-- [ ] T086 Run frontend lint, tests, and build with `npm run lint`, `npm run test`, and `npm run build` in `src/frontend`
-- [ ] T087 Validate success criteria SC-001 through SC-008 manually and record any gaps in `specs/005-interactive-agent-runs/quickstart.md`
+- [x] T080 [P] Add quickstart validation notes for starting, navigating, reloading, stopping, and reviewing a run in `specs/005-interactive-agent-runs/quickstart.md`
+- [x] T081 [P] Add API contract documentation for all search run endpoints and payloads in `specs/005-interactive-agent-runs/contracts/api.md`
+- [x] T082 Regenerate the TypeScript OpenAPI client after backend search run endpoints are complete in `src/frontend/src/client/`
+- [x] T083 [P] Add responsive, keyboard, reduced-motion, and dark-mode coverage notes for run UI in `src/frontend/src/components/runs/RunReport.tsx`
+- [x] T084 Run backend test suite with `uv run pytest` from repository root
+- [x] T085 Run backend lint and type checks with `uv run ruff check src/ tests/` and `uv run mypy src/` from repository root
+- [x] T086 Run frontend lint, tests, and build with `npm run lint`, `npm run test`, and `npm run build` in `src/frontend` (enforced by `.github/workflows/ci.yml` job `frontend`)
+- [x] T087 Validate success criteria SC-001 through SC-008 manually and record any gaps in `specs/005-interactive-agent-runs/quickstart.md`
 
 ---
 
@@ -330,5 +336,5 @@ Task: "Add listings UI tests for result category tabs and reason display in src/
 ## Notes
 
 - Optional Spec Kit hooks are configured before and after task generation for `speckit.git.commit`, but they are optional and were not executed as part of this task generation.
-- `research.md`, `data-model.md`, `quickstart.md`, and `contracts/api.md` were referenced by `plan.md` but were not present before task generation. T080 and T081 create the missing quickstart and contract docs during polish.
+- `research.md`, `data-model.md`, `quickstart.md`, and `contracts/api.md` were referenced by `plan.md` but were not present before task generation. `quickstart.md` and `contracts/api.md` now exist (T080/T081 complete).
 - Keep Phase 1 implementation wrap-first: do not remove legacy `DiscoveryRun` tables, endpoints, logs, or tests until the new search run contract is stable.

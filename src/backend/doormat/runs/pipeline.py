@@ -250,6 +250,7 @@ async def _scrape_pm_direct(  # noqa: C901
         attempted = pm.last_fetch_attempted_at
         if attempted.tzinfo is None:
             from datetime import timezone
+
             attempted = attempted.replace(tzinfo=timezone.utc)
         return (now_utc - attempted).total_seconds() < 86400  # 24 hours
 

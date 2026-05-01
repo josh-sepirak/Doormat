@@ -3,6 +3,8 @@
  * - Prefer semantic sections and headings; primary actions use visible focus rings (ring-blue-500).
  * - Technical details use a native button + aria-expanded / aria-controls for the disclosure pattern.
  * - Dark mode: paired slate backgrounds/borders and blue-600 accent per app shell.
+ * - Responsive: stack primary column / side panels on narrow viewports (flex-col / gap utilities).
+ * - Reduced motion: wrap non-essential CSS motion in `motion-safe:` where added; keep flash durations short.
  * - AnimatedCounter uses rAF-based easing; flash animation highlights new feed items.
  */
 
@@ -95,8 +97,11 @@ export function RunReport({ runId }: RunReportProps) {
   const lastSeq = useRef(-1)
   const prevRunIdRef = useRef<string | null>(null)
   const runRef = useRef(run)
-  runRef.current = run
   const debouncedRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    runRef.current = run
+  }, [run])
 
   // Tick for relative timestamps
   useEffect(() => {
@@ -380,7 +385,7 @@ export function RunReport({ runId }: RunReportProps) {
           Based on how listings matched your filters — useful nudges, not guarantees.
         </p>
         <div className="mt-4">
-          <RunSuggestions run={run} suggestions={run.suggestions} />
+          <RunSuggestions run={run} suggestions={run.suggestions ?? []} />
         </div>
       </section>
 

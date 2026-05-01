@@ -18,7 +18,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
 from sqlalchemy import select, update
@@ -104,7 +104,9 @@ class DiscoveryAgent:
 
         # Emit discovery stage started
         if emitter and hasattr(emitter, "stage_started"):
-            await emitter.stage_started("discovery", f"Starting property manager discovery for {city}")
+            await emitter.stage_started(
+                "discovery", f"Starting property manager discovery for {city}"
+            )
 
         candidates, validated_pairs = await self._search_and_classify(
             city, log, run_logger, cancel_check, preference_row

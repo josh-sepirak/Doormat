@@ -29,7 +29,9 @@ def _cache_key(query: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-async def geocode_listing(session: AsyncSession, listing_id: str) -> tuple[Optional[float], Optional[float]]:
+async def geocode_listing(
+    session: AsyncSession, listing_id: str
+) -> tuple[Optional[float], Optional[float]]:
     """Return (lat, lon) for a listing, using DB cache or Nominatim. Persists coords on success."""
     result = await session.execute(
         select(Listing, PropertyManager.city)

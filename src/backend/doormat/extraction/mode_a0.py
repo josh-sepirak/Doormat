@@ -1,13 +1,12 @@
 """Mode A0: Zero-cost API recipe extraction (fast path)."""
 
 from datetime import UTC, datetime
-from typing import Optional
 
 import httpx
 import structlog
 
 from doormat.extraction.recipe_executor import extract_listing_via_recipe
-from doormat.extraction.schemas import ApiRecipe, ExtractedListing, ListingExtractionResult
+from doormat.extraction.schemas import ApiRecipe, ListingExtractionResult
 from doormat.models.orm import ExtractionStrategy
 
 logger = structlog.get_logger(__name__)

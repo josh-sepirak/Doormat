@@ -7,9 +7,9 @@ import clsx from 'clsx'
 import { useActiveRun } from '@/components/runs/ActiveRunProvider'
 import { RunControls } from '@/components/runs/RunControls'
 
-function formatElapsed(startedAt: string): string {
+function formatElapsed(startedAt: string, atMs: number): string {
   const start = new Date(startedAt).getTime()
-  const sec = Math.max(0, Math.floor((Date.now() - start) / 1000))
+  const sec = Math.max(0, Math.floor((atMs - start) / 1000))
   const m = Math.floor(sec / 60)
   const s = sec % 60
   return m > 0 ? `${m}m ${s}s` : `${s}s`
@@ -17,15 +17,15 @@ function formatElapsed(startedAt: string): string {
 
 export function ActiveRunStrip() {
   const { run, loading, error, stop } = useActiveRun()
-  const [tick, setTick] = useState(0)
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     if (!run) return
-    const id = setInterval(() => setTick((t) => t + 1), 1000)
+    const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [run])
 
-  const elapsed = run ? formatElapsed(run.started_at) : ''
+  const elapsed = run ? formatElapsed(run.started_at, now) : ''
 
   if (loading && !run) {
     return null

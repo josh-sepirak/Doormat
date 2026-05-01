@@ -58,8 +58,27 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install, lint, test, and build frontend
+        working-directory: src/frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run test
+          npm run build
+
   build-docker:
-    needs: lint-and-test
+    needs: [lint-and-test, frontend]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 

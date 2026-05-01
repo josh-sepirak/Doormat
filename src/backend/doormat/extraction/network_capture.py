@@ -1,10 +1,8 @@
 """Network capture for CDP to intercept JSON API calls during Mode B extraction."""
 
 import json
-import re
 from dataclasses import dataclass, field
 from typing import Any, Optional
-from urllib.parse import urlparse
 
 import structlog
 

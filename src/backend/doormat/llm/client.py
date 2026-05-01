@@ -119,7 +119,9 @@ class LLMClient:
                         completion_tokens = completion.usage.completion_tokens
                         reported_cost_usd = _usage_cost_usd(completion.usage)
                         cache_read = getattr(completion.usage, "cache_read_input_tokens", 0) or 0
-                        cache_creation = getattr(completion.usage, "cache_creation_input_tokens", 0) or 0
+                        cache_creation = (
+                            getattr(completion.usage, "cache_creation_input_tokens", 0) or 0
+                        )
                         cost.cache_hit = cache_read > 0
                         cost.cache_read_tokens = cache_read
                         cost.cache_creation_tokens = cache_creation
@@ -136,7 +138,9 @@ class LLMClient:
                         completion_tokens = response.usage.completion_tokens
                         reported_cost_usd = _usage_cost_usd(response.usage)
                         cache_read = getattr(response.usage, "cache_read_input_tokens", 0) or 0
-                        cache_creation = getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+                        cache_creation = (
+                            getattr(response.usage, "cache_creation_input_tokens", 0) or 0
+                        )
                         cost.cache_hit = cache_read > 0
                         cost.cache_read_tokens = cache_read
                         cost.cache_creation_tokens = cache_creation

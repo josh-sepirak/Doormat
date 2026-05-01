@@ -304,12 +304,12 @@ async def _run_discovery_background(  # noqa: C901
             logger.error("background_run_not_found", run_id=run_id)
             return
         search_outcome: str | None = None
-        
+
         # Create event emitter if this is a search run
         event_emitter = None
         if search_run_id:
             event_emitter = run_events.SearchRunEventEmitter(session, search_run_id)
-        
+
         try:
             fast_model, openrouter_api_key = await _preferred_openrouter_settings(
                 session, preference_id

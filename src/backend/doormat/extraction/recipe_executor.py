@@ -12,18 +12,16 @@ from doormat.extraction.schemas import ApiRecipe, ExtractedListing
 from doormat.schemas import PetsPolicy
 
 
-def extract_listing_via_recipe(
-    recipe: ApiRecipe, response_json: Any
-) -> ExtractedListing:
+def extract_listing_via_recipe(recipe: ApiRecipe, response_json: Any) -> ExtractedListing:
     """Walk response_json by recipe.response_root, then by each field_path.
-    
+
     Args:
         recipe: The ApiRecipe with response_root and field_paths.
         response_json: The parsed JSON response from the API.
-        
+
     Returns:
         An ExtractedListing with all required fields populated.
-        
+
     Raises:
         ValueError: If response_root doesn't resolve or required fields are missing.
     """
@@ -72,11 +70,11 @@ def extract_listing_via_recipe(
 
 def _walk_path(obj: Any, path: str) -> Any:
     """Minimal JSONPath subset: $, $.key, $.list[N], $.key.subkey.
-    
+
     Args:
         obj: The object to traverse (dict or list).
         path: JSONPath expression.
-        
+
     Returns:
         The value at the path, or None if not found.
     """

@@ -238,7 +238,11 @@ class SearchRunEventEmitter:
             "candidate_found",
             f"Found candidate: {manager_name}",
             stage="discovery",
-            payload={"query": _truncate(query, 500), "url": _truncate(url, 500), "manager": manager_name},
+            payload={
+                "query": _truncate(query, 500),
+                "url": _truncate(url, 500),
+                "manager": manager_name,
+            },
         )
 
     async def candidate_rejected(
