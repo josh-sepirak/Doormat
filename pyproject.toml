@@ -51,6 +51,9 @@ dependencies = [
 [project.scripts]
 doormat-mcp = "doormat.mcp.server:run"
 
+[project.entry-points."doormat.sources"]
+pilot-pm = "doormat.sources.pm.pilot_pm:Adapter"
+
 [project.urls]
 Homepage = "https://github.com/josh-sepirak/Doormat"
 Repository = "https://github.com/josh-sepirak/Doormat.git"
