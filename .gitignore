@@ -239,7 +239,7 @@ tailwind-plus-salient/
 # Local agent/live-preview state
 .impeccable-live.json
 .agents/
-.claude/
+# .claude/          # Keep .claude/skills/ committed for contributor workflows
 .commandcode/
 .continue/
 .crush/
