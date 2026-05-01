@@ -121,19 +121,19 @@
 
 ### Tests for User Story 3
 
-- [ ] T041 [P] [US3] Add API tests for `POST /api/search-runs/{run_id}/stop`, idempotency, and status transitions in `tests/test_search_runs_api.py`
-- [ ] T042 [P] [US3] Add cooperative cancellation bridge tests for stopping before the next candidate, manager, listing, or scoring batch in `tests/test_discovery_search_run_bridge.py`
-- [ ] T043 [P] [US3] Add stop button UI tests for pending, stopping, cancelled, and failed stop states in `src/frontend/src/components/runs/RunControls.test.tsx`
+- [x] T041 [P] [US3] Add API tests for `POST /api/search-runs/{run_id}/stop`, idempotency, and status transitions in `tests/test_search_runs_api.py`
+- [x] T042 [P] [US3] Add cooperative cancellation bridge tests for stopping before the next candidate, manager, listing, or scoring batch in `tests/test_discovery_search_run_bridge.py`
+- [x] T043 [P] [US3] Add stop button UI tests for pending, stopping, cancelled, and failed stop states in `src/frontend/src/components/runs/RunControls.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T044 [US3] Implement `POST /api/search-runs/{run_id}/stop` to set cancellation requested and emit `run_waiting_to_stop` in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T045 [US3] Add cancellation check helper that raises or returns a typed stop decision before each work unit in `src/backend/doormat/runs/state.py`
-- [ ] T046 [US3] Add cancellation checks before discovery candidate validation and search-query loops in `src/backend/doormat/discovery/agent.py`
-- [ ] T047 [US3] Add cancellation checks before manager scraping and scoring batches in `src/backend/doormat/api/routers/discovery.py`
-- [ ] T048 [US3] Persist final `cancelled` status, finished timestamp, partial counters, and cancellation events in `src/backend/doormat/runs/state.py`
-- [ ] T049 [US3] Implement reusable run stop controls in `src/frontend/src/components/runs/RunControls.tsx`
-- [ ] T050 [US3] Wire stop controls into the active run strip and run report in `src/frontend/src/components/runs/ActiveRunStrip.tsx` and `src/frontend/src/components/runs/RunReport.tsx`
+- [x] T044 [US3] Implement `POST /api/search-runs/{run_id}/stop` to set cancellation requested and emit `run_waiting_to_stop` in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T045 [US3] Add cancellation check helper that raises or returns a typed stop decision before each work unit in `src/backend/doormat/runs/state.py`
+- [x] T046 [US3] Add cancellation checks before discovery candidate validation and search-query loops in `src/backend/doormat/discovery/agent.py`
+- [x] T047 [US3] Add cancellation checks before manager scraping and scoring batches in `src/backend/doormat/api/routers/discovery.py`
+- [x] T048 [US3] Persist final `cancelled` status, finished timestamp, partial counters, and cancellation events in `src/backend/doormat/runs/state.py`
+- [x] T049 [US3] Implement reusable run stop controls in `src/frontend/src/components/runs/RunControls.tsx`
+- [x] T050 [US3] Wire stop controls into the active run strip and run report in `src/frontend/src/components/runs/ActiveRunStrip.tsx` and `src/frontend/src/components/runs/RunReport.tsx`
 
 **Checkpoint**: User Story 3 makes cost control real by stopping backend work, not just frontend polling.
 
@@ -147,20 +147,20 @@
 
 ### Tests for User Story 4
 
-- [ ] T051 [P] [US4] Add deterministic filter classification tests for price, beds, baths, pets, unknowns, and category thresholds in `tests/test_run_filters.py`
-- [ ] T052 [P] [US4] Add result endpoint tests for category and reason filters in `tests/test_search_runs_api.py`
-- [ ] T053 [P] [US4] Add listings UI tests for result category tabs and reason display in `src/frontend/src/app/listings/page.test.tsx`
+- [x] T051 [P] [US4] Add deterministic filter classification tests for price, beds, baths, pets, unknowns, and category thresholds in `tests/test_run_filters.py`
+- [x] T052 [P] [US4] Add result endpoint tests for category and reason filters in `tests/test_search_runs_api.py`
+- [x] T053 [P] [US4] Add listings UI tests for result category tabs and reason display in `src/frontend/src/app/listings/page.test.tsx`
 
 ### Implementation for User Story 4
 
-- [ ] T054 [US4] Implement deterministic hard-filter and near-miss classification with fixed v1 tolerances in `src/backend/doormat/runs/filters.py`
-- [ ] T055 [US4] Persist per-run `RunListingResult` rows with category, score, reasons, revision, and explanation in `src/backend/doormat/runs/filters.py`
-- [ ] T056 [US4] Integrate classification after listing extraction and before selective scoring in `src/backend/doormat/api/routers/discovery.py`
-- [ ] T057 [US4] Implement `GET /api/search-runs/{run_id}/results` with category, filter-code, limit, and offset parameters in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T058 [US4] Emit `hard_filters_applied`, `listing_classified_match`, `listing_classified_near_miss`, and `listing_classified_rejected` events in `src/backend/doormat/runs/filters.py`
-- [ ] T059 [US4] Add run result API helpers in `src/frontend/src/client/search-runs.ts`
-- [ ] T060 [US4] Update Listings page to support Great matches, Worth a look, Near misses, and Filtered out categories from run results in `src/frontend/src/app/listings/page.tsx`
-- [ ] T061 [US4] Add filter reason presentation component for expected value, actual value, severity, and suggestion copy in `src/frontend/src/components/runs/FilterReasonList.tsx`
+- [x] T054 [US4] Implement deterministic hard-filter and near-miss classification with fixed v1 tolerances in `src/backend/doormat/runs/filters.py`
+- [x] T055 [US4] Persist per-run `RunListingResult` rows with category, score, reasons, revision, and explanation in `src/backend/doormat/runs/filters.py`
+- [x] T056 [US4] Integrate classification after listing extraction and before selective scoring in `src/backend/doormat/api/routers/discovery.py`
+- [x] T057 [US4] Implement `GET /api/search-runs/{run_id}/results` with category, filter-code, limit, and offset parameters in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T058 [US4] Emit `hard_filters_applied`, `listing_classified_match`, `listing_classified_near_miss`, and `listing_classified_rejected` events in `src/backend/doormat/runs/filters.py`
+- [x] T059 [US4] Add run result API helpers in `src/frontend/src/client/search-runs.ts`
+- [x] T060 [US4] Update Listings page to support Great matches, Worth a look, Near misses, and Filtered out categories from run results in `src/frontend/src/app/listings/page.tsx`
+- [x] T061 [US4] Add filter reason presentation component for expected value, actual value, severity, and suggestion copy in `src/frontend/src/components/runs/FilterReasonList.tsx`
 
 **Checkpoint**: User Story 4 provides explainable, per-run result categories without polluting canonical `Listing` state.
 
@@ -174,18 +174,18 @@
 
 ### Tests for User Story 5
 
-- [ ] T062 [P] [US5] Add suggestion aggregation tests for rent thresholds, unknown pet policies, bedrooms, bathrooms, and finalization in `tests/test_run_suggestions.py`
-- [ ] T063 [P] [US5] Add no-extra-LLM regression test around classification and suggestion generation in `tests/test_run_suggestions.py`
-- [ ] T064 [P] [US5] Add suggestions UI tests for early-signal and final labels in `src/frontend/src/components/runs/RunSuggestions.test.tsx`
+- [x] T062 [P] [US5] Add suggestion aggregation tests for rent thresholds, unknown pet policies, bedrooms, bathrooms, and finalization in `tests/test_run_suggestions.py`
+- [x] T063 [P] [US5] Add no-extra-LLM regression test around classification and suggestion generation in `tests/test_run_suggestions.py`
+- [x] T064 [P] [US5] Add suggestions UI tests for early-signal and final labels in `src/frontend/src/components/runs/RunSuggestions.test.tsx`
 
 ### Implementation for User Story 5
 
-- [ ] T065 [US5] Implement deterministic suggestion aggregation from `RunListingResult` filter reasons in `src/backend/doormat/runs/suggestions.py`
-- [ ] T066 [US5] Emit `filter_summary_updated` and `suggestion_updated` events after result classification changes in `src/backend/doormat/runs/suggestions.py`
-- [ ] T067 [US5] Mark suggestions as early signals while a run is active and final when the run reaches terminal state in `src/backend/doormat/runs/suggestions.py`
-- [ ] T068 [US5] Include latest filter summary and suggestions in `GET /api/search-runs/{run_id}` response in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T069 [US5] Render suggestions and early/final labels in the run report in `src/frontend/src/components/runs/RunSuggestions.tsx`
-- [ ] T070 [US5] Add suggestions section to `RunReport` with calm explanatory copy and no model-cost language overclaiming in `src/frontend/src/components/runs/RunReport.tsx`
+- [x] T065 [US5] Implement deterministic suggestion aggregation from `RunListingResult` filter reasons in `src/backend/doormat/runs/suggestions.py`
+- [x] T066 [US5] Emit `filter_summary_updated` and `suggestion_updated` events after result classification changes in `src/backend/doormat/runs/suggestions.py`
+- [x] T067 [US5] Mark suggestions as early signals while a run is active and final when the run reaches terminal state in `src/backend/doormat/runs/suggestions.py`
+- [x] T068 [US5] Include latest filter summary and suggestions in `GET /api/search-runs/{run_id}` response in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T069 [US5] Render suggestions and early/final labels in the run report in `src/frontend/src/components/runs/RunSuggestions.tsx`
+- [x] T070 [US5] Add suggestions section to `RunReport` with calm explanatory copy and no model-cost language overclaiming in `src/frontend/src/components/runs/RunReport.tsx`
 
 **Checkpoint**: User Story 5 gives useful filter advice while preserving the cost discipline requirement.
 
@@ -199,18 +199,18 @@
 
 ### Tests for User Story 6
 
-- [ ] T071 [P] [US6] Add API tests for run revision creation, reclassification, and next-run-only field rejection in `tests/test_search_runs_api.py`
-- [ ] T072 [P] [US6] Add frontend tests for editable current-run filters and next-run-only explanation copy in `src/frontend/src/components/runs/RunFilterControls.test.tsx`
+- [x] T071 [P] [US6] Add API tests for run revision creation, reclassification, and next-run-only field rejection in `tests/test_search_runs_api.py`
+- [x] T072 [P] [US6] Add frontend tests for editable current-run filters and next-run-only explanation copy in `src/frontend/src/components/runs/RunFilterControls.test.tsx`
 
 ### Implementation for User Story 6
 
-- [ ] T073 [US6] Add current-run filter update request and response schemas with next-run-only field validation in `src/backend/doormat/schemas.py`
-- [ ] T074 [US6] Implement `PATCH /api/search-runs/{run_id}/filters` to create a new revision and reclassify existing results in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T075 [US6] Preserve previous revision result explanations while defaulting result queries to the latest revision in `src/backend/doormat/api/routers/search_runs.py`
-- [ ] T076 [US6] Emit revision and reclassification events when current-run filters change in `src/backend/doormat/runs/events.py`
-- [ ] T077 [US6] Implement frontend run filter controls for max rent, bedrooms, bathrooms, pets, amenities, score threshold, and scored preferences in `src/frontend/src/components/runs/RunFilterControls.tsx`
-- [ ] T078 [US6] Show next-run-only explanation for city, source scope, API key, model, and manager-cache changes during active runs in `src/frontend/src/components/runs/RunFilterControls.tsx`
-- [ ] T079 [US6] Wire current-run filter controls into the run report page in `src/frontend/src/components/runs/RunReport.tsx`
+- [x] T073 [US6] Add current-run filter update request and response schemas with next-run-only field validation in `src/backend/doormat/schemas.py`
+- [x] T074 [US6] Implement `PATCH /api/search-runs/{run_id}/filters` to create a new revision and reclassify existing results in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T075 [US6] Preserve previous revision result explanations while defaulting result queries to the latest revision in `src/backend/doormat/api/routers/search_runs.py`
+- [x] T076 [US6] Emit revision and reclassification events when current-run filters change in `src/backend/doormat/runs/events.py`
+- [x] T077 [US6] Implement frontend run filter controls for max rent, bedrooms, bathrooms, pets, amenities, score threshold, and scored preferences in `src/frontend/src/components/runs/RunFilterControls.tsx`
+- [x] T078 [US6] Show next-run-only explanation for city, source scope, API key, model, and manager-cache changes during active runs in `src/frontend/src/components/runs/RunFilterControls.tsx`
+- [x] T079 [US6] Wire current-run filter controls into the run report page in `src/frontend/src/components/runs/RunReport.tsx`
 
 **Checkpoint**: User Story 6 adds interactive refinement without restarting discovery or scraping.
 
