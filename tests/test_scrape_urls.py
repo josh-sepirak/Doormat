@@ -10,11 +10,7 @@ from sqlalchemy.dialects import sqlite
 from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
 from doormat.models.orm import Listing as ListingORM
 from doormat.models.orm import Preference, PropertyManager, SearchRun
-from doormat.runs.pipeline import (
-    _run_scoring_stage,
-    _scrape_pm_direct,
-    _scrapeable_property_managers_stmt,
-)
+from doormat.runs.pipeline import _run_scoring_stage, _scrape_pm_direct, _scrapeable_property_managers_stmt
 from doormat.schemas import PetsPolicy
 from doormat.sources.scrape_targets import (
     discover_candidate_listing_urls,
@@ -254,6 +250,15 @@ async def test_run_scoring_stage_queries_by_city_not_preference_id(monkeypatch) 
     )
 
     # Build a listing that has preference_id=NULL (as PM-direct listings do).
+    pm = PropertyManager(
+        id="pm-99",
+        city="Austin",
+        name="Direct PM",
+        website="https://direct.example",
+        listing_page_url="https://direct.example/listings",
+        validated=True,
+        discovery_timestamp=datetime.now(UTC),
+    )
     listing_without_pref = ListingORM(
         id="listing-99",
         property_manager_id="pm-99",
@@ -288,18 +293,16 @@ async def test_run_scoring_stage_queries_by_city_not_preference_id(monkeypatch) 
     emitter.emit = AsyncMock()
 
     async def fake_score_batch(listings, pref):
-        for listing in listings:
-            scored.append(listing.id)
-            listing.score = 0.85
+        for l in listings:
+            scored.append(l.id)
+            l.score = 0.85
 
     async def fake_classify(sess, *, run, city, preference, emitter=None):
         classify_called.append(True)
         return len(classify_called)
 
     monkeypatch.setattr("doormat.runs.filters.classify_city_listings_for_run", fake_classify)
-    monkeypatch.setattr(
-        "doormat.runs.pipeline.run_filters.classify_city_listings_for_run", fake_classify
-    )
+    monkeypatch.setattr("doormat.runs.pipeline.run_filters.classify_city_listings_for_run", fake_classify)
 
     with patch("doormat.scoring.scorer.ListingScorer") as MockScorer:
         MockScorer.return_value.score_batch = AsyncMock(side_effect=fake_score_batch)

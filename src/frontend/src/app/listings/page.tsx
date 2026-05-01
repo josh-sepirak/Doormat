@@ -186,9 +186,7 @@ function ListingsContent() {
   }, [searchParams])
 
   useEffect(() => {
-    queueMicrotask(() => {
-      syncDraftFromUrl()
-    })
+    syncDraftFromUrl()
   }, [syncDraftFromUrl])
 
   const loadAllListings = useCallback(() => {
@@ -203,9 +201,7 @@ function ListingsContent() {
 
   useEffect(() => {
     if (runId) return
-    queueMicrotask(() => {
-      loadAllListings()
-    })
+    loadAllListings()
   }, [runId, loadAllListings])
 
   useEffect(() => {
@@ -948,7 +944,7 @@ function RunTableRow({
       </td>
       <td className="max-w-[14rem] px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-300">
         {result.explanation ? <p className="mb-1 text-slate-700 dark:text-slate-200">{result.explanation}</p> : null}
-        <FilterReasonList reasonsJson={result.filter_reasons_json ?? null} />
+        <FilterReasonList reasonsJson={result.filter_reasons_json} />
       </td>
     </tr>
   )
@@ -1025,7 +1021,7 @@ function RunResultCard({
       {result.explanation ? (
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{result.explanation}</p>
       ) : null}
-      <FilterReasonList reasonsJson={result.filter_reasons_json ?? null} />
+      <FilterReasonList reasonsJson={result.filter_reasons_json} />
       {sourceUrl ? (
         <a
           href={sourceUrl}

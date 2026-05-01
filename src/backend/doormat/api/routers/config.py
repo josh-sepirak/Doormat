@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-
 from doormat.config import settings
 from doormat.security.auth import require_bearer_auth
+from pydantic import BaseModel
 
 router = APIRouter(
     prefix="/api/config",
@@ -10,18 +9,15 @@ router = APIRouter(
     dependencies=[Depends(require_bearer_auth)],
 )
 
-
 class SystemConfig(BaseModel):
     has_openrouter_key: bool
     openrouter_key_last4: str | None
     has_apify_token: bool
     apify_token_last4: str | None
 
-
 @router.get("", response_model=SystemConfig)
 async def get_system_config():
     """Return whether system-wide keys are configured in .env."""
-
     def last4(s: str | None) -> str | None:
         if not s or len(s) < 8:
             return None

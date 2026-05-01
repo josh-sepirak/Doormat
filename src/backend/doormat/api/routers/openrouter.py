@@ -171,10 +171,9 @@ async def _resolve_openrouter_key(body: ModelsRequest, session: AsyncSession) ->
             secret = decrypt_secret(preference.openrouter_api_key)
             if secret:
                 return secret
-
+    
     # Fallback to system-wide .env key
     from doormat.config import settings
-
     if settings.OPENROUTER_API_KEY:
         return settings.OPENROUTER_API_KEY
 

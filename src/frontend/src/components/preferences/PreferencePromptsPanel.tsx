@@ -45,9 +45,7 @@ export function PreferencePromptsPanel({ preferenceId }: { preferenceId: string 
   }, [preferenceId])
 
   useEffect(() => {
-    queueMicrotask(() => {
-      void load()
-    })
+    void load()
   }, [load])
 
   const patch = async (body: Record<string, unknown>) => {

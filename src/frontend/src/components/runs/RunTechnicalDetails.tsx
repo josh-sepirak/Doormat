@@ -9,8 +9,8 @@ type RunTechnicalDetailsProps = {
   events: SearchRunEvent[]
 }
 
-function parsePayload(raw: string | null | undefined): Record<string, unknown> | null {
-  if (raw == null || raw === '') return null
+function parsePayload(raw: string | null): Record<string, unknown> | null {
+  if (!raw) return null
   try {
     const v = JSON.parse(raw) as unknown
     return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null

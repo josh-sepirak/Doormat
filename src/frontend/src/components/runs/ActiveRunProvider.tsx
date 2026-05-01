@@ -26,7 +26,7 @@ export function ActiveRunProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const env = await fetchActiveSearchRun()
-      setRun(env.run || null)
+      setRun(env.active ? env.run : null)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))

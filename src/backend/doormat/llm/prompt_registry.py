@@ -140,28 +140,7 @@ You operate in one of two modes determined by your runtime:
 You have browser tools available. Navigate the page, extract what you
 need, and crucially, observe *what made Mode A fail* so you can emit a
 `strategy_update` that prevents the same failure on the next listing
-from this source.
-
-**API-first recovery (highest priority):**
-
-Many rental sites fetch listing data via JSON APIs rather than rendering
-everything in HTML. If you notice the page is making XHR/fetch requests
-to JSON endpoints (via your browser's network tab or page behavior),
-**prioritize observing and documenting the API** over DOM extraction.
-
-Common patterns:
-- Page loads HTML skeleton, then XHR to `/api/listings/{{id}}`
-- Price/bedrooms rendered via fetch to `/api/property/{{id}}/details`
-- Photos loaded from `/api/listings/{{id}}/images`
-
-If you can identify the JSON API endpoint:
-1. Note the URL template and response structure
-2. Document which JSON fields map to listing fields (e.g., `response.data.price` → rent)
-3. This enables zero-cost extraction on future listings from this source
-
-**DOM-based extraction (fallback):**
-
-If no JSON API is available, use DOM extraction:
+from this source. Common Mode A failures and their Mode B fixes:
 
 | Mode A failure | Mode B response |
 |---|---|
@@ -222,22 +201,9 @@ Prior Mode A failure context:
 ```
 
 The Mode A extraction returned `confidence: low` or failed validation.
-Navigate the listing page using your browser tools. Extract the listing
-data. As you do, **observe and document any JSON APIs the page is using**.
-
-**When inspecting for APIs:**
-- Open the browser's Network tab / DevTools
-- Watch for XHR/fetch requests to JSON endpoints while the page loads
-- Note the endpoint URL, method (GET/POST), and response structure
-- If you find a JSON API that returns listing fields, document it:
-  * URL pattern (e.g., `/api/listings/{{id}}` or `/api/property/{{id}}`)
-  * Which fields come from the JSON (price, bedrooms, address, etc.)
-
-This enables zero-cost extraction on future listings from this source.
-
-**Then emit a `strategy_update` patch** describing either:
-1. **The JSON API** (highest value): URL template and field mappings
-2. **DOM selectors** (fallback): CSS or XPath selectors that work
+Navigate the listing page using your browser tools. Extract the
+listing. Then emit a `strategy_update` patch describing the selectors
+or interaction steps that would have allowed Mode A to succeed.
 
 Constraints:
 - Do not navigate away from the listing's domain.

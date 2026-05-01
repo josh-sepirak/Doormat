@@ -13,8 +13,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
-from doormat.geocoding.nominatim import geocode_listing
 from doormat.models.orm import Listing, Preference, PropertyManager
+from doormat.geocoding.nominatim import geocode_listing
 from doormat.schemas import ListingResponse, PetsPolicy, ScoreListingsRequest, ScoreListingsResponse
 from doormat.scoring.scorer import ListingScorer
 from doormat.security.auth import require_bearer_auth

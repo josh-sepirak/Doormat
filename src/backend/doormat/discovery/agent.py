@@ -18,7 +18,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Optional
 
 import structlog
 from sqlalchemy import select, update
@@ -51,13 +51,11 @@ class DiscoveryAgent:
         search: Optional[DiscoverySearch] = None,
         browser: Optional[BrowserDiscovery] = None,
         classifier: Optional[PropertyManagerClassifier] = None,
-        event_emitter: Optional[Any] = None,
     ) -> None:
         self._session = session
         self._search = search or DiscoverySearch()
         self._browser = browser or BrowserDiscovery()
         self._classifier = classifier or PropertyManagerClassifier()
-        self._event_emitter = event_emitter
 
     async def discover_city(
         self,
@@ -65,15 +63,11 @@ class DiscoveryAgent:
         preference_id: str | None = None,
         run_logger: Optional[RunLoggerProtocol] = None,
         cancel_check: Optional[Callable[[], Awaitable[bool]]] = None,
-        event_emitter: Optional[Any] = None,
     ) -> DiscoveryResult:
         """Run the discovery pipeline for `city`."""
         request_id = uuid.uuid4().hex[:12]
         log = logger.bind(request_id=request_id, city=city, preference_id=preference_id)
         log.info("discovery_start")
-
-        # Use event emitter from parameter or constructor
-        emitter = event_emitter or self._event_emitter
 
         preference_row: Preference | None = None
         if preference_id:
@@ -102,24 +96,11 @@ class DiscoveryAgent:
         cost_before = get_cost_tracker().total_cost()
         start_time = time.monotonic()
 
-        # Emit discovery stage started
-        if emitter and hasattr(emitter, "stage_started"):
-            await emitter.stage_started(
-                "discovery", f"Starting property manager discovery for {city}"
-            )
-
         candidates, validated_pairs = await self._search_and_classify(
             city, log, run_logger, cancel_check, preference_row
         )
 
         validated_count = await self._persist_validated(city, validated_pairs, log)
-
-        # Emit discovery stage completed
-        if emitter and hasattr(emitter, "stage_completed"):
-            await emitter.stage_completed(
-                "discovery",
-                f"Discovery complete: found {validated_count} validated property managers",
-            )
 
         duration = time.monotonic() - start_time
         cost_after = get_cost_tracker().total_cost()
@@ -281,13 +262,6 @@ class DiscoveryAgent:
                         f"✓ {cand.name} — validated (confidence: {result.confidence:.0%})",
                         component="classifier",
                     )
-                # Emit typed event for validated manager
-                if self._event_emitter and hasattr(self._event_emitter, "manager_validated"):
-                    await self._event_emitter.manager_validated(
-                        manager_name=cand.name,
-                        url=cand.website,
-                        listings_found=0,
-                    )
             else:
                 log.info(
                     "candidate_rejected",
@@ -299,12 +273,6 @@ class DiscoveryAgent:
                     await run_logger.debug(
                         f"✗ {cand.name} — rejected: {result.reason}",
                         component="classifier",
-                    )
-                # Emit typed event for rejected candidate
-                if self._event_emitter and hasattr(self._event_emitter, "candidate_rejected"):
-                    await self._event_emitter.candidate_rejected(
-                        reason=result.reason,
-                        details={"candidate": cand.name, "confidence": result.confidence},
                     )
         return validated
 

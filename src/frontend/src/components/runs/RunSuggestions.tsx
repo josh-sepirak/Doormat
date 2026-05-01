@@ -37,7 +37,7 @@ export function RunSuggestions({ run, suggestions }: RunSuggestionsProps) {
             className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-200"
           >
             <span className="font-medium">{s.message}</span>
-            {s.count && s.count > 0 ? (
+            {s.count > 0 ? (
               <span className="ml-2 tabular-nums text-slate-500 dark:text-slate-400">({s.count})</span>
             ) : null}
           </li>

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
+from doormat.models.orm import Preference
 from doormat.llm.prompt_registry import (
     PromptKey,
     get_effective_prompt,
@@ -19,7 +20,6 @@ from doormat.llm.prompt_registry import (
     prompts_catalog_for_api,
     validate_override,
 )
-from doormat.models.orm import Preference
 from doormat.schemas import (
     PreferenceCreate,
     PreferencePromptEntry,
@@ -172,9 +172,7 @@ def _preference_prompts_envelope(preference: Preference) -> PreferencePromptsEnv
 
 
 @router.get("/{preference_id}/prompts", response_model=PreferencePromptsEnvelope)
-async def get_preference_prompts(
-    preference_id: str, session: DbSession
-) -> PreferencePromptsEnvelope:
+async def get_preference_prompts(preference_id: str, session: DbSession) -> PreferencePromptsEnvelope:
     """Return default vs effective LLM prompts for this preference."""
     result = await session.execute(select(Preference).where(Preference.id == preference_id))
     preference = result.scalar_one_or_none()
