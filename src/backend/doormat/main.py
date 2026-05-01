@@ -17,12 +17,14 @@ from sqlalchemy import update
 from doormat import metrics
 from doormat.api.routers.config import router as config_router
 from doormat.api.routers.costs import router as costs_router
+from doormat.api.routers.craigslist_regions import router as craigslist_regions_router
 from doormat.api.routers.discovery import router as discovery_router
 from doormat.api.routers.extraction import router as extraction_router
 from doormat.api.routers.listings import router as listings_router
 from doormat.api.routers.openrouter import router as openrouter_router
 from doormat.api.routers.preferences import router as preferences_router
 from doormat.api.routers.search_runs import router as search_runs_router
+from doormat.api.routers.trusted_sources import router as trusted_sources_router
 from doormat.config import settings
 from doormat.cost_tracking import get_cost_summary
 from doormat.db.base import AsyncSessionLocal
@@ -90,11 +92,13 @@ app.add_middleware(
 # Register API routers
 app.include_router(config_router)
 app.include_router(costs_router)
+app.include_router(craigslist_regions_router)
 app.include_router(discovery_router)
 app.include_router(extraction_router)
 app.include_router(listings_router)
 app.include_router(preferences_router)
 app.include_router(search_runs_router)
+app.include_router(trusted_sources_router)
 app.include_router(openrouter_router)
 
 

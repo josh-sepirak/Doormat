@@ -95,10 +95,17 @@ async def fetch_craigslist_listings(
     city: str,
     max_results: int = 30,
     timeout: float = 20.0,
+    subdomain: Optional[str] = None,
 ) -> list[CraigslistListing]:
-    """Scrape apartment listings from Craigslist for a given city."""
-    subdomain = _city_to_subdomain(city)
-    base_url = f"https://{subdomain}.craigslist.org"
+    """Scrape apartment listings from Craigslist for a given city.
+
+    When ``subdomain`` is set (e.g. ``inlandempire``), that regional site is used
+    instead of inferring from ``city``.
+    """
+    sub = (subdomain or "").strip().lower().replace(".craigslist.org", "")
+    if not sub:
+        sub = _city_to_subdomain(city)
+    base_url = f"https://{sub}.craigslist.org"
     search_url = f"{base_url}/search/apa?availabilityMode=0&sale_date=all+dates"
 
     headers = {
