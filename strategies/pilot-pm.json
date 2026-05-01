@@ -1,0 +1,16 @@
+{
+  "field_selectors": {
+    "address": "h1.property-title",
+    "rent": "span.monthly-rent",
+    "bedrooms": "div.beds",
+    "bathrooms": "div.baths",
+    "sqft": "div.sqft",
+    "pets_policy": "div.pet-policy",
+    "amenities": "span.amenity-tag",
+    "photos": "img.gallery-image",
+    "description": "div.description"
+  },
+  "pre_extraction_actions": [],
+  "notes": "Pilot PM strategy demonstrating the contribution workflow. Clean HTML structure with semantic CSS classes. Amenities are in a flex container with amenity-tag class.",
+  "api_recipe": null
+}

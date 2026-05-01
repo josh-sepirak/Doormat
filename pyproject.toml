@@ -45,10 +45,14 @@ dependencies = [
     "sse-starlette>=3.3.4",
     "cryptography>=47.0.0",
     "fastmcp>=2.0.0",
+    "selectolax>=0.3.21",  # HTML parsing for contribution scripts
 ]
 
 [project.scripts]
 doormat-mcp = "doormat.mcp.server:run"
+
+[project.entry-points."doormat.sources"]
+pilot-pm = "doormat.sources.pm.pilot_pm:Adapter"
 
 [project.urls]
 Homepage = "https://github.com/josh-sepirak/Doormat"
