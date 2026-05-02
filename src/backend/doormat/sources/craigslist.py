@@ -95,10 +95,17 @@ async def fetch_craigslist_listings(
     city: str,
     max_results: int = 30,
     timeout: float = 20.0,
+    subdomain: Optional[str] = None,
 ) -> list[CraigslistListing]:
-    """Scrape apartment listings from Craigslist for a given city."""
-    subdomain = _city_to_subdomain(city)
-    base_url = f"https://{subdomain}.craigslist.org"
+    """Scrape apartment listings from Craigslist for a given city.
+
+    When ``subdomain`` is set (e.g. ``inlandempire``), that regional site is used
+    instead of inferring from ``city``.
+    """
+    sub = (subdomain or "").strip().lower().replace(".craigslist.org", "")
+    if not sub:
+        sub = _city_to_subdomain(city)
+    base_url = f"https://{sub}.craigslist.org"
     search_url = f"{base_url}/search/apa?availabilityMode=0&sale_date=all+dates"
 
     headers = {
@@ -120,13 +127,13 @@ async def fetch_craigslist_listings(
             resp.raise_for_status()
             html = resp.text
     except httpx.HTTPError as exc:
-        logger.warning("craigslist_fetch_failed", city=city, subdomain=subdomain, error=str(exc))
+        logger.warning("craigslist_fetch_failed", city=city, subdomain=sub, error=str(exc))
         return []
 
     listings = _parse_search_results(html, base_url, max_results)
     if not listings:
-        logger.warning("craigslist_parse_returned_no_listings", city=city, subdomain=subdomain)
-    logger.info("craigslist_fetched", city=city, count=len(listings))
+        logger.warning("craigslist_parse_returned_no_listings", city=city, subdomain=sub)
+    logger.info("craigslist_fetched", city=city, subdomain=sub, count=len(listings))
     return listings
 
 

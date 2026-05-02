@@ -107,6 +107,26 @@ class PropertyManager(Base):
     __table_args__ = (Index("idx_city_validated", "city", "validated"),)
 
 
+class TrustedSource(Base):
+    """User-curated listing sources (Craigslist region or property manager URL)."""
+
+    __tablename__ = "trusted_sources"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
+    linked_property_manager_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("property_managers.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+
+    __table_args__ = (UniqueConstraint("kind", "url", name="uq_trusted_source_kind_url"),)
+
+
 class ExtractionStrategy(Base):
     """LLM-generated extraction strategies (scrapers)."""
 

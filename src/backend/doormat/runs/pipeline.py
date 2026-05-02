@@ -9,13 +9,13 @@ from typing import Any, Optional
 
 import httpx
 import structlog
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.config import settings
 from doormat.db.base import AsyncSessionLocal
 from doormat.models.orm import Listing as ListingORM
-from doormat.models.orm import Preference, PropertyManager, SearchRun
+from doormat.models.orm import Preference, PropertyManager, SearchRun, TrustedSource
 from doormat.runs import events as run_events
 from doormat.runs import filters as run_filters
 from doormat.runs import state as run_state
@@ -452,6 +452,19 @@ async def _scrape_pm_direct(  # noqa: C901
 # ─── Craigslist ───────────────────────────────────────────────────────────────
 
 
+def _craigslist_subdomain_from_trusted_url(url: str) -> Optional[str]:
+    from urllib.parse import urlparse
+
+    try:
+        host = (urlparse(url.strip()).netloc or "").lower()
+    except ValueError:
+        return None
+    if not host.endswith(".craigslist.org"):
+        return None
+    sub = host.split(".")[0]
+    return sub or None
+
+
 async def _scrape_craigslist(
     session: AsyncSession,
     search_run: SearchRun,
@@ -459,14 +472,110 @@ async def _scrape_craigslist(
     preference: Optional[Preference],
     emitter: run_events.SearchRunEventEmitter,
 ) -> None:
-    from doormat.sources.craigslist import fetch_craigslist_listings
+    from doormat.sources.craigslist import _city_to_subdomain, fetch_craigslist_listings
 
     await emitter.emit(
         "stage_progress", f"Fetching Craigslist listings for {city}", stage="scraping"
     )
 
-    raw_listings = await fetch_craigslist_listings(city, max_results=40)
-    if not raw_listings:
+    city_key = city.strip().lower()
+    stmt = select(TrustedSource).where(
+        TrustedSource.kind == "craigslist_region",
+        or_(
+            TrustedSource.city.is_(None),
+            func.lower(TrustedSource.city) == city_key,
+            func.lower(TrustedSource.city).like(city_key + ",%"),
+            func.lower(TrustedSource.city).like(city_key + " %"),
+        ),
+    )
+    trusted_rows = list((await session.execute(stmt)).scalars().all())
+    regions: list[tuple[str, str]] = []
+    for tr in trusted_rows:
+        sub = _craigslist_subdomain_from_trusted_url(tr.url)
+        if sub:
+            regions.append((sub, tr.label))
+
+    used_auto = False
+    if not regions:
+        guessed = _city_to_subdomain(city)
+        guessed_url = f"https://{guessed}.craigslist.org"
+        used_auto = True
+        await emitter.emit(
+            "warning",
+            (
+                f"Auto-routed Craigslist to `{guessed_url}` — if this is the wrong region, "
+                "add a trusted Craigslist region under /sources."
+            ),
+            stage="scraping",
+            payload={"subdomain": guessed, "city": city},
+        )
+        regions = [(guessed, "auto")]
+
+    cl_pm = await _get_or_create_source_pm(session, city, "Craigslist", "craigslist")
+    saved = 0
+    seen_urls: set[str] = set()
+    total_candidates = 0
+
+    for sub, _src_label in regions:
+        raw_listings = await fetch_craigslist_listings(city, max_results=40, subdomain=sub)
+        total_candidates += len(raw_listings)
+        if raw_listings:
+            await emitter.emit(
+                "stage_progress",
+                f"Craigslist ({sub}): found {len(raw_listings)} candidates",
+                stage="scraping",
+                payload={"count": len(raw_listings), "subdomain": sub},
+            )
+
+        for raw in raw_listings:
+            if raw.url in seen_urls:
+                continue
+            if not raw.price or raw.price < 100:
+                continue
+
+            existing = await session.execute(
+                select(ListingORM).where(ListingORM.url == raw.url).limit(1)
+            )
+            if existing.scalar_one_or_none():
+                seen_urls.add(raw.url)
+                continue
+
+            listing_id = str(uuid.uuid4())
+            listing = ListingORM(
+                id=listing_id,
+                property_manager_id=cl_pm.id,
+                preference_id=preference.id if preference else None,
+                address=raw.address or raw.neighborhood or raw.title or city,
+                bedrooms=raw.bedrooms,
+                price=raw.price,
+                url=raw.url,
+                pets_policy="unknown",
+                source="craigslist",
+                extraction_timestamp=datetime.now(UTC),
+                validation_passed=True,
+            )
+            session.add(listing)
+            await session.commit()
+            saved += 1
+            seen_urls.add(raw.url)
+
+            search_run = await session.get(SearchRun, search_run.id) or search_run
+            search_run.extraction_attempts += 1
+            search_run.listings_seen += 1
+            session.add(search_run)
+            await session.commit()
+
+            if preference:
+                await run_filters.persist_listing_classification(
+                    session,
+                    run=search_run,
+                    listing=listing,
+                    preference=preference,
+                    emitter=emitter,
+                )
+                await session.commit()
+
+    if total_candidates == 0:
         await emitter.emit(
             "warning", "No Craigslist listings found (page may have changed)", stage="scraping"
         )
@@ -474,64 +583,10 @@ async def _scrape_craigslist(
 
     await emitter.emit(
         "stage_progress",
-        f"Craigslist: found {len(raw_listings)} candidates",
+        f"Craigslist: saved {saved} listing(s)"
+        + (" (auto-routed — confirm region in /sources)" if used_auto else ""),
         stage="scraping",
-        payload={"count": len(raw_listings)},
-    )
-
-    cl_pm = await _get_or_create_source_pm(session, city, "Craigslist", "craigslist")
-    saved = 0
-
-    for raw in raw_listings:
-        if not raw.price or raw.price < 100:
-            continue
-
-        # Deduplicate by URL
-        existing = await session.execute(
-            select(ListingORM).where(ListingORM.url == raw.url).limit(1)
-        )
-        if existing.scalar_one_or_none():
-            continue
-
-        listing_id = str(uuid.uuid4())
-        listing = ListingORM(
-            id=listing_id,
-            property_manager_id=cl_pm.id,
-            preference_id=preference.id if preference else None,
-            address=raw.address or raw.neighborhood or raw.title or city,
-            bedrooms=raw.bedrooms,
-            price=raw.price,
-            url=raw.url,
-            pets_policy="unknown",
-            source="craigslist",
-            extraction_timestamp=datetime.now(UTC),
-            validation_passed=True,
-        )
-        session.add(listing)
-        await session.commit()
-        saved += 1
-
-        search_run = await session.get(SearchRun, search_run.id) or search_run
-        search_run.extraction_attempts += 1
-        search_run.listings_seen += 1
-        session.add(search_run)
-        await session.commit()
-
-        if preference:
-            await run_filters.persist_listing_classification(
-                session,
-                run=search_run,
-                listing=listing,
-                preference=preference,
-                emitter=emitter,
-            )
-            await session.commit()
-
-    await emitter.emit(
-        "stage_progress",
-        f"Craigslist: saved {saved} listing(s)",
-        stage="scraping",
-        payload={"saved": saved},
+        payload={"saved": saved, "auto_routed": used_auto},
     )
 
 
