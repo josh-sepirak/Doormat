@@ -1,8 +1,9 @@
 """Network capture for CDP to intercept JSON API calls during Mode B extraction."""
 
+import base64
 import json
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import structlog
 
@@ -52,6 +53,8 @@ class CapturedNetworkCall:
     request: NetworkRequest
     response: NetworkResponse
     timestamp: float = 0.0
+    request_id: Optional[str] = None
+    """Chrome DevTools requestId when captured via CDP."""
 
     @property
     def response_json(self) -> Optional[dict[str, Any]]:
@@ -59,7 +62,7 @@ class CapturedNetworkCall:
         if not self.response.is_json or not self.response.body:
             return None
         try:
-            return json.loads(self.response.body)
+            return cast(dict[str, Any], json.loads(self.response.body))
         except (json.JSONDecodeError, ValueError):
             return None
 
@@ -81,14 +84,16 @@ class NetworkCapture:
     headers, and provides a list of candidates for recipe synthesis.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the network capture buffer."""
         self.calls: list[CapturedNetworkCall] = []
         self.enabled = False
+        self._cdp_index: dict[str, int] = {}
 
     def start(self) -> None:
         """Begin capturing network traffic."""
         self.calls = []
+        self._cdp_index = {}
         self.enabled = True
         logger.debug("network_capture_started")
 
@@ -100,6 +105,77 @@ class NetworkCapture:
             total_calls=len(self.calls),
             api_calls=sum(1 for c in self.calls if c.is_api_call),
         )
+
+    def record_cdp_request(
+        self,
+        request_id: str,
+        method: str,
+        url: str,
+        headers: Optional[dict[str, str]] = None,
+        post_data: Optional[str] = None,
+        timestamp: float = 0.0,
+    ) -> None:
+        """Record a request from CDP Network.requestWillBeSent (request-id correlation)."""
+        if not self.enabled:
+            return
+        scrubbed_headers = _scrub_headers(dict(headers or {}))
+        req = NetworkRequest(
+            method=method,
+            url=url,
+            headers=scrubbed_headers,
+            body=post_data,
+        )
+        call = CapturedNetworkCall(
+            request=req,
+            response=NetworkResponse(status_code=0),
+            timestamp=timestamp,
+            request_id=request_id,
+        )
+        idx = len(self.calls)
+        self.calls.append(call)
+        self._cdp_index[request_id] = idx
+
+    def record_cdp_response_meta(
+        self,
+        request_id: str,
+        status_code: int,
+        headers: Optional[dict[str, str]] = None,
+        mime_type: str = "",
+        timestamp: float = 0.0,
+    ) -> None:
+        """Fill status / headers / JSON hint from Network.responseReceived."""
+        if not self.enabled:
+            return
+        idx = self._cdp_index.get(request_id)
+        if idx is None:
+            return
+        call = self.calls[idx]
+        is_json = "application/json" in (mime_type or "").lower()
+        scrubbed = _scrub_headers(dict(headers or {}))
+        call.response = NetworkResponse(
+            status_code=status_code,
+            headers=scrubbed,
+            body=call.response.body,
+            is_json=is_json,
+        )
+        call.timestamp = timestamp
+
+    def set_cdp_response_body(self, request_id: str, body: str) -> None:
+        """Attach response body after Network.getResponseBody (loading finished)."""
+        if not self.enabled:
+            return
+        idx = self._cdp_index.get(request_id)
+        if idx is None:
+            return
+        call = self.calls[idx]
+        call.response.body = body
+
+    def get_cdp_call(self, request_id: str) -> Optional["CapturedNetworkCall"]:
+        """Return the in-flight capture row for a CDP request id, if any."""
+        idx = self._cdp_index.get(request_id)
+        if idx is None:
+            return None
+        return self.calls[idx]
 
     def record_request(
         self,
@@ -215,6 +291,14 @@ class NetworkCapture:
                 candidates.append(call)
 
         return candidates
+
+
+def decode_cdp_response_body(body: str, base64_encoded: bool) -> str:
+    """Decode Network.getResponseBody payload (plain or base64)."""
+    if base64_encoded:
+        raw = base64.b64decode(body)
+        return raw.decode("utf-8", errors="replace")
+    return body
 
 
 def _scrub_headers(headers: dict[str, str]) -> dict[str, str]:
