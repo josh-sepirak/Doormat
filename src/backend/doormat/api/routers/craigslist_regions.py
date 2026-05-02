@@ -1,128 +1,139 @@
-"""API endpoints for Craigslist region geocoding and suggestions."""
+"""Suggest nearest Craigslist regional sites from geocoded city + state."""
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from __future__ import annotations
 
-from doormat.sources.craigslist_regions import (
-    region_by_subdomain,
-    nearest_regions,
+import re
+from typing import Annotated, Optional
+from urllib.parse import urlparse
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from doormat.db.base import get_db
+from doormat.geocoding.nominatim import geocode_place
+from doormat.security.auth import require_bearer_auth
+from doormat.sources.craigslist_regions import nearest_regions, region_by_subdomain
+
+router = APIRouter(
+    prefix="/api/craigslist/regions",
+    tags=["craigslist"],
+    dependencies=[Depends(require_bearer_auth)],
 )
+DbSession = Annotated[AsyncSession, Depends(get_db)]
 
-router = APIRouter(prefix="/api/craigslist", tags=["craigslist"])
+
+class GeocodedOut(BaseModel):
+    lat: float
+    lon: float
+    display_name: str
 
 
-class CraigslistRegionResponse(BaseModel):
-    """Craigslist region suggestion."""
+class SuggestionOut(BaseModel):
     subdomain: str
     label: str
     url: str
     distance_mi: float
 
 
-class RegionSuggestionsResponse(BaseModel):
-    """Response for region suggestions."""
-    geocoded_lat: float
-    geocoded_lon: float
-    suggestions: list[CraigslistRegionResponse]
+class RegionsResponse(BaseModel):
+    geocoded: GeocodedOut
+    suggestions: list[SuggestionOut]
 
 
-class ParseRegionResponse(BaseModel):
-    """Parsed Craigslist region URL."""
+class ParseUrlBody(BaseModel):
+    url: str = Field(min_length=4, max_length=512)
+
+
+class ParseUrlResponse(BaseModel):
     subdomain: str
     label: str
     url: str
-    country: str
+    valid: bool
+    error: Optional[str] = None
 
 
-@router.get("/regions", response_model=RegionSuggestionsResponse)
-async def suggest_regions_endpoint(
-    city: str,
-    state: str,
-    limit: int = 5,
-) -> RegionSuggestionsResponse:
-    """Suggest Craigslist regions based on city + state.
-    
-    Uses Nominatim geocoding to find representative lat/lon, then suggests
-    closest Craigslist regions by distance.
-    
-    Query params:
-    - city (str): City name (e.g., "Lancaster")
-    - state (str): Two-letter state code (e.g., "CA")
-    - limit (int): Max suggestions to return (default 5)
-    
-    Returns:
-    - geocoded_lat/lon: Representative coordinates for the city
-    - suggestions: List of regions sorted by distance
-    """
-    from doormat.geocoding.nominatim import forward_geocode
-    
-    # Geocode the city
+def _parse_cl_subdomain(raw: str) -> tuple[str, str, str] | None:
+    """Return (subdomain, canonical_url, label) or None if invalid."""
+    s = raw.strip()
+    if not s:
+        return None
+    if "://" not in s:
+        s = "https://" + s
     try:
-        result = await forward_geocode(city, state)
-        if not result:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Could not geocode {city}, {state}"
-            )
-        lat, lon = result
-    except Exception as e:
+        p = urlparse(s)
+    except ValueError:
+        return None
+    if p.scheme not in ("http", "https"):
+        return None
+    host = (p.netloc or "").lower()
+    if not host.endswith(".craigslist.org"):
+        return None
+    parts = host.split(".")
+    if len(parts) < 3 or parts[0] == "":
+        return None
+    sub = parts[0]
+    if not re.match(r"^[a-z0-9-]+$", sub):
+        return None
+    canon = f"https://{sub}.craigslist.org"
+    reg = region_by_subdomain(sub)
+    label = reg.label if reg else sub
+    return sub, canon, label
+
+
+@router.get("", response_model=RegionsResponse)
+async def suggest_regions(
+    session: DbSession,
+    city: str = Query(..., min_length=1, max_length=100),
+    state: str = Query(..., min_length=2, max_length=32),
+) -> RegionsResponse:
+    st = state.strip().upper()
+    if len(st) == 2:
+        q = f"{city.strip()}, {st}, USA"
+    else:
+        q = f"{city.strip()}, {state.strip()}"
+    geo = await geocode_place(session, q)
+    if geo is None:
         raise HTTPException(
-            status_code=400,
-            detail=f"Geocoding failed: {str(e)}"
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Could not geocode that place. Try a more specific city and state.",
         )
-    
-    # Suggest regions by distance
-    scored_regions = nearest_regions(lat, lon, limit)
-    
-    return RegionSuggestionsResponse(
-        geocoded_lat=lat,
-        geocoded_lon=lon,
-        suggestions=[
-            CraigslistRegionResponse(
-                subdomain=r.subdomain,
-                label=r.label,
-                url=r.url,
-                distance_mi=d,
-            )
-            for r, d in scored_regions
-        ]
+    lat, lon = float(geo["lat"]), float(geo["lon"])
+    ranked = nearest_regions(lat, lon, k=3)
+    if not ranked:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Craigslist region catalog failed to load",
+        )
+    suggestions = [
+        SuggestionOut(
+            subdomain=r.subdomain,
+            label=r.label,
+            url=r.url,
+            distance_mi=round(d, 1),
+        )
+        for r, d in ranked
+    ]
+    return RegionsResponse(
+        geocoded=GeocodedOut(
+            lat=lat,
+            lon=lon,
+            display_name=str(geo.get("display_name") or q),
+        ),
+        suggestions=suggestions,
     )
 
 
-@router.post("/regions/parse", response_model=ParseRegionResponse)
-async def parse_region_url(url: str) -> ParseRegionResponse:
-    """Parse a Craigslist URL and return region metadata.
-    
-    Query params:
-    - url (str): Full Craigslist URL (e.g., "https://inlandempire.craigslist.org")
-    
-    Returns:
-    - subdomain, label, url, country of matched region
-    """
-    # Extract subdomain from URL
-    try:
-        if "craigslist.org" not in url:
-            raise ValueError("Not a Craigslist URL")
-        
-        # Extract subdomain
-        parts = url.split("//")
-        if len(parts) < 2:
-            raise ValueError("Invalid URL format")
-        
-        domain_part = parts[1].split(".")[0]
-        region = region_by_subdomain(domain_part)
-        
-        if not region:
-            raise ValueError(f"Unknown Craigslist subdomain: {domain_part}")
-        
-        return ParseRegionResponse(
-            subdomain=region.subdomain,
-            label=region.label,
-            url=region.url,
-            country=region.country,
+@router.post("/parse", response_model=ParseUrlResponse)
+async def parse_region_url(body: ParseUrlBody) -> ParseUrlResponse:
+    parsed = _parse_cl_subdomain(body.url)
+    if parsed is None:
+        return ParseUrlResponse(
+            subdomain="",
+            label="",
+            url="",
+            valid=False,
+            error="Enter a craigslist.org URL or subdomain (e.g. inlandempire or https://inlandempire.craigslist.org).",
         )
-    except (IndexError, AttributeError, ValueError) as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid or unknown Craigslist URL: {str(e)}"
-        )
+    sub, canon, label = parsed
+    return ParseUrlResponse(subdomain=sub, label=label, url=canon, valid=True, error=None)

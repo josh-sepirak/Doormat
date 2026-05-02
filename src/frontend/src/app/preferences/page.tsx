@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
+import Link from 'next/link'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Container } from '@/components/Container'
@@ -430,6 +431,7 @@ export default function PreferencesPage() {
   const [loadingModels, setLoadingModels] = useState(false)
   const [fetchedModels, setFetchedModels] = useState(false)
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
+  const [missingTrustedClRegion, setMissingTrustedClRegion] = useState(false)
 
   const activePreference = preferences[0]
   const canFetchModels =
@@ -463,6 +465,24 @@ export default function PreferencesPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    const prefCity = (city.trim() || activePreference?.city || '').trim()
+    if (!prefCity || !sourcesEnabled.includes('craigslist')) {
+      queueMicrotask(() => setMissingTrustedClRegion(false))
+      return
+    }
+    const q = encodeURIComponent(prefCity)
+    fetch(`${API}/api/trusted-sources?kind=craigslist_region&city=${q}`)
+      .then((r) => r.json())
+      .then((rows: unknown) => {
+        const ok = Array.isArray(rows) && rows.length > 0
+        queueMicrotask(() => setMissingTrustedClRegion(!ok))
+      })
+      .catch(() => {
+        queueMicrotask(() => setMissingTrustedClRegion(false))
+      })
+  }, [city, activePreference?.city, activePreference?.id, sourcesEnabled])
 
   const resetLoadedModels = () => {
     setAvailableModels([])
@@ -883,6 +903,38 @@ export default function PreferencesPage() {
                     )
                   })}
                 </div>
+                {missingTrustedClRegion && sourcesEnabled.includes('craigslist') ? (
+                  <div
+                    className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+                    role="status"
+                  >
+                    Craigslist will auto-pick a regional site from your city name — which can be wrong for
+                    ambiguous names (e.g. Lancaster).{' '}
+                    <Link
+                      href={(() => {
+                        const raw = (city.trim() || activePreference?.city || '').trim()
+                        const parts = raw
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                        let c = raw
+                        let s = 'CA'
+                        if (parts.length >= 2) {
+                          const last = parts[parts.length - 1]!
+                          if (last.length === 2) {
+                            c = parts.slice(0, -1).join(', ')
+                            s = last.toUpperCase()
+                          }
+                        }
+                        return `/sources?addRegion=1&city=${encodeURIComponent(c)}&state=${encodeURIComponent(s)}`
+                      })()}
+                      className="font-medium text-amber-900 underline dark:text-amber-200"
+                    >
+                      Confirm your Craigslist region
+                    </Link>{' '}
+                    under Trusted sources.
+                  </div>
+                ) : null}
               </fieldset>
 
               <div className="flex items-center justify-end gap-x-4">

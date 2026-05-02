@@ -23,6 +23,8 @@ export function SourcesPageClient() {
   const [error, setError] = useState<string | null>(null)
   const [clOpen, setClOpen] = useState(false)
   const [pmOpen, setPmOpen] = useState(false)
+  const [clMountKey, setClMountKey] = useState(0)
+  const [pmMountKey, setPmMountKey] = useState(0)
   const [prefillCity, setPrefillCity] = useState('')
   const [prefillState, setPrefillState] = useState('CA')
   const [testStatus, setTestStatus] = useState<Record<string, string>>({})
@@ -51,6 +53,7 @@ export function SourcesPageClient() {
     if (open === '1') {
       setPrefillCity(city)
       setPrefillState(st)
+      setClMountKey((k) => k + 1)
       setClOpen(true)
     }
   }, [searchParams])
@@ -98,7 +101,14 @@ export function SourcesPageClient() {
             <section className="mt-10">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Craigslist regions</h2>
-                <Button type="button" color="blue" onClick={() => setClOpen(true)}>
+                <Button
+                  type="button"
+                  color="blue"
+                  onClick={() => {
+                    setClMountKey((k) => k + 1)
+                    setClOpen(true)
+                  }}
+                >
                   Add region
                 </Button>
               </div>
@@ -143,7 +153,14 @@ export function SourcesPageClient() {
             <section className="mt-12">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Property managers</h2>
-                <Button type="button" color="blue" onClick={() => setPmOpen(true)}>
+                <Button
+                  type="button"
+                  color="blue"
+                  onClick={() => {
+                    setPmMountKey((k) => k + 1)
+                    setPmOpen(true)
+                  }}
+                >
                   Add listings URL
                 </Button>
               </div>
@@ -190,13 +207,19 @@ export function SourcesPageClient() {
       <Footer />
 
       <AddCraigslistRegionModal
+        key={`cl-${clMountKey}`}
         open={clOpen}
         onClose={() => setClOpen(false)}
         onSaved={() => void load()}
         initialCity={prefillCity}
         initialState={prefillState}
       />
-      <AddPropertyManagerModal open={pmOpen} onClose={() => setPmOpen(false)} onSaved={() => void load()} />
+      <AddPropertyManagerModal
+        key={`pm-${pmMountKey}`}
+        open={pmOpen}
+        onClose={() => setPmOpen(false)}
+        onSaved={() => void load()}
+      />
     </>
   )
 }

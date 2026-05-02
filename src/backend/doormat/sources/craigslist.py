@@ -127,13 +127,13 @@ async def fetch_craigslist_listings(
             resp.raise_for_status()
             html = resp.text
     except httpx.HTTPError as exc:
-        logger.warning("craigslist_fetch_failed", city=city, subdomain=subdomain, error=str(exc))
+        logger.warning("craigslist_fetch_failed", city=city, subdomain=sub, error=str(exc))
         return []
 
     listings = _parse_search_results(html, base_url, max_results)
     if not listings:
-        logger.warning("craigslist_parse_returned_no_listings", city=city, subdomain=subdomain)
-    logger.info("craigslist_fetched", city=city, count=len(listings))
+        logger.warning("craigslist_parse_returned_no_listings", city=city, subdomain=sub)
+    logger.info("craigslist_fetched", city=city, subdomain=sub, count=len(listings))
     return listings
 
 

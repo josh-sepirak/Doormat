@@ -1,227 +1,219 @@
-"""API endpoints for trusted rental sources (Craigslist regions & property managers)."""
+"""CRUD for user-curated trusted listing sources."""
 
-from datetime import datetime
-from typing import Optional
-from uuid import uuid4
+from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy import select
+import uuid
+from datetime import UTC, datetime
+from typing import Annotated, Literal, Optional
+from urllib.parse import urlparse
+
+import httpx
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
 
 from doormat.db.base import get_db
-from doormat.models.orm import TrustedSource, PropertyManager, Listing
-from doormat.sources.craigslist_regions import region_by_subdomain
+from doormat.models.orm import Listing, PropertyManager, TrustedSource
+from doormat.security.auth import require_bearer_auth
 
-router = APIRouter(prefix="/api/trusted-sources", tags=["trusted-sources"])
+logger = structlog.get_logger(__name__)
 
+router = APIRouter(
+    prefix="/api/trusted-sources",
+    tags=["trusted-sources"],
+    dependencies=[Depends(require_bearer_auth)],
+)
+DbSession = Annotated[AsyncSession, Depends(get_db)]
 
-# Helper functions
-
-def _extract_subdomain(url: str) -> str:
-    """Extract Craigslist subdomain from URL."""
-    try:
-        if "craigslist.org" not in url:
-            raise ValueError("Not a Craigslist URL")
-        parts = url.split("//")
-        if len(parts) < 2:
-            raise ValueError("Invalid URL format")
-        return parts[1].split(".")[0]
-    except (IndexError, AttributeError):
-        return ""
+TrustedKind = Literal["craigslist_region", "property_manager"]
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
 
 
-# Response models
-class TrustedSourceResponse(BaseModel):
-    """Trusted source metadata."""
+class TrustedSourceOut(BaseModel):
+    model_config = {"from_attributes": True}
+
     id: str
-    kind: str  # "craigslist_region" or "property_manager"
-    label: str
-    url: str
-    city: Optional[str]
-    linked_property_manager_id: Optional[str]
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
-class CreateTrustedSourceRequest(BaseModel):
-    """Create trusted source."""
-    kind: str  # "craigslist_region" or "property_manager"
+    kind: str
     label: str
     url: str
     city: Optional[str] = None
+    linked_property_manager_id: Optional[str] = None
+    created_at: datetime
 
 
-class TrustedSourceListResponse(BaseModel):
-    """List of trusted sources."""
-    total: int
-    sources: list[TrustedSourceResponse]
+class TrustedSourceCreate(BaseModel):
+    kind: TrustedKind
+    label: str = Field(min_length=1, max_length=255)
+    url: str = Field(min_length=8, max_length=2048)
+    city: Optional[str] = Field(None, max_length=100)
 
 
-# Endpoints
+class TrustedSourceTestResult(BaseModel):
+    ok: bool
+    status_code: Optional[int] = None
+    detail: Optional[str] = None
 
-@router.get("", response_model=TrustedSourceListResponse)
+
+def _canonical_craigslist_url(url: str) -> str:
+    s = url.strip()
+    if "://" not in s:
+        s = "https://" + s
+    p = urlparse(s)
+    if p.scheme not in ("http", "https"):
+        raise ValueError("URL must be http(s)")
+    host = (p.netloc or "").lower()
+    if not host.endswith(".craigslist.org"):
+        raise ValueError("Craigslist region URL must be a *.craigslist.org host")
+    sub = host.split(".")[0]
+    if not sub:
+        raise ValueError("Invalid Craigslist host")
+    return f"https://{sub}.craigslist.org"
+
+
+def _normalize_pm_url(url: str) -> str:
+    s = url.strip()
+    if not s.startswith(("http://", "https://")):
+        s = "https://" + s
+    p = urlparse(s)
+    if p.scheme not in ("http", "https"):
+        raise ValueError("URL must be http(s)")
+    host = (p.netloc or "").lower()
+    if not host or host in ("localhost", "127.0.0.1", "::1"):
+        raise ValueError("Invalid host")
+    return s
+
+
+async def _probe_url(url: str, timeout: float = 12.0) -> tuple[bool, Optional[int], Optional[str]]:
+    headers = {"User-Agent": USER_AGENT, "Accept": "*/*"}
+    try:
+        async with httpx.AsyncClient(
+            headers=headers, follow_redirects=True, timeout=timeout
+        ) as client:
+            resp = await client.head(url)
+            if resp.status_code >= 400:
+                resp = await client.get(url)
+            code = resp.status_code
+            if 200 <= code < 400:
+                return True, code, None
+            return False, code, f"HTTP {code}"
+    except httpx.HTTPError as exc:
+        return False, None, str(exc)
+
+
+@router.get("", response_model=list[TrustedSourceOut])
 async def list_trusted_sources(
-    kind: Optional[str] = None,
-    city: Optional[str] = None,
-    db: AsyncSession = Depends(get_db),
-) -> TrustedSourceListResponse:
-    """List trusted sources with optional filters.
-    
-    Query params:
-    - kind (str, optional): Filter by "craigslist_region" or "property_manager"
-    - city (str, optional): Filter by city
-    
-    Returns:
-    - List of trusted sources with metadata
-    """
-    query = select(TrustedSource)
-    
+    session: DbSession,
+    kind: Optional[str] = Query(None, max_length=32),
+    city: Optional[str] = Query(None, max_length=100),
+) -> list[TrustedSource]:
+    stmt = select(TrustedSource).order_by(TrustedSource.created_at.desc())
     if kind:
-        query = query.where(TrustedSource.kind == kind)
+        stmt = stmt.where(TrustedSource.kind == kind)
     if city:
-        query = query.where(TrustedSource.city == city)
-    
-    result = await db.execute(query)
-    sources = result.scalars().all()
-    
-    return TrustedSourceListResponse(
-        total=len(sources),
-        sources=[TrustedSourceResponse.model_validate(s) for s in sources]
-    )
-
-
-@router.post("", response_model=TrustedSourceResponse, status_code=201)
-async def create_trusted_source(
-    req: CreateTrustedSourceRequest,
-    db: AsyncSession = Depends(get_db),
-) -> TrustedSourceResponse:
-    """Create a new trusted source.
-    
-    Body:
-    - kind: "craigslist_region" or "property_manager"
-    - label: Display name (e.g., "Inland Empire")
-    - url: Full URL
-    - city (optional): City name for filtering
-    
-    Returns:
-    - Created source with ID
-    """
-    # Validate based on kind
-    if req.kind == "craigslist_region":
-        region = region_by_subdomain(_extract_subdomain(req.url))
-        if not region:
-            raise HTTPException(status_code=400, detail="Invalid Craigslist URL")
-        # Auto-extract city from region if not provided
-        if not req.city:
-            req.city = region.label.split(",")[0] if "," in region.label else None
-    
-    elif req.kind == "property_manager":
-        # For PMs, we need to ensure URL is valid
-        if not req.url.startswith(("http://", "https://")):
-            raise HTTPException(status_code=400, detail="Invalid URL")
-        if not req.city:
-            raise HTTPException(status_code=400, detail="City required for property_manager")
-    
-    else:
-        raise HTTPException(status_code=400, detail="Invalid kind (must be 'craigslist_region' or 'property_manager')")
-    
-    # Check for duplicates
-    existing = await db.execute(
-        select(TrustedSource).where(
-            (TrustedSource.kind == req.kind) &
-            (TrustedSource.url == req.url)
+        ck = city.strip().lower()
+        stmt = stmt.where(
+            or_(
+                TrustedSource.city.is_(None),
+                func.lower(TrustedSource.city) == ck,
+                func.lower(TrustedSource.city).like(ck + ",%"),
+                func.lower(TrustedSource.city).like(ck + " %"),
+            )
         )
-    )
-    if existing.scalars().first():
-        raise HTTPException(status_code=409, detail="Source already exists")
-    
-    source = TrustedSource(
-        id=str(uuid4()),
-        kind=req.kind,
-        label=req.label,
-        url=req.url,
-        city=req.city,
-    )
-    
-    db.add(source)
-    await db.commit()
-    await db.refresh(source)
-    
-    return TrustedSourceResponse.model_validate(source)
+    rows = list((await session.execute(stmt)).scalars().all())
+    return rows
 
 
-@router.get("/{source_id}", response_model=TrustedSourceResponse)
-async def get_trusted_source(
-    source_id: str,
-    db: AsyncSession = Depends(get_db),
-) -> TrustedSourceResponse:
-    """Get a specific trusted source."""
-    source = await db.get(TrustedSource, source_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
-    
-    return TrustedSourceResponse.model_validate(source)
-
-
-@router.delete("/{source_id}", status_code=204)
-async def delete_trusted_source(
-    source_id: str,
-    db: AsyncSession = Depends(get_db),
-) -> None:
-    """Delete a trusted source."""
-    source = await db.get(TrustedSource, source_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
-    
-    await db.delete(source)
-    await db.commit()
-
-
-@router.post("/{source_id}/test", response_model=dict)
-async def test_trusted_source(
-    source_id: str,
-    db: AsyncSession = Depends(get_db),
-) -> dict:
-    """Test/validate a trusted source.
-    
-    For Craigslist regions:
-    - Verify subdomain resolves
-    
-    For property managers:
-    - Check if we can discover it and generate a strategy
-    
-    Returns:
-    - { "valid": bool, "message": str, "listings_found": int (optional) }
-    """
-    source = await db.get(TrustedSource, source_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
-    
-    if source.kind == "craigslist_region":
-        region = parse_craigslist_url(source.url)
-        if not region:
-            return {"valid": False, "message": "Invalid Craigslist URL"}
-        
-        return {
-            "valid": True,
-            "message": f"Valid Craigslist region: {region.label}"
-        }
-    
-    elif source.kind == "property_manager":
-        # Check if there are any listings from this PM
-        result = await db.execute(
-            select(Listing).where(Listing.property_manager_id == source.linked_property_manager_id).limit(1)
-        )
-        listings = result.scalars().all()
-        
-        return {
-            "valid": True,
-            "message": f"Property manager configured",
-            "listings_found": len(listings)
-        }
-    
+@router.post("", response_model=TrustedSourceOut, status_code=status.HTTP_201_CREATED)
+async def create_trusted_source(session: DbSession, body: TrustedSourceCreate) -> TrustedSource:
+    if body.kind == "craigslist_region":
+        try:
+            canon = _canonical_craigslist_url(body.url)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        url = canon
     else:
-        return {"valid": False, "message": "Unknown source kind"}
+        try:
+            url = _normalize_pm_url(body.url)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    ok, code, err = await _probe_url(url)
+    if not ok:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Could not reach URL ({err or 'unknown error'}, status={code})",
+        )
+
+    pm_id: Optional[str] = None
+    if body.kind == "property_manager":
+        parsed = urlparse(url)
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+        pm_city = (body.city or "").strip() or "Unknown"
+        pm_id = str(uuid.uuid4())
+        pm = PropertyManager(
+            id=pm_id,
+            city=pm_city[:100],
+            name=body.label[:255],
+            website=origin[:255],
+            listing_page_url=url[:4096],
+            validated=True,
+            discovery_timestamp=datetime.now(UTC),
+        )
+        session.add(pm)
+
+    ts = TrustedSource(
+        id=str(uuid.uuid4()),
+        kind=body.kind,
+        label=body.label.strip()[:255],
+        url=url,
+        city=(body.city.strip()[:100] if body.city else None),
+        linked_property_manager_id=pm_id,
+        created_at=datetime.now(UTC),
+    )
+    session.add(ts)
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        logger.warning("trusted_source_create_conflict", error=str(exc))
+        raise HTTPException(
+            status_code=409, detail="That URL is already saved for this kind"
+        ) from exc
+
+    await session.refresh(ts)
+    return ts
+
+
+@router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_trusted_source(session: DbSession, source_id: str) -> None:
+    row = await session.get(TrustedSource, source_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    pm_id = row.linked_property_manager_id
+    await session.delete(row)
+    await session.commit()
+
+    if pm_id:
+        n_listings = await session.scalar(
+            select(func.count()).select_from(Listing).where(Listing.property_manager_id == pm_id)
+        )
+        if int(n_listings or 0) == 0:
+            pm = await session.get(PropertyManager, pm_id)
+            if pm:
+                await session.delete(pm)
+                await session.commit()
+
+
+@router.post("/{source_id}/test", response_model=TrustedSourceTestResult)
+async def test_trusted_source(session: DbSession, source_id: str) -> TrustedSourceTestResult:
+    row = await session.get(TrustedSource, source_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    ok, code, err = await _probe_url(row.url)
+    return TrustedSourceTestResult(ok=ok, status_code=code, detail=err)
