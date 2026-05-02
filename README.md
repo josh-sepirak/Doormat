@@ -31,6 +31,12 @@ Result: you check Doormat once a day and see personalized matches. No more tabs.
 
 ---
 
+## Contributing sources
+
+To add a new property-manager listing source (preflight, harness, strategy JSON), see **[docs/contributing/adding-a-source.md](docs/contributing/adding-a-source.md)** and run `make add-source URL=…` after reading that page.
+
+---
+
 ## Quick Start
 
 ### Prerequisites

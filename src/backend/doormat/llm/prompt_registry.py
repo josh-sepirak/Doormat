@@ -149,6 +149,9 @@ from this source. Common Mode A failures and their Mode B fixes:
 | Bedrooms missing because they're in a JS-loaded panel | Click the "Details" tab if present; update strategy |
 | Photos missing because they're lazy-loaded | Scroll the gallery; update strategy with photo container selector |
 | Pet policy missing because it's behind "Show all amenities" | Click expansion control; update strategy |
+| Data loads from XHR/fetch JSON, not static HTML | Observe the real API URL and response shape; if you can describe a repeatable request + JSON mapping, include an `api_recipe` in `strategy_update` only after verifying it against this listing |
+
+**API-first recovery:** Many sites hydrate the listing from a JSON API. If browser tools or network panels show fetch/XHR responses that contain rent, address, and photos, prefer documenting that API (method, URL template, `field_map`) over fragile DOM selectors. Only emit `api_recipe` with confidence you verified on this page.
 
 When you emit a `strategy_update`, only include selectors and steps
 you have *verified work* on the page in front of you. A strategy
@@ -297,7 +300,7 @@ PROMPT_VERSIONS: dict[PromptKey, str] = {
     PromptKey.DISCOVERY_CLASSIFIER_SYSTEM: "v1",
     PromptKey.EXTRACTION_MODE_A_SYSTEM: "v1",
     PromptKey.EXTRACTION_MODE_A_USER: "v1",
-    PromptKey.EXTRACTION_MODE_B_SYSTEM: "v1",
+    PromptKey.EXTRACTION_MODE_B_SYSTEM: "v2",
     PromptKey.EXTRACTION_MODE_B_USER: "v1",
 }
 
