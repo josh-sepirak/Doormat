@@ -1,8 +1,9 @@
 # Doormat Specification
 
-**Version**: 1.0  
+**Version**: 2.0  
 **Created**: 2026-04-25  
-**Status**: Approved for Planning
+**Last reconciled**: 2026-05-02  
+**Status**: Approved — success criteria below track **delivery on `main`**
 
 ---
 
@@ -42,7 +43,7 @@
 - Cost-optimized: Tier 1 runs on 95% of listings; Tier 2 validates edge cases
 
 ### F5. Listing Scoring & Personalization
-- Embeddings pre-filter: soft preferences (neighborhood, commute, walkability) narrow candidates
+- **Embeddings pre-filter** (sqlite-vec + preference embedding gate): *planned — not enabled in production build today* (see `specs/006-portfolio-pitch-completion/spec.md`).
 - Scoring agent ranks listings against user preferences with explanation
 - Scores visible: cost vs. budget, features vs. wants, location fit
 - Explanations: why this match, why not that one
@@ -50,8 +51,8 @@
 ### F6. Real-time Dashboard
 - Next.js frontend renders: map view, listing cards, saved filters, preference editor
 - Real-time updates via SSE (Server-Sent Events) as new listings arrive
-- URL state (nuqs): filters are shareable via link (e.g., "show me walkable 2-beds under $2k")
-- MapLibre GL + react-map-gl: vendor-lock-free mapping, MapTiler free tier
+- URL state: shareable filters via query strings (nuqs / TanStack Query are **optional** upgrades; native `URLSearchParams` patterns exist today)
+- Maps: **Leaflet** + react-leaflet (vendor-light; differs from original MapLibre sketch)
 
 ### F7. Cost Tracking Dashboard
 - Live visibility into spending per component (discovery, extraction, scoring, API calls)
@@ -106,7 +107,7 @@
 ### NR5. Simplicity & Maintainability
 - Avoid frameworks: bare LLM loops where appropriate
 - No LangChain/PydanticAI overhead; httpx + tenacity for retries
-- Frontend: minimal dependencies (Next.js + shadcn/ui only)
+- Frontend: minimal dependencies (Next.js + Tailwind + Headless UI in current tree)
 - Code is debuggable: structured logs link errors to costs
 
 ---
@@ -148,20 +149,26 @@
 
 ## Success Criteria
 
-### MVP (Phase 1-3 Complete)
-- [ ] Discovery agent finds property managers in a city (validation + caching)
-- [ ] Scraper generation works for at least 3 different property manager site types
-- [ ] Extraction pipelines validate (Tier 1 + Tier 2)
-- [ ] Cost tracking visible in logs
+### MVP (Phases 1–3)
 
-### Production (Phase 4-6 Complete)
-- [ ] Dashboard renders, filters work, map displays
-- [ ] Real-time SSE updates working
-- [ ] Cost dashboard accurate + under $1/month for test city
-- [ ] MCP server integrated + tested with external agents
-- [ ] Security audit passed
-- [ ] Documentation complete (README, API docs, architecture)
-- [ ] Skills bundle available for other projects
+| Criterion | Status |
+|-----------|--------|
+| Discovery finds property managers in a city with validation + caching | [x] |
+| Scraper / strategy generation works across heterogeneous PM sites (ongoing quality work) | [x] core; [ ] formal “3+ archetypes” sign-off |
+| Extraction pipelines: fast path + validation / recovery (Modes A, A0 when enabled, B) | [x] |
+| Cost tracking visible in logs and APIs | [x] |
+
+### Production (Phases 4–6)
+
+| Criterion | Status |
+|-----------|--------|
+| Dashboard renders; filters and map usable | [x] |
+| Real-time SSE listing stream | [x] |
+| Cost dashboard accurate; **<$1/mo** typical use | [x] visibility; [ ] SLO proof for every workload |
+| MCP server present; **tested with external Claude agent** | [x] code; [ ] formal external smoke |
+| Security audit (third-party or equivalent checklist) | [ ] |
+| Documentation: README, `CLAUDE.md`, `specs/`, contributor paths | [x] |
+| Skills / contributor bundles for agent workflows | [x] |
 
 ---
 
@@ -202,5 +209,6 @@
 
 **Specification Owner**: Doormat Project Lead  
 **Approved**: 2026-04-25  
-**Next Phase**: `/speckit.plan` (Technical Implementation Plan)
+**Reconciled**: 2026-05-02  
+**Next phase**: Feature delivery tracked in `specs/*/tasks.md`; this document sets product intent and high-level acceptance.
 

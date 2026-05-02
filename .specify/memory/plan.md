@@ -1,10 +1,9 @@
 # Doormat Technical Implementation Plan
 
-**Version**: 1.0  
+**Version**: 2.0  
 **Created**: 2026-04-25  
-**Status**: Ready for Task Breakdown
-
-> **Note (2026-05):** The phase checklists below are an early roadmap. Delivery is tracked in `specs/*/tasks.md` on `main`; do not treat unchecked rows here as the source of truth for current work.
+**Last reconciled**: 2026-05-02  
+**Status**: Living plan — checklists below reflect **what is on `main` today** vs **explicit backlog**. Authoritative feature tracking lives in `specs/*/tasks.md`.
 
 ---
 
@@ -12,45 +11,39 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                           Frontend (Next.js 15)                              │
-│  • Next.js 15 App Router + Tailwind UI + shadcn/ui                          │
-│  • TanStack Query v5 (server state) + nuqs (URL state)                       │
-│  • react-map-gl + MapLibre GL (map view)                                     │
-│  • Real-time SSE updates + WebSocket heartbeat                               │
-│  • Typed client: @hey-api/openapi-ts (auto-generated from FastAPI schema)    │
+│                     Frontend (Next.js App Router)                            │
+│  • Next.js 16 App Router + Tailwind + Headless UI                           │
+│  • Leaflet + react-leaflet (listing maps)                                    │
+│  • SSE consumption for listing streams where implemented                     │
+│  • Typed API helpers (`@hey-api/openapi-ts` in dev; hand-written clients)    │
 │  • Runs: localhost:3000                                                      │
 └──────────────────────────────────────────────────────────────────────────────┘
                                       ↕
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                         FastAPI Backend (Python)                             │
-│  • FastAPI 0.x + Pydantic v2 (validation at all boundaries)                 │
-│  • SQLAlchemy 2.0 (typed ORM) + Alembic (migrations)                         │
-│  • SQLite + WAL (local) | Postgres (swap-in)                                │
-│  • structlog (JSON logging) + Prometheus metrics (/metrics)                  │
-│  • Cost tracking + dashboard aggregation                                     │
+│  • FastAPI + Pydantic v2                                                     │
+│  • SQLAlchemy 2.0 (Mapped columns) + Alembic                                  │
+│  • SQLite + WAL (local) | Postgres via `DATABASE_URL`                       │
+│  • structlog + `/metrics` Prometheus                                          │
+│  • Cost tracking + `/api/costs/*`                                            │
 │  • Runs: localhost:8000                                                      │
 │                                                                              │
-│  Agent Orchestration Layer:                                                  │
-│  ├─ Browser-Use (discovery + scraper generation)                             │
-│  ├─ LLM loops (extraction generation, scoring, feedback)                    │
-│  ├─ instructor (structured output + retries)                                │
-│  ├─ OpenRouter client (200+ model access)                                   │
-│  └─ Apify fallback (anti-bot for protected sites)                           │
+│  Agent & extraction:                                                         │
+│  ├─ Browser-Use (discovery; Mode B recovery)                                │
+│  ├─ Mode A / A0 / B extraction + strategy cache                            │
+│  ├─ OpenRouter via openai SDK; optional Apify                               │
+│  └─ Search runs pipeline + trusted sources (Craigslist regions, PM URLs)     │
 │                                                                              │
-│  FastMCP Server:                                                             │
-│  └─ Exposes Doormat capabilities to external Claude agents                  │
+│  FastMCP:                                                                    │
+│  └─ `doormat/mcp_server.py` (stdio tools — wire/deploy per self-host)       │
 └──────────────────────────────────────────────────────────────────────────────┘
                                       ↕
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                        Data Layer (SQLite + sqlite-vec)                       │
-│  • preferences (user searches)                                               │
-│  • property_managers (discovery cache)                                       │
-│  • extraction_strategies (LLM-generated scrapers)                            │
-│  • listings (pulled + scored)                                                │
-│  • costs (LLM calls, API usage, aggregated metrics)                          │
-│  • embedding_cache (soft-preference pre-filters)                             │
-│  • extraction_feedback (validation results for refinement)                   │
-│  • WAL mode (concurrent reads + writes)                                      │
+│                        Data Layer (SQLite; sqlite-vec planned)              │
+│  • preferences, property_managers, listings, costs, extraction_strategies    │
+│  • search_runs, search_run_events, run_listing_results, …                   │
+│  • trusted_sources, geocode cache, …                                          │
+│  • WAL mode                                                                  │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -58,124 +51,140 @@
 
 ## Implementation Phases
 
-### Phase 1: Foundation & Infrastructure (Week 1-2)
-**Goal**: Backend scaffolding, database, observability, CI/CD ready
+Legend: `[x]` shipped on `main` · `[ ]` not shipped or not formally verified · Wording may differ slightly from v1.0 plan; capability is what matters.
 
-#### Tasks
-- [ ] **1.1**: FastAPI project scaffold (uvicorn, ASGI, error handling)
-- [ ] **1.2**: SQLAlchemy 2.0 models (typed, with Mapped[T] annotations)
-- [ ] **1.3**: Alembic migrations setup + initial schema (preferences, property_managers, listings, costs)
-- [ ] **1.4**: Pydantic models for API responses (schema validation)
-- [ ] **1.5**: structlog setup (JSON in prod, console in dev) + cost tracking middleware
-- [ ] **1.6**: `/metrics` Prometheus endpoint + cost aggregation
-- [ ] **1.7**: Docker + docker-compose.yml (FastAPI + SQLite volume)
-- [ ] **1.8**: Dockerfile (uv multi-stage, python:3.13-slim, cache mounts)
-- [ ] **1.9**: GitHub Actions workflow (matrix 3.12/3.13, ruff lint, mypy strict, pytest)
-- [ ] **1.10**: pyproject.toml + uv lock (dependencies locked)
-- [ ] **1.11**: OpenRouter client setup (SDK pointed at OpenRouter)
-- [ ] **1.12**: Error handling + retry logic (tenacity for transient failures)
+### Phase 1: Foundation & Infrastructure
 
-**Deliverables**: Backend runs `docker compose up`, test endpoints work, cost logs flowing
+**Goal**: Backend scaffolding, database, observability, CI.
 
----
+| ID | Task | Status |
+|----|------|--------|
+| 1.1 | FastAPI app (`doormat.main`), lifespan, CORS, routers | [x] |
+| 1.2 | SQLAlchemy 2.0 ORM (`Mapped[...]`), async session | [x] |
+| 1.3 | Alembic migrations + evolving schema (preferences, listings, runs, …) | [x] |
+| 1.4 | Pydantic I/O schemas (`schemas.py`, routers) | [x] |
+| 1.5 | structlog + cost hooks / middleware | [x] |
+| 1.6 | `/metrics` Prometheus | [x] |
+| 1.7 | Docker Compose + SQLite volume | [x] |
+| 1.8 | Dockerfile (uv-based image) | [x] |
+| 1.9 | GitHub Actions CI (Python **3.13**, Ruff, pytest, frontend steps as configured) | [x] |
+| 1.10 | `pyproject.toml` + `uv.lock` | [x] |
+| 1.11 | OpenRouter-capable LLM client + settings | [x] |
+| 1.12 | Retries / resilience (tenacity where used) | [x] |
 
-### Phase 2: Discovery Agent (Week 2-3)
-**Goal**: Autonomous property manager discovery via Browser-Use
-
-#### Tasks
-- [ ] **2.1**: Browser-Use orchestration setup (login, navigation, screenshot capture)
-- [ ] **2.2**: Discovery LLM loop (system prompt + multi-turn agent)
-- [ ] **2.3**: Candidate validation agent (verify property manager legitimacy)
-- [ ] **2.4**: Cache layer (store discovered managers per city, avoid re-discovery)
-- [ ] **2.5**: Error handling + feedback loop (retry invalid discoveries)
-- [ ] **2.6**: Cost tracking per city (discovery $0.03 target)
-- [ ] **2.7**: Logging + observability (structured discovery traces)
-- [ ] **2.8**: Unit tests (discovery logic, caching, validation)
-
-**Deliverables**: Agent discovers 20+ property managers in test city, caches results, costs tracked
+**Deliverables**: `docker compose up`, health + core APIs, CI green on `main`.
 
 ---
 
-### Phase 3: Scraper Generation & Extraction (Week 3-4)
-**Goal**: LLM generates extraction strategies; two-tier extraction pipeline
+### Phase 2: Discovery Agent
 
-#### Tasks
-- [ ] **3.1**: Extraction strategy generator (LLM → working parsing code)
-- [ ] **3.2**: Tier 1 extraction (cheap model + structured output via instructor)
-- [ ] **3.3**: Tier 2 validation (stronger model checks Tier 1 results)
-- [ ] **3.4**: Feedback loop (refinement on validation failures)
-- [ ] **3.5**: Listing model + schema (property attributes: address, price, bedrooms, etc.)
-- [ ] **3.6**: Batch extraction (process 100s of listings efficiently)
-- [ ] **3.7**: Rate limiting + robot.txt respect (no aggressive scraping)
-- [ ] **3.8**: Cost tracking (extraction $0.02 target)
-- [ ] **3.9**: Error handling (partial failures, retries, manual override)
-- [ ] **3.10**: Integration tests (extraction validates for 5+ property manager types)
+**Goal**: Property manager discovery with Browser-Use and persistence.
 
-**Deliverables**: 1000 listings extracted + validated in < 10 minutes, cost <$0.05
+| ID | Task | Status |
+|----|------|--------|
+| 2.1 | Browser-Use available path for discovery / Mode B | [x] |
+| 2.2 | Discovery agent + LLM loop (`discovery/agent.py`, prompts) | [x] |
+| 2.3 | Candidate validation / classification | [x] |
+| 2.4 | Discovery cache + `PropertyManager` records | [x] |
+| 2.5 | Error handling, retries, logging | [x] |
+| 2.6 | Per-call / per-component cost tracking | [x] |
+| 2.7 | Structured discovery traces | [x] |
+| 2.8 | Tests (`tests/` discovery-related coverage) | [x] |
 
----
-
-### Phase 4: Listing Scoring + Frontend (Week 4-5)
-**Goal**: Score listings against preferences; beautiful Next.js dashboard
-
-#### Tasks
-- [ ] **4.1**: Embedding model setup (soft-preference pre-filter via sqlite-vec)
-- [ ] **4.2**: Scoring agent (LLM ranks listings + explains why)
-- [ ] **4.3**: Listing API endpoints (paginated, filterable, scoreable)
-- [ ] **4.4**: Next.js setup (App Router, Tailwind UI, shadcn/ui)
-- [ ] **4.5**: TypeScript client generation (OpenAPI → @hey-api/openapi-ts)
-- [ ] **4.6**: Preference editor page (natural language input)
-- [ ] **4.7**: Listings page (map view + card grid)
-- [ ] **4.8**: Real-time SSE setup (sse-starlette backend + useEffect frontend)
-- [ ] **4.9**: Filter UI (nuqs for shareable URL state)
-- [ ] **4.10**: Saved listings feature (star/save, export)
-- [ ] **4.11**: Cost scoring indicator (show cost per component)
-- [ ] **4.12**: Responsive design + accessibility (WCAG AA)
-
-**Deliverables**: Dashboard renders, filters work, real-time updates, 90-second demo video capability
+**Deliverables**: `/api/discovery/*` usable end-to-end with real keys.
 
 ---
 
-### Phase 5: Cost Optimization & Dashboarding (Week 5-6)
-**Goal**: Live cost dashboard, model routing, prompt caching verification
+### Phase 3: Scraper Generation & Extraction
 
-#### Tasks
-- [ ] **5.1**: Cost aggregation logic (parse logs, group by component/model/city)
-- [ ] **5.2**: Cost dashboard API endpoints (GET /api/costs, GET /api/costs/{city}, etc.)
-- [ ] **5.3**: Dashboard frontend (charts, trends, alerts)
-- [ ] **5.4**: Model routing decision logic (choose cheapest viable model)
-- [ ] **5.5**: Prompt caching verification (measure hits/misses)
-- [ ] **5.6**: Budget alerts (notify if spending exceeds limit)
-- [ ] **5.7**: Profiling + optimization (identify hot paths)
-- [ ] **5.8**: Load testing (1000 listings, 5 concurrent cities)
-- [ ] **5.9**: Documentation (cost engineering guide for users + devs)
+**Goal**: Strategies, Mode A / A0 / B, listings in DB.
 
-**Deliverables**: Cost dashboard live, verify <$1/month for typical use, prompt caching proven
+| ID | Task | Status |
+|----|------|--------|
+| 3.1 | Strategy cache + LLM-driven strategy updates | [x] |
+| 3.2 | Mode A deterministic extraction | [x] |
+| 3.3 | Mode B agentic recovery | [x] |
+| 3.4 | Refinement / merge path for strategies | [x] |
+| 3.5 | `Listing` model + extraction metadata | [x] |
+| 3.6 | Batch / pipeline extraction in search runs | [x] |
+| 3.7 | robots.txt + rate discipline for all HTTP (formal audit) | [ ] |
+| 3.8 | Cost attribution for extraction | [x] |
+| 3.9 | Partial failures, escalation, logging | [x] |
+| 3.10 | Broad matrix of “5+ PM site types” in one integration test | [ ] |
+
+**Deliverables**: Listings extracted and persisted through the live pipeline.
 
 ---
 
-### Phase 6: Polish, Security & Launch (Week 6)
-**Goal**: Security audit, performance tuning, MCP integration, documentation
+### Phase 4: Listing Scoring + Frontend
 
-#### Tasks
-- [ ] **6.1**: Security audit (dependency scanning, OWASP checks)
-- [ ] **6.2**: API key rotation strategy (OpenRouter, Apify)
-- [ ] **6.3**: Input validation hardening (Pydantic strict mode)
-- [ ] **6.4**: FastMCP server implementation (expose 4-6 key endpoints)
-- [ ] **6.5**: MCP integration tests (Claude agent calling Doormat)
-- [ ] **6.6**: README complete (setup, usage, architecture, cost explanation)
-- [ ] **6.7**: API documentation (OpenAPI + mkdocstrings)
-- [ ] **6.8**: CLAUDE.md update (prompt patterns for other projects)
-- [ ] **6.9**: Skills bundle creation (for Copilot/Claude Desktop integration)
-- [ ] **6.10**: Performance profiling (response times, memory, CPU)
-- [ ] **6.11**: Changelog + versioning (Conventional Commits, release-please)
-- [ ] **6.12**: Launch checklist (release notes, demo video link, announcement)
+**Goal**: Scored listings, dashboard UX, streams.
 
-**Deliverables**: Security passed, MCP working, docs complete, ready for public release
+| ID | Task | Status |
+|----|------|--------|
+| 4.1 | **sqlite-vec** embedding pre-filter before LLM scoring | [ ] |
+| 4.2 | LLM + heuristic scoring (`scoring/`) | [x] |
+| 4.3 | Listings API (pagination, filters, save, score, stream) | [x] |
+| 4.4 | Next.js App Router app shell (`src/frontend`) | [x] |
+| 4.5 | OpenAPI → TypeScript workflow (`openapi.json`, `@hey-api/openapi-ts`) | [x] |
+| 4.6 | Preferences UI + API | [x] |
+| 4.7 | Listings UI + **Leaflet** map (not MapLibre stack) | [x] |
+| 4.8 | SSE listing stream (`text/event-stream`) | [x] |
+| 4.9 | **nuqs** / TanStack Query as primary URL + server cache layer | [ ] |
+| 4.10 | Saved listings | [x] |
+| 4.11 | Costs surfaced (API + `/costs` page) | [x] |
+| 4.12 | Responsive + dark/light + ongoing a11y (see run report header notes) | [x] |
+
+**Deliverables**: Usable dashboard for discovery, runs, listings, costs, preferences, sources.
+
+---
+
+### Phase 5: Cost Optimization & Dashboarding
+
+**Goal**: Visibility into spend; tighten efficiency over time.
+
+| ID | Task | Status |
+|----|------|--------|
+| 5.1 | Cost aggregation + persistence | [x] |
+| 5.2 | Costs API (`/api/costs/*`) | [x] |
+| 5.3 | Costs UI | [x] |
+| 5.4 | Tiered / routed model selection (`LLMClient`, prefs) | [x] |
+| 5.5 | Prompt / response caching verification & metrics | [ ] |
+| 5.6 | Budget limit enforcement + user-visible alerts | [ ] |
+| 5.7 | Profiling hot paths (backend + frontend) | [ ] |
+| 5.8 | Formal load test (1000 listings / multi-city SLO) | [ ] |
+| 5.9 | Cost engineering guide beyond `CLAUDE.md` snippets | [ ] |
+
+**Deliverables**: Operators can see and reason about cost; SLO hardening is backlog.
+
+---
+
+### Phase 6: Polish, Security & Launch
+
+**Goal**: Hardening, MCP adoption, packaging.
+
+| ID | Task | Status |
+|----|------|--------|
+| 6.1 | Third-party security audit + dependency policy | [ ] |
+| 6.2 | Documented API key rotation playbook | [ ] |
+| 6.3 | Pydantic validation at API boundaries | [x] |
+| 6.4 | FastMCP server module present | [x] |
+| 6.5 | MCP exercised by external agent in CI or documented manual matrix | [ ] |
+| 6.6 | README + `CLAUDE.md` + spec kit docs | [x] |
+| 6.7 | OpenAPI `/docs` + inline router docs (mkdocstrings site optional) | [ ] |
+| 6.8 | `CLAUDE.md` maintained for agent workflows | [x] |
+| 6.9 | Contributor / Claude skills (e.g. contribute-rental-source) | [x] |
+| 6.10 | Performance profiling report | [ ] |
+| 6.11 | release-please or equivalent automated changelog | [ ] |
+| 6.12 | Public launch checklist (demo asset, comms) | [ ] |
+
+**Deliverables**: Self-hostable product; launch-grade polish items tracked above.
 
 ---
 
 ## Database Schema (Alembic Migrations)
+
+> **Note:** The SQL sketch below is illustrative; **source of truth** is `src/backend/doormat/models/orm.py` and `alembic/versions/*`.
 
 ```sql
 -- Preferences: User search criteria
@@ -272,6 +281,8 @@ CREATE TABLE extraction_feedback (
 
 ## API Contracts (FastAPI Endpoints)
 
+> **Note:** Paths evolve; verify in `doormat.main` and router modules.
+
 ### Preferences
 - `POST /api/preferences` → Create new search profile
 - `GET /api/preferences` → List all profiles
@@ -306,46 +317,53 @@ CREATE TABLE extraction_feedback (
 
 ---
 
-## Tech Stack Decisions (Locked)
+## Tech Stack Decisions (Locked + drift notes)
 
 | Layer | Choice | Rationale |
 |-------|--------|-----------|
 | Backend | FastAPI | OpenAPI quality + instructor integration |
 | Database | SQLAlchemy 2.0 + Alembic | Typed, async, migration-safe |
 | Storage | SQLite + WAL | Local, fast, swap-in Postgres |
-| Vectors | sqlite-vec | Same DB, no external service |
+| Vectors | sqlite-vec | Planned; **not yet wired** (see Phase 4.1) |
 | Logging | structlog JSON | Structured, cost-trackable, prod-ready |
 | HTTP Client | httpx async | Sync+async parity, HTTP/2 |
 | Retries | tenacity | Async-native, standard in industry |
 | Agent Framework | Browser-Use + bare LLM | Avoid LangChain overhead |
 | LLM Client | openai SDK → OpenRouter | 200+ models, free tier |
 | Structured Output | instructor | Pydantic-typed, auto-retry |
-| Frontend | Next.js 15 App Router | Build-time safe, runtime simple |
-| Frontend Styling | Tailwind UI + shadcn/ui | Minimal deps, beautiful defaults |
-| State (Client) | TanStack Query v5 + nuqs | Standard 2026, shareable URLs |
-| Maps | MapLibre GL + react-map-gl | No vendor lock-in |
-| Real-time | SSE + sse-starlette | Simple, one-way, browser-native |
-| Type Safety | @hey-api/openapi-ts | FE build fails on schema drift |
+| Frontend | Next.js App Router (v16 line) | Current app pin in `package.json` |
+| Frontend Styling | Tailwind + Headless UI | Lightweight stack in repo |
+| State (Client) | React hooks + hand clients | **TanStack Query + nuqs** optional upgrade |
+| Maps | Leaflet + react-leaflet | Ships today |
+| Real-time | SSE + FastAPI `StreamingResponse` | Listing stream |
+| Type Safety | `@hey-api/openapi-ts` + TS strict | Regenerate when OpenAPI changes |
 | Deployment | Docker Compose | Local dev + easy VPS deploy |
-| CI/CD | GitHub Actions | Matrix 3.12/3.13, release-please |
+| CI/CD | GitHub Actions | Python 3.13 job today; expand matrix as needed |
 
 ---
 
 ## Quality Gates
 
-### Before Merge
-- [ ] Ruff format + lint: 0 errors
-- [ ] mypy strict: 0 errors (all types checked)
-- [ ] Pytest: 100% pass, >80% coverage
-- [ ] Cost tracking verified (logging working)
-- [ ] API schema generated (no drift from code)
+### Before merge (continuous)
 
-### Before Release
-- [ ] Security audit: 0 critical/high findings
-- [ ] Integration tests: discovery + extraction + scoring full flow
-- [ ] Load test: 1000 listings in <10 min, cost <$0.05
-- [ ] Documentation: README + API docs + architecture guide
-- [ ] MCP integration: tested with external Claude agent
+| Gate | Status |
+|------|--------|
+| Ruff lint + format on touched Python | [x] in CI / local |
+| mypy on `src/` (strict where configured) | [x] frequent; **repo-wide zero-error bar** | [ ] |
+| Pytest green (`uv run pytest`) | [x] |
+| Test coverage ≥ 80% **every** package | [ ] (aspirational) |
+| Cost tracking emits structured logs in dev | [x] |
+| Regenerate OpenAPI + TS client when API changes | [ ] (manual today) |
+
+### Before release (product)
+
+| Gate | Status |
+|------|--------|
+| Security review (deps + OWASP-oriented pass) | [ ] |
+| Long-horizon integration: discovery → extraction → scoring | [x] pieces tested; **single scripted E2E** | [ ] |
+| Load / cost SLO validation | [ ] |
+| README + spec kit + contributor docs | [x] |
+| MCP smoke with external Claude | [ ] |
 
 ---
 
@@ -354,11 +372,11 @@ CREATE TABLE extraction_feedback (
 | Risk | Mitigation |
 |------|-----------|
 | Extraction failures (site changes) | Feedback loop refines strategy; manual override available |
-| Cost overruns | Budget alerts + model routing chooses cheapest option |
+| Cost overruns | Budget settings + model routing; costs UI |
 | Rate limiting (429 errors) | Respect robots.txt, rate limits per manager, retry with backoff |
 | Security (API key exposure) | Pydantic validation, .env for secrets, audit trail |
-| Type mismatches (API drift) | FE build fails on schema mismatch (OpenAPI validation) |
-| Performance (slow dashboard) | SSE for real-time, TanStack Query caching, lazy-load map |
+| Type mismatches (API drift) | FE typecheck + OpenAPI regen workflow |
+| Performance (slow dashboard) | SSE streams, pagination, map lazy-load |
 
 ---
 
@@ -366,5 +384,5 @@ CREATE TABLE extraction_feedback (
 
 **Plan Owner**: Doormat Project Lead  
 **Approved**: 2026-04-25  
-**Next Phase**: `/speckit.tasks` (Task Breakdown)
-
+**Reconciled**: 2026-05-02  
+**Next steps**: Use `specs/*/tasks.md` for feature work; use this document for **roadmap-level** done vs backlog only.
