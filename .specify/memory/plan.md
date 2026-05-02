@@ -4,6 +4,8 @@
 **Created**: 2026-04-25  
 **Status**: Ready for Task Breakdown
 
+> **Note (2026-05):** The phase checklists below are an early roadmap. Delivery is tracked in `specs/*/tasks.md` on `main`; do not treat unchecked rows here as the source of truth for current work.
+
 ---
 
 ## Architecture Overview

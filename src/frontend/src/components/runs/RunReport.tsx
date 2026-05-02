@@ -3,6 +3,8 @@
  * - Prefer semantic sections and headings; primary actions use visible focus rings (ring-blue-500).
  * - Technical details use a native button + aria-expanded / aria-controls for the disclosure pattern.
  * - Dark mode: paired slate backgrounds/borders and blue-600 accent per app shell.
+ * - Responsive: layout should stay usable around 375px width (see spec 005 SC-008).
+ * - Reduced motion: prefer CSS that respects prefers-reduced-motion where animations exist.
  * - AnimatedCounter uses rAF-based easing; flash animation highlights new feed items.
  */
 
