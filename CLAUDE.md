@@ -102,6 +102,8 @@ Optional:
 - `API_RECIPE_PROMOTION_REQUIRES_HELD_OUT` — Require held-out listing validation before merging recipes (default: `True`). Set to `False` to promote recipes on Mode B success alone.
 - `API_RECIPE_EXECUTION_TIMEOUT` — Timeout for Mode A0 HTTP calls in seconds (default: `10`).
 - `API_RECIPE_MAX_CONSECUTIVE_FAILURES` — Max consecutive failures before retiring a recipe (default: `3`).
+- `MODE_B_NETWORK_CAPTURE` — During Mode B, subscribe to CDP Network events and record same-origin JSON/XHR responses for observability (default: `True`). Set `False` to disable.
+- `MODE_B_NETWORK_CAPTURE_WAIT_S` — Max seconds to wait for CDP before giving up on installing listeners (default: `30`).
 
 **Rollout sequence**:
 1. Start with all flags off — baseline behavior unchanged

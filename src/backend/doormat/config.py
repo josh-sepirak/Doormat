@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     # Max consecutive failures before retiring a recipe
     API_RECIPE_MAX_CONSECUTIVE_FAILURES: int = 3
 
+    # Mode B: capture JSON/XHR via CDP (same host as listing) for observability & recipe hints
+    MODE_B_NETWORK_CAPTURE: bool = True
+    MODE_B_NETWORK_CAPTURE_WAIT_S: float = 30.0
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:

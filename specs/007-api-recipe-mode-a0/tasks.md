@@ -26,7 +26,7 @@ Legend: `[ ]` pending · `[x]` done
 ## Phase C — Network capture + Mode B integration
 
 - [x] **C1** Add `extraction/network_capture.py` (`NetworkCapture`, `CDPCapturer`, header scrubbing).
-- [ ] **C2** Integrate capture into `extraction/mode_b.py` (attach/detach, `_try_synthesize_recipe` — implement truncated helpers from patch).
+- [x] **C2** Integrate capture into `extraction/mode_b.py` (CDP `Network.*` handlers on Browser-Use root client; same-host filter; `getResponseBody` on `loadingFinished`; summary logs + reasoning note when listing-like JSON seen). *(Optional auto `api_recipe` synthesis deferred.)*
 - [x] **C3** Update Mode B system/user prompts in `prompt_registry` (API-first recovery guidance). *(Mode B system prompt v2: JSON/XHR + `api_recipe` guidance.)*
 
 ---

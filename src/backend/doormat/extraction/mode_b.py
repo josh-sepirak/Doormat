@@ -1,5 +1,6 @@
 """Mode B: Agentic recovery extraction using Browser-Use."""
 
+import asyncio
 import json
 from collections.abc import Mapping, Sequence
 from typing import Any, Optional
@@ -9,6 +10,8 @@ import structlog
 
 from doormat.config import settings
 from doormat.cost_tracking import track_cost
+from doormat.extraction.mode_b_network import wait_install_mode_b_network_capture
+from doormat.extraction.network_capture import NetworkCapture
 from doormat.extraction.schemas import ExtractedListing, ListingExtractionResult
 from doormat.llm.client import MODEL_REASONING
 from doormat.llm.prompt_registry import DEFAULT_PROMPTS, PromptKey, get_effective_prompt
@@ -132,6 +135,43 @@ def _parse_token_count(value: Any) -> int | None:
     return None
 
 
+async def _mode_b_cleanup_sidecars(
+    *,
+    source_id: str,
+    install_net_task: asyncio.Task[bool] | None,
+    net_capture: NetworkCapture | None,
+    browser_session: Any,
+) -> int:
+    """Stop CDP capture task, log summary, close browser session. Returns listing-like JSON count."""
+    if install_net_task:
+        if not install_net_task.done():
+            install_net_task.cancel()
+        try:
+            await install_net_task
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            logger.debug("mode_b_network_install_task_failed", exc_info=True)
+
+    cdp_listing_like = 0
+    if net_capture is not None:
+        cdp_listing_like = len(net_capture.get_listing_candidates())
+        logger.info(
+            "mode_b_network_capture_summary",
+            source_id=source_id,
+            total_requests=len(net_capture.calls),
+            listing_like_json=cdp_listing_like,
+        )
+        net_capture.stop()
+
+    close = getattr(browser_session, "close", None)
+    if close is not None:
+        maybe_awaitable = close()
+        if hasattr(maybe_awaitable, "__await__"):
+            await maybe_awaitable
+    return cdp_listing_like
+
+
 async def run_mode_b(
     url: str,
     source_id: str,
@@ -179,6 +219,15 @@ async def run_mode_b(
         max_failures=2,
     )
 
+    net_capture: NetworkCapture | None = None
+    install_net_task: asyncio.Task[bool] | None = None
+    if settings.MODE_B_NETWORK_CAPTURE:
+        net_capture = NetworkCapture()
+        install_net_task = asyncio.create_task(
+            wait_install_mode_b_network_capture(browser_session, net_capture, url)
+        )
+
+    cdp_listing_like = 0
     try:
         async with track_cost(
             service="openrouter",
@@ -207,12 +256,20 @@ async def run_mode_b(
         )
         return _low_confidence_result(f"Mode B failed: {type(e).__name__}")
     finally:
-        close = getattr(browser_session, "close", None)
-        if close is not None:
-            maybe_awaitable = close()
-            if hasattr(maybe_awaitable, "__await__"):
-                await maybe_awaitable
+        cdp_listing_like = await _mode_b_cleanup_sidecars(
+            source_id=source_id,
+            install_net_task=install_net_task,
+            net_capture=net_capture,
+            browser_session=browser_session,
+        )
 
     result.mode = "B"
+    if cdp_listing_like > 0:
+        note = f"CDP: {cdp_listing_like} listing-like JSON API response(s) observed."
+        if result.reasoning:
+            merged = f"{result.reasoning.strip()} {note}"
+            result.reasoning = merged[:600]
+        else:
+            result.reasoning = note[:600]
     logger.info("extraction_mode_b_complete", source_id=source_id, confidence=result.confidence)
     return result
