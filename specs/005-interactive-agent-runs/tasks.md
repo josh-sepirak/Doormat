@@ -8,6 +8,8 @@
 
 **Organization**: Tasks are grouped by user story so each story can be implemented, tested, and validated independently after the shared foundation is complete.
 
+> **Maintenance note (2026-05):** Search runs, live run UI, and pipeline integration are implemented on `main`. This grid is historical; validate against `tests/test_search_runs*.py`, `src/frontend/src/components/runs/`, and the live API rather than treating every unchecked row as outstanding work.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel with other marked tasks in the same phase because it touches different files and has no dependency on incomplete tasks

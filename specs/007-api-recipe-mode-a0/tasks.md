@@ -51,4 +51,4 @@ Legend: `[ ]` pending · `[x]` done
 
 `A → B → (C ∥ partial D schema) → D → E`
 
-**Remaining vertical slice:** **C2 + C3** (wire `network_capture` into Mode B + prompts) before relying on CDP-captured recipes in production.
+**Follow-up:** Optional **automatic `api_recipe` synthesis** from captured JSON (Phase C2) remains future work; prompts (C3) and Mode A0 promotion paths are in place for manual / validated recipes.

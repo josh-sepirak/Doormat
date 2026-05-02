@@ -45,7 +45,7 @@
 ## Phase F — Pilot contribution
 
 - [x] **F1** Contribute one curated strategy + scrubbed fixture (e.g. Redding PM) as proof. *(See `strategies/pilot-pm.json`, `tests/fixtures/html/pilot-pm/`.)*
-- [ ] **F2** Open tracking issue or doc note for remaining markets. *(Optional follow-up.)*
+- [x] **F2** Open tracking issue or doc note for remaining markets. *(GitHub [#11](https://github.com/josh-sepirak/Doormat/issues/11).)*
 
 ---
 
