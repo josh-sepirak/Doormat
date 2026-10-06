@@ -52,7 +52,7 @@ export function RunTechnicalDetails({ events }: RunTechnicalDetailsProps) {
         >
           <ul className="space-y-3 font-mono text-xs text-slate-600 dark:text-slate-300">
             {devEvents.slice(-40).map((e) => {
-              const payload = parsePayload(e.payload_json)
+              const payload = parsePayload(e.payload_json ?? null)
               return (
                 <li key={e.id} className="break-words">
                   <span className="text-slate-400 dark:text-slate-500">#{e.sequence}</span>{' '}

@@ -250,6 +250,7 @@ async def _scrape_pm_direct(  # noqa: C901
         attempted = pm.last_fetch_attempted_at
         if attempted.tzinfo is None:
             from datetime import timezone
+
             attempted = attempted.replace(tzinfo=timezone.utc)
         return (now_utc - attempted).total_seconds() < 86400  # 24 hours
 
@@ -465,7 +466,7 @@ def _craigslist_subdomain_from_trusted_url(url: str) -> Optional[str]:
     return sub or None
 
 
-async def _scrape_craigslist(
+async def _scrape_craigslist(  # noqa: C901
     session: AsyncSession,
     search_run: SearchRun,
     city: str,

@@ -29,7 +29,9 @@ def _cache_key(query: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-async def geocode_listing(session: AsyncSession, listing_id: str) -> tuple[Optional[float], Optional[float]]:
+async def geocode_listing(
+    session: AsyncSession, listing_id: str
+) -> tuple[Optional[float], Optional[float]]:
     """Return (lat, lon) for a listing, using DB cache or Nominatim. Persists coords on success."""
     result = await session.execute(
         select(Listing, PropertyManager.city)
@@ -149,28 +151,29 @@ async def geocode_place(session: AsyncSession, query: str) -> dict[str, Any] | N
 
 async def forward_geocode(city: str, state: str) -> Optional[tuple[float, float]]:
     """Forward geocode city + state to lat/lon using Nominatim.
-    
+
     Args:
         city: City name (e.g., "Lancaster")
         state: Two-letter state code (e.g., "CA")
-    
+
     Returns:
         (lat, lon) tuple or None if geocoding fails
     """
     query = f"{city}, {state}, USA"
     key = _cache_key(query)
-    
+
     # Check cache
     from doormat.db.base import AsyncSessionLocal
+
     async with AsyncSessionLocal() as session:
         cached = await session.get(GeocodeCache, key)
         if cached is not None:
             return (cached.latitude, cached.longitude)
-    
+
     # Query Nominatim
     params = {"q": query, "format": "json", "limit": "1"}
     headers = {"User-Agent": USER_AGENT}
-    
+
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
             resp = await client.get(NOMINATIM_URL, params=params, headers=headers)
@@ -179,11 +182,11 @@ async def forward_geocode(city: str, state: str) -> Optional[tuple[float, float]
     except Exception as exc:
         logger.warning("nominatim_forward_geocode_failed", query=query, error=str(exc))
         return None
-    
+
     if not isinstance(data, list) or not data:
         logger.info("nominatim_forward_geocode_no_results", query=query)
         return None
-    
+
     first = data[0]
     try:
         lat = float(first["lat"])
@@ -191,7 +194,7 @@ async def forward_geocode(city: str, state: str) -> Optional[tuple[float, float]
     except (KeyError, TypeError, ValueError):
         logger.warning("nominatim_forward_geocode_bad_payload", query=query)
         return None
-    
+
     # Cache result
     async with AsyncSessionLocal() as session:
         session.add(
@@ -204,6 +207,6 @@ async def forward_geocode(city: str, state: str) -> Optional[tuple[float, float]
             )
         )
         await session.commit()
-    
+
     logger.info("forward_geocoded", city=city, state=state, lat=lat, lon=lon)
     return (lat, lon)

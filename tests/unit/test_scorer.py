@@ -1,13 +1,14 @@
 """Unit tests for listing scorer."""
 
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from doormat.models.orm import Listing, Preference
 from doormat.scoring.scorer import (
     ListingScorer,
-    heuristic_listing_score,
     build_listing_scoring_prompt,
+    heuristic_listing_score,
 )
 
 

@@ -1,22 +1,19 @@
 """Unit tests for recipe executor and validator."""
 
-import json
 from datetime import UTC, datetime
-from typing import Any
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
-from unittest.mock import AsyncMock
 
 from doormat.extraction.recipe_executor import (
-    extract_listing_via_recipe,
-    _walk_path,
-    _tokenize_path,
     _coerce_pets_policy,
+    _tokenize_path,
+    _walk_path,
+    extract_listing_via_recipe,
 )
 from doormat.extraction.recipe_validator import (
     RecipeValidator,
-    RecipeValidationResult,
     _addresses_match,
 )
 from doormat.extraction.schemas import ApiRecipe, ExtractedListing

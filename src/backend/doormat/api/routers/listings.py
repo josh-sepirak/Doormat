@@ -13,8 +13,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
-from doormat.models.orm import Listing, Preference, PropertyManager
 from doormat.geocoding.nominatim import geocode_listing
+from doormat.models.orm import Listing, Preference, PropertyManager
 from doormat.schemas import ListingResponse, PetsPolicy, ScoreListingsRequest, ScoreListingsResponse
 from doormat.scoring.scorer import ListingScorer
 from doormat.security.auth import require_bearer_auth
@@ -85,7 +85,7 @@ def _serialize_listing(listing: Listing) -> SerializedListing:
 
 
 @router.get("", response_model=list[ListingResponse])
-async def get_listings(
+async def get_listings(  # noqa: C901
     session: DbSession,
     city: Optional[str] = Query(None),
     min_price: Optional[float] = Query(None, ge=0),

@@ -81,6 +81,9 @@ target-version = "py313"
 extend-select = ["I", "E", "W", "F", "C", "B"]
 extend-ignore = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Query", "fastapi.Depends", "fastapi.Body"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["doormat"]
 
@@ -103,6 +106,7 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = ["real_startup_sweep: run the real orphaned-run sweep instead of the test stub"]
 addopts = "--strict-markers -v --cov=src/backend --cov-report=term-missing:skip-covered"
 
 [tool.coverage.run]

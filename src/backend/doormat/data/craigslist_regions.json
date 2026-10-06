@@ -1,0 +1,4951 @@
+[
+  {
+    "subdomain": "auburn",
+    "label": "auburn",
+    "lat": 32.60986,
+    "lon": -85.48078,
+    "country": "US"
+  },
+  {
+    "subdomain": "bham",
+    "label": "birmingham",
+    "lat": 33.5207,
+    "lon": -86.8025,
+    "country": "US"
+  },
+  {
+    "subdomain": "dothan",
+    "label": "dothan",
+    "lat": 31.22323,
+    "lon": -85.39049,
+    "country": "US"
+  },
+  {
+    "subdomain": "shoals",
+    "label": "florence / muscle shoals",
+    "lat": 34.7998,
+    "lon": -87.6773,
+    "country": "US"
+  },
+  {
+    "subdomain": "gadsden",
+    "label": "gadsden-anniston",
+    "lat": 33.7592,
+    "lon": -86.5086,
+    "country": "US"
+  },
+  {
+    "subdomain": "huntsville",
+    "label": "huntsville / decatur",
+    "lat": 34.7304,
+    "lon": -86.58594,
+    "country": "US"
+  },
+  {
+    "subdomain": "mobile",
+    "label": "mobile",
+    "lat": 30.69436,
+    "lon": -88.04305,
+    "country": "US"
+  },
+  {
+    "subdomain": "montgomery",
+    "label": "montgomery",
+    "lat": 32.36681,
+    "lon": -86.29997,
+    "country": "US"
+  },
+  {
+    "subdomain": "tuscaloosa",
+    "label": "tuscaloosa",
+    "lat": 33.20984,
+    "lon": -87.56917,
+    "country": "US"
+  },
+  {
+    "subdomain": "anchorage",
+    "label": "anchorage / mat-su",
+    "lat": 61.21806,
+    "lon": -149.90028,
+    "country": "US"
+  },
+  {
+    "subdomain": "fairbanks",
+    "label": "fairbanks",
+    "lat": 64.83778,
+    "lon": -147.71638,
+    "country": "US"
+  },
+  {
+    "subdomain": "kenai",
+    "label": "kenai peninsula",
+    "lat": 60.16667,
+    "lon": -150.25,
+    "country": "US"
+  },
+  {
+    "subdomain": "juneau",
+    "label": "southeast alaska",
+    "lat": 58.30194,
+    "lon": -134.41972,
+    "country": "US"
+  },
+  {
+    "subdomain": "flagstaff",
+    "label": "flagstaff / sedona",
+    "lat": 35.19807,
+    "lon": -111.65127,
+    "country": "US"
+  },
+  {
+    "subdomain": "mohave",
+    "label": "mohave county",
+    "lat": 35.2088,
+    "lon": -114.0134,
+    "country": "US"
+  },
+  {
+    "subdomain": "phoenix",
+    "label": "phoenix",
+    "lat": 33.44838,
+    "lon": -112.07404,
+    "country": "US"
+  },
+  {
+    "subdomain": "prescott",
+    "label": "prescott",
+    "lat": 34.54002,
+    "lon": -112.4685,
+    "country": "US"
+  },
+  {
+    "subdomain": "showlow",
+    "label": "show low",
+    "lat": 34.25421,
+    "lon": -110.02983,
+    "country": "US"
+  },
+  {
+    "subdomain": "sierravista",
+    "label": "sierra vista",
+    "lat": 31.55454,
+    "lon": -110.30369,
+    "country": "US"
+  },
+  {
+    "subdomain": "tucson",
+    "label": "tucson",
+    "lat": 32.22174,
+    "lon": -110.92648,
+    "country": "US"
+  },
+  {
+    "subdomain": "yuma",
+    "label": "yuma",
+    "lat": 32.72532,
+    "lon": -114.6244,
+    "country": "US"
+  },
+  {
+    "subdomain": "fayar",
+    "label": "fayetteville",
+    "lat": 36.06258,
+    "lon": -94.15743,
+    "country": "US"
+  },
+  {
+    "subdomain": "fortsmith",
+    "label": "fort smith",
+    "lat": 35.38592,
+    "lon": -94.39855,
+    "country": "US"
+  },
+  {
+    "subdomain": "jonesboro",
+    "label": "jonesboro",
+    "lat": 35.8423,
+    "lon": -90.70428,
+    "country": "US"
+  },
+  {
+    "subdomain": "littlerock",
+    "label": "little rock",
+    "lat": 34.74648,
+    "lon": -92.28959,
+    "country": "US"
+  },
+  {
+    "subdomain": "texarkana",
+    "label": "texarkana",
+    "lat": 33.44179,
+    "lon": -94.03769,
+    "country": "US"
+  },
+  {
+    "subdomain": "bakersfield",
+    "label": "bakersfield",
+    "lat": 35.37329,
+    "lon": -119.01871,
+    "country": "US"
+  },
+  {
+    "subdomain": "chico",
+    "label": "chico",
+    "lat": 39.72849,
+    "lon": -121.83748,
+    "country": "US"
+  },
+  {
+    "subdomain": "fresno",
+    "label": "fresno / madera",
+    "lat": 36.74773,
+    "lon": -119.77237,
+    "country": "US"
+  },
+  {
+    "subdomain": "goldcountry",
+    "label": "gold country",
+    "lat": 39.2366,
+    "lon": -120.7721,
+    "country": "US"
+  },
+  {
+    "subdomain": "hanford",
+    "label": "hanford-corcoran",
+    "lat": 36.3274,
+    "lon": -119.6457,
+    "country": "US"
+  },
+  {
+    "subdomain": "humboldt",
+    "label": "humboldt county",
+    "lat": 40.58596,
+    "lon": -124.26339,
+    "country": "US"
+  },
+  {
+    "subdomain": "imperial",
+    "label": "imperial county",
+    "lat": 32.792,
+    "lon": -115.563,
+    "country": "US"
+  },
+  {
+    "subdomain": "inlandempire",
+    "label": "inland empire",
+    "lat": 34.1083,
+    "lon": -117.2898,
+    "country": "US"
+  },
+  {
+    "subdomain": "losangeles",
+    "label": "los angeles",
+    "lat": 34.05223,
+    "lon": -118.24368,
+    "country": "US"
+  },
+  {
+    "subdomain": "mendocino",
+    "label": "mendocino county",
+    "lat": 39.4457,
+    "lon": -123.8053,
+    "country": "US"
+  },
+  {
+    "subdomain": "merced",
+    "label": "merced",
+    "lat": 37.30216,
+    "lon": -120.48297,
+    "country": "US"
+  },
+  {
+    "subdomain": "modesto",
+    "label": "modesto",
+    "lat": 37.6391,
+    "lon": -120.99688,
+    "country": "US"
+  },
+  {
+    "subdomain": "monterey",
+    "label": "monterey bay",
+    "lat": 36.90711,
+    "lon": -121.84457,
+    "country": "US"
+  },
+  {
+    "subdomain": "orangecounty",
+    "label": "orange county",
+    "lat": 33.7175,
+    "lon": -117.8311,
+    "country": "US"
+  },
+  {
+    "subdomain": "palmsprings",
+    "label": "palm springs",
+    "lat": 33.8303,
+    "lon": -116.54529,
+    "country": "US"
+  },
+  {
+    "subdomain": "redding",
+    "label": "redding",
+    "lat": 40.58654,
+    "lon": -122.39168,
+    "country": "US"
+  },
+  {
+    "subdomain": "sacramento",
+    "label": "sacramento",
+    "lat": 38.58157,
+    "lon": -121.4944,
+    "country": "US"
+  },
+  {
+    "subdomain": "sandiego",
+    "label": "san diego",
+    "lat": 32.71571,
+    "lon": -117.16472,
+    "country": "US"
+  },
+  {
+    "subdomain": "sfbay",
+    "label": "san francisco bay area",
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "country": "US"
+  },
+  {
+    "subdomain": "slo",
+    "label": "san luis obispo",
+    "lat": 35.28275,
+    "lon": -120.65962,
+    "country": "US"
+  },
+  {
+    "subdomain": "santabarbara",
+    "label": "santa barbara",
+    "lat": 34.42083,
+    "lon": -119.69819,
+    "country": "US"
+  },
+  {
+    "subdomain": "santamaria",
+    "label": "santa maria",
+    "lat": 34.95303,
+    "lon": -120.43572,
+    "country": "US"
+  },
+  {
+    "subdomain": "siskiyou",
+    "label": "siskiyou county",
+    "lat": 41.7736,
+    "lon": -122.4214,
+    "country": "US"
+  },
+  {
+    "subdomain": "stockton",
+    "label": "stockton",
+    "lat": 37.9577,
+    "lon": -121.29078,
+    "country": "US"
+  },
+  {
+    "subdomain": "susanville",
+    "label": "susanville",
+    "lat": 40.41628,
+    "lon": -120.65301,
+    "country": "US"
+  },
+  {
+    "subdomain": "ventura",
+    "label": "ventura county",
+    "lat": 34.3705,
+    "lon": -119.1391,
+    "country": "US"
+  },
+  {
+    "subdomain": "visalia",
+    "label": "visalia-tulare",
+    "lat": 36.3302,
+    "lon": -119.2921,
+    "country": "US"
+  },
+  {
+    "subdomain": "yubasutter",
+    "label": "yuba-sutter",
+    "lat": 39.1409,
+    "lon": -121.6167,
+    "country": "US"
+  },
+  {
+    "subdomain": "boulder",
+    "label": "boulder",
+    "lat": 40.01499,
+    "lon": -105.27055,
+    "country": "US"
+  },
+  {
+    "subdomain": "cosprings",
+    "label": "colorado springs",
+    "lat": 38.83388,
+    "lon": -104.82136,
+    "country": "US"
+  },
+  {
+    "subdomain": "denver",
+    "label": "denver",
+    "lat": 39.73915,
+    "lon": -104.9847,
+    "country": "US"
+  },
+  {
+    "subdomain": "eastco",
+    "label": "eastern CO",
+    "lat": 39.2639,
+    "lon": -103.6852,
+    "country": "US"
+  },
+  {
+    "subdomain": "fortcollins",
+    "label": "fort collins / north CO",
+    "lat": 40.58526,
+    "lon": -105.08442,
+    "country": "US"
+  },
+  {
+    "subdomain": "rockies",
+    "label": "high rockies",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "pueblo",
+    "label": "pueblo",
+    "lat": 38.25445,
+    "lon": -104.60914,
+    "country": "US"
+  },
+  {
+    "subdomain": "westslope",
+    "label": "western slope",
+    "lat": 39.0639,
+    "lon": -108.5506,
+    "country": "US"
+  },
+  {
+    "subdomain": "newlondon",
+    "label": "eastern CT",
+    "lat": 41.3557,
+    "lon": -72.0995,
+    "country": "US"
+  },
+  {
+    "subdomain": "hartford",
+    "label": "hartford",
+    "lat": 41.76371,
+    "lon": -72.68509,
+    "country": "US"
+  },
+  {
+    "subdomain": "newhaven",
+    "label": "new haven",
+    "lat": 41.30815,
+    "lon": -72.92816,
+    "country": "US"
+  },
+  {
+    "subdomain": "nwct",
+    "label": "northwest CT",
+    "lat": 41.5582,
+    "lon": -73.0515,
+    "country": "US"
+  },
+  {
+    "subdomain": "delaware",
+    "label": "delaware",
+    "lat": 40.29867,
+    "lon": -83.06797,
+    "country": "US"
+  },
+  {
+    "subdomain": "washingtondc",
+    "label": "washington",
+    "lat": 38.89511,
+    "lon": -77.03637,
+    "country": "US"
+  },
+  {
+    "subdomain": "miami",
+    "label": "broward county",
+    "lat": 26.15971,
+    "lon": -80.3259,
+    "country": "US"
+  },
+  {
+    "subdomain": "daytona",
+    "label": "daytona beach",
+    "lat": 29.21081,
+    "lon": -81.02283,
+    "country": "US"
+  },
+  {
+    "subdomain": "keys",
+    "label": "florida keys",
+    "lat": 24.66709,
+    "lon": -81.58314,
+    "country": "US"
+  },
+  {
+    "subdomain": "fortmyers",
+    "label": "ft myers / SW florida",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "gainesville",
+    "label": "gainesville",
+    "lat": 29.65163,
+    "lon": -82.32483,
+    "country": "US"
+  },
+  {
+    "subdomain": "cfl",
+    "label": "heartland florida",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "jacksonville",
+    "label": "jacksonville",
+    "lat": 30.33218,
+    "lon": -81.65565,
+    "country": "US"
+  },
+  {
+    "subdomain": "lakeland",
+    "label": "lakeland",
+    "lat": 28.03947,
+    "lon": -81.9498,
+    "country": "US"
+  },
+  {
+    "subdomain": "lakecity",
+    "label": "north central FL",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "ocala",
+    "label": "ocala",
+    "lat": 29.1872,
+    "lon": -82.14009,
+    "country": "US"
+  },
+  {
+    "subdomain": "okaloosa",
+    "label": "okaloosa / walton",
+    "lat": 32.38015,
+    "lon": -92.32792,
+    "country": "US"
+  },
+  {
+    "subdomain": "orlando",
+    "label": "orlando",
+    "lat": 28.53834,
+    "lon": -81.37924,
+    "country": "US"
+  },
+  {
+    "subdomain": "panamacity",
+    "label": "panama city",
+    "lat": 30.15946,
+    "lon": -85.65983,
+    "country": "US"
+  },
+  {
+    "subdomain": "pensacola",
+    "label": "pensacola",
+    "lat": 30.42131,
+    "lon": -87.21691,
+    "country": "US"
+  },
+  {
+    "subdomain": "sarasota",
+    "label": "sarasota-bradenton",
+    "lat": 27.33643,
+    "lon": -82.53065,
+    "country": "US"
+  },
+  {
+    "subdomain": "spacecoast",
+    "label": "space coast",
+    "lat": 28.51101,
+    "lon": -80.80058,
+    "country": "US"
+  },
+  {
+    "subdomain": "staugustine",
+    "label": "st augustine",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "tallahassee",
+    "label": "tallahassee",
+    "lat": 30.43826,
+    "lon": -84.28073,
+    "country": "US"
+  },
+  {
+    "subdomain": "tampa",
+    "label": "tampa bay area",
+    "lat": 27.94752,
+    "lon": -82.45843,
+    "country": "US"
+  },
+  {
+    "subdomain": "treasure",
+    "label": "treasure coast",
+    "lat": 27.24096,
+    "lon": -80.48443,
+    "country": "US"
+  },
+  {
+    "subdomain": "albanyga",
+    "label": "albany",
+    "lat": 31.57851,
+    "lon": -84.15574,
+    "country": "US"
+  },
+  {
+    "subdomain": "athensga",
+    "label": "athens",
+    "lat": 33.9519,
+    "lon": -83.3576,
+    "country": "US"
+  },
+  {
+    "subdomain": "atlanta",
+    "label": "atlanta",
+    "lat": 33.749,
+    "lon": -84.38798,
+    "country": "US"
+  },
+  {
+    "subdomain": "augusta",
+    "label": "augusta",
+    "lat": 33.47097,
+    "lon": -81.97484,
+    "country": "US"
+  },
+  {
+    "subdomain": "brunswick",
+    "label": "brunswick",
+    "lat": 31.15013,
+    "lon": -81.49147,
+    "country": "US"
+  },
+  {
+    "subdomain": "columbusga",
+    "label": "columbus",
+    "lat": 32.46098,
+    "lon": -84.98771,
+    "country": "US"
+  },
+  {
+    "subdomain": "macon",
+    "label": "macon / warner robins",
+    "lat": 32.84069,
+    "lon": -83.6324,
+    "country": "US"
+  },
+  {
+    "subdomain": "nwga",
+    "label": "northwest GA",
+    "lat": 40.72093,
+    "lon": -74.97184,
+    "country": "US"
+  },
+  {
+    "subdomain": "savannah",
+    "label": "savannah / hinesville",
+    "lat": 32.08354,
+    "lon": -81.09983,
+    "country": "US"
+  },
+  {
+    "subdomain": "statesboro",
+    "label": "statesboro",
+    "lat": 32.44879,
+    "lon": -81.78317,
+    "country": "US"
+  },
+  {
+    "subdomain": "valdosta",
+    "label": "valdosta",
+    "lat": 30.83334,
+    "lon": -83.28032,
+    "country": "US"
+  },
+  {
+    "subdomain": "honolulu",
+    "label": "hawaii",
+    "lat": 19.53806,
+    "lon": -155.05222,
+    "country": "US"
+  },
+  {
+    "subdomain": "boise",
+    "label": "boise",
+    "lat": 43.6135,
+    "lon": -116.20345,
+    "country": "US"
+  },
+  {
+    "subdomain": "eastidaho",
+    "label": "east idaho",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "lewiston",
+    "label": "lewiston / clarkston",
+    "lat": 46.41655,
+    "lon": -117.01766,
+    "country": "US"
+  },
+  {
+    "subdomain": "twinfalls",
+    "label": "twin falls",
+    "lat": 42.56297,
+    "lon": -114.46087,
+    "country": "US"
+  },
+  {
+    "subdomain": "bn",
+    "label": "bloomington-normal",
+    "lat": 40.48299,
+    "lon": -88.91395,
+    "country": "US"
+  },
+  {
+    "subdomain": "chambana",
+    "label": "champaign urbana",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "chicago",
+    "label": "chicago",
+    "lat": 41.85003,
+    "lon": -87.65005,
+    "country": "US"
+  },
+  {
+    "subdomain": "decatur",
+    "label": "decatur",
+    "lat": 39.84031,
+    "lon": -88.9548,
+    "country": "US"
+  },
+  {
+    "subdomain": "lasalle",
+    "label": "la salle co",
+    "lat": 41.33337,
+    "lon": -89.09175,
+    "country": "US"
+  },
+  {
+    "subdomain": "mattoon",
+    "label": "mattoon-charleston",
+    "lat": 39.48309,
+    "lon": -88.37283,
+    "country": "US"
+  },
+  {
+    "subdomain": "peoria",
+    "label": "peoria",
+    "lat": 40.69365,
+    "lon": -89.58899,
+    "country": "US"
+  },
+  {
+    "subdomain": "rockford",
+    "label": "rockford",
+    "lat": 42.27113,
+    "lon": -89.094,
+    "country": "US"
+  },
+  {
+    "subdomain": "carbondale",
+    "label": "southern illinois",
+    "lat": 37.77718,
+    "lon": -89.25181,
+    "country": "US"
+  },
+  {
+    "subdomain": "springfieldil",
+    "label": "springfield",
+    "lat": 39.80172,
+    "lon": -89.64371,
+    "country": "US"
+  },
+  {
+    "subdomain": "quincy",
+    "label": "western IL",
+    "lat": 39.9356,
+    "lon": -91.40987,
+    "country": "US"
+  },
+  {
+    "subdomain": "bloomington",
+    "label": "bloomington",
+    "lat": 39.16533,
+    "lon": -86.52639,
+    "country": "US"
+  },
+  {
+    "subdomain": "evansville",
+    "label": "evansville",
+    "lat": 37.97476,
+    "lon": -87.55585,
+    "country": "US"
+  },
+  {
+    "subdomain": "fortwayne",
+    "label": "fort wayne",
+    "lat": 41.1306,
+    "lon": -85.12886,
+    "country": "US"
+  },
+  {
+    "subdomain": "indianapolis",
+    "label": "indianapolis",
+    "lat": 39.76838,
+    "lon": -86.15804,
+    "country": "US"
+  },
+  {
+    "subdomain": "kokomo",
+    "label": "kokomo",
+    "lat": 40.48643,
+    "lon": -86.1336,
+    "country": "US"
+  },
+  {
+    "subdomain": "tippecanoe",
+    "label": "lafayette / west lafayette",
+    "lat": 40.4167,
+    "lon": -86.87529,
+    "country": "US"
+  },
+  {
+    "subdomain": "muncie",
+    "label": "muncie / anderson",
+    "lat": 40.19338,
+    "lon": -85.38636,
+    "country": "US"
+  },
+  {
+    "subdomain": "richmondin",
+    "label": "richmond",
+    "lat": 39.82894,
+    "lon": -84.89024,
+    "country": "US"
+  },
+  {
+    "subdomain": "southbend",
+    "label": "south bend / michiana",
+    "lat": 41.68338,
+    "lon": -86.25001,
+    "country": "US"
+  },
+  {
+    "subdomain": "terrehaute",
+    "label": "terre haute",
+    "lat": 39.4667,
+    "lon": -87.41391,
+    "country": "US"
+  },
+  {
+    "subdomain": "ames",
+    "label": "ames",
+    "lat": 42.03471,
+    "lon": -93.61994,
+    "country": "US"
+  },
+  {
+    "subdomain": "cedarrapids",
+    "label": "cedar rapids",
+    "lat": 42.00833,
+    "lon": -91.64407,
+    "country": "US"
+  },
+  {
+    "subdomain": "desmoines",
+    "label": "des moines",
+    "lat": 41.60054,
+    "lon": -93.60911,
+    "country": "US"
+  },
+  {
+    "subdomain": "dubuque",
+    "label": "dubuque",
+    "lat": 42.50056,
+    "lon": -90.66457,
+    "country": "US"
+  },
+  {
+    "subdomain": "fortdodge",
+    "label": "fort dodge",
+    "lat": 42.49747,
+    "lon": -94.16802,
+    "country": "US"
+  },
+  {
+    "subdomain": "iowacity",
+    "label": "iowa city",
+    "lat": 41.66113,
+    "lon": -91.53017,
+    "country": "US"
+  },
+  {
+    "subdomain": "masoncity",
+    "label": "mason city",
+    "lat": 43.15357,
+    "lon": -93.20104,
+    "country": "US"
+  },
+  {
+    "subdomain": "quadcities",
+    "label": "quad cities",
+    "lat": 41.50948,
+    "lon": -90.57875,
+    "country": "US"
+  },
+  {
+    "subdomain": "siouxcity",
+    "label": "sioux city",
+    "lat": 42.49999,
+    "lon": -96.40031,
+    "country": "US"
+  },
+  {
+    "subdomain": "ottumwa",
+    "label": "southeast IA",
+    "lat": 41.02001,
+    "lon": -92.4113,
+    "country": "US"
+  },
+  {
+    "subdomain": "waterloo",
+    "label": "waterloo / cedar falls",
+    "lat": 42.49276,
+    "lon": -92.34296,
+    "country": "US"
+  },
+  {
+    "subdomain": "lawrence",
+    "label": "lawrence",
+    "lat": 38.97167,
+    "lon": -95.23525,
+    "country": "US"
+  },
+  {
+    "subdomain": "ksu",
+    "label": "manhattan",
+    "lat": 39.18361,
+    "lon": -96.57167,
+    "country": "US"
+  },
+  {
+    "subdomain": "nwks",
+    "label": "northwest KS",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "salina",
+    "label": "salina",
+    "lat": 38.84028,
+    "lon": -97.61142,
+    "country": "US"
+  },
+  {
+    "subdomain": "seks",
+    "label": "southeast KS",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "swks",
+    "label": "southwest KS",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "topeka",
+    "label": "topeka",
+    "lat": 39.04833,
+    "lon": -95.67804,
+    "country": "US"
+  },
+  {
+    "subdomain": "wichita",
+    "label": "wichita",
+    "lat": 37.69224,
+    "lon": -97.33754,
+    "country": "US"
+  },
+  {
+    "subdomain": "bgky",
+    "label": "bowling green",
+    "lat": 36.99032,
+    "lon": -86.4436,
+    "country": "US"
+  },
+  {
+    "subdomain": "eastky",
+    "label": "eastern kentucky",
+    "lat": 38.49146,
+    "lon": -82.82985,
+    "country": "US"
+  },
+  {
+    "subdomain": "lexington",
+    "label": "lexington",
+    "lat": 37.98869,
+    "lon": -84.47772,
+    "country": "US"
+  },
+  {
+    "subdomain": "louisville",
+    "label": "louisville",
+    "lat": 38.25424,
+    "lon": -85.75941,
+    "country": "US"
+  },
+  {
+    "subdomain": "owensboro",
+    "label": "owensboro",
+    "lat": 37.77422,
+    "lon": -87.11333,
+    "country": "US"
+  },
+  {
+    "subdomain": "westky",
+    "label": "western KY",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "batonrouge",
+    "label": "baton rouge",
+    "lat": 30.44332,
+    "lon": -91.18747,
+    "country": "US"
+  },
+  {
+    "subdomain": "cenla",
+    "label": "central louisiana",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "houma",
+    "label": "houma",
+    "lat": 29.59577,
+    "lon": -90.71953,
+    "country": "US"
+  },
+  {
+    "subdomain": "lafayette",
+    "label": "lafayette",
+    "lat": 30.22409,
+    "lon": -92.01984,
+    "country": "US"
+  },
+  {
+    "subdomain": "lakecharles",
+    "label": "lake charles",
+    "lat": 30.21309,
+    "lon": -93.2044,
+    "country": "US"
+  },
+  {
+    "subdomain": "monroe",
+    "label": "monroe",
+    "lat": 32.50931,
+    "lon": -92.1193,
+    "country": "US"
+  },
+  {
+    "subdomain": "neworleans",
+    "label": "new orleans",
+    "lat": 29.95465,
+    "lon": -90.07507,
+    "country": "US"
+  },
+  {
+    "subdomain": "shreveport",
+    "label": "shreveport",
+    "lat": 32.52515,
+    "lon": -93.75018,
+    "country": "US"
+  },
+  {
+    "subdomain": "maine",
+    "label": "maine",
+    "lat": 46.82004,
+    "lon": -67.92308,
+    "country": "US"
+  },
+  {
+    "subdomain": "annapolis",
+    "label": "annapolis",
+    "lat": 38.97859,
+    "lon": -76.49184,
+    "country": "US"
+  },
+  {
+    "subdomain": "baltimore",
+    "label": "baltimore",
+    "lat": 39.29038,
+    "lon": -76.61219,
+    "country": "US"
+  },
+  {
+    "subdomain": "easternshore",
+    "label": "eastern shore",
+    "lat": 37.5397,
+    "lon": -75.8223,
+    "country": "US"
+  },
+  {
+    "subdomain": "frederick",
+    "label": "frederick",
+    "lat": 39.41427,
+    "lon": -77.41054,
+    "country": "US"
+  },
+  {
+    "subdomain": "smd",
+    "label": "southern maryland",
+    "lat": 41.1407,
+    "lon": -85.15262,
+    "country": "US"
+  },
+  {
+    "subdomain": "westmd",
+    "label": "western maryland",
+    "lat": 39.58371,
+    "lon": -77.00165,
+    "country": "US"
+  },
+  {
+    "subdomain": "boston",
+    "label": "boston",
+    "lat": 42.35843,
+    "lon": -71.05977,
+    "country": "US"
+  },
+  {
+    "subdomain": "capecod",
+    "label": "cape cod / islands",
+    "lat": 41.6688,
+    "lon": -70.2962,
+    "country": "US"
+  },
+  {
+    "subdomain": "southcoast",
+    "label": "south coast",
+    "lat": 41.6362,
+    "lon": -70.9342,
+    "country": "US"
+  },
+  {
+    "subdomain": "westernmass",
+    "label": "western massachusetts",
+    "lat": 42.1015,
+    "lon": -72.5898,
+    "country": "US"
+  },
+  {
+    "subdomain": "worcester",
+    "label": "worcester / central MA",
+    "lat": 42.2626,
+    "lon": -71.8023,
+    "country": "US"
+  },
+  {
+    "subdomain": "annarbor",
+    "label": "ann arbor",
+    "lat": 42.27756,
+    "lon": -83.74088,
+    "country": "US"
+  },
+  {
+    "subdomain": "battlecreek",
+    "label": "battle creek",
+    "lat": 42.3173,
+    "lon": -85.17816,
+    "country": "US"
+  },
+  {
+    "subdomain": "centralmich",
+    "label": "central michigan",
+    "lat": 43.58028,
+    "lon": -84.76917,
+    "country": "US"
+  },
+  {
+    "subdomain": "detroit",
+    "label": "detroit metro",
+    "lat": 42.22205,
+    "lon": -83.35147,
+    "country": "US"
+  },
+  {
+    "subdomain": "flint",
+    "label": "flint",
+    "lat": 43.01253,
+    "lon": -83.68746,
+    "country": "US"
+  },
+  {
+    "subdomain": "grandrapids",
+    "label": "grand rapids",
+    "lat": 42.96336,
+    "lon": -85.66809,
+    "country": "US"
+  },
+  {
+    "subdomain": "holland",
+    "label": "holland",
+    "lat": 42.78752,
+    "lon": -86.10893,
+    "country": "US"
+  },
+  {
+    "subdomain": "jxn",
+    "label": "jackson",
+    "lat": 42.24587,
+    "lon": -84.40135,
+    "country": "US"
+  },
+  {
+    "subdomain": "kalamazoo",
+    "label": "kalamazoo",
+    "lat": 42.29171,
+    "lon": -85.58723,
+    "country": "US"
+  },
+  {
+    "subdomain": "lansing",
+    "label": "lansing",
+    "lat": 42.73253,
+    "lon": -84.55553,
+    "country": "US"
+  },
+  {
+    "subdomain": "monroemi",
+    "label": "monroe",
+    "lat": 41.91643,
+    "lon": -83.39771,
+    "country": "US"
+  },
+  {
+    "subdomain": "muskegon",
+    "label": "muskegon",
+    "lat": 43.23418,
+    "lon": -86.24839,
+    "country": "US"
+  },
+  {
+    "subdomain": "nmi",
+    "label": "northern michigan",
+    "lat": 46.55694,
+    "lon": -87.40139,
+    "country": "US"
+  },
+  {
+    "subdomain": "porthuron",
+    "label": "port huron",
+    "lat": 42.97086,
+    "lon": -82.42491,
+    "country": "US"
+  },
+  {
+    "subdomain": "saginaw",
+    "label": "saginaw-midland-baycity",
+    "lat": 43.41947,
+    "lon": -83.95081,
+    "country": "US"
+  },
+  {
+    "subdomain": "swmi",
+    "label": "southwest michigan",
+    "lat": 42.12837,
+    "lon": -86.42836,
+    "country": "US"
+  },
+  {
+    "subdomain": "thumb",
+    "label": "the thumb",
+    "lat": 43.4194,
+    "lon": -83.9508,
+    "country": "US"
+  },
+  {
+    "subdomain": "up",
+    "label": "upper peninsula",
+    "lat": 46.5476,
+    "lon": -87.3956,
+    "country": "US"
+  },
+  {
+    "subdomain": "bemidji",
+    "label": "bemidji",
+    "lat": 47.47356,
+    "lon": -94.88028,
+    "country": "US"
+  },
+  {
+    "subdomain": "brainerd",
+    "label": "brainerd",
+    "lat": 46.35802,
+    "lon": -94.20083,
+    "country": "US"
+  },
+  {
+    "subdomain": "duluth",
+    "label": "duluth / superior",
+    "lat": 46.78327,
+    "lon": -92.10658,
+    "country": "US"
+  },
+  {
+    "subdomain": "mankato",
+    "label": "mankato",
+    "lat": 44.15906,
+    "lon": -94.00915,
+    "country": "US"
+  },
+  {
+    "subdomain": "minneapolis",
+    "label": "minneapolis / st paul",
+    "lat": 44.97997,
+    "lon": -93.26384,
+    "country": "US"
+  },
+  {
+    "subdomain": "rmn",
+    "label": "rochester",
+    "lat": 44.02163,
+    "lon": -92.4699,
+    "country": "US"
+  },
+  {
+    "subdomain": "marshall",
+    "label": "southwest MN",
+    "lat": 44.4469,
+    "lon": -95.78835,
+    "country": "US"
+  },
+  {
+    "subdomain": "stcloud",
+    "label": "st cloud",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "gulfport",
+    "label": "gulfport / biloxi",
+    "lat": 30.36742,
+    "lon": -89.09282,
+    "country": "US"
+  },
+  {
+    "subdomain": "hattiesburg",
+    "label": "hattiesburg",
+    "lat": 31.32712,
+    "lon": -89.29034,
+    "country": "US"
+  },
+  {
+    "subdomain": "jackson",
+    "label": "jackson",
+    "lat": 32.29876,
+    "lon": -90.18481,
+    "country": "US"
+  },
+  {
+    "subdomain": "meridian",
+    "label": "meridian",
+    "lat": 32.36431,
+    "lon": -88.70366,
+    "country": "US"
+  },
+  {
+    "subdomain": "northmiss",
+    "label": "north mississippi",
+    "lat": 45.03333,
+    "lon": -93.28611,
+    "country": "US"
+  },
+  {
+    "subdomain": "natchez",
+    "label": "southwest MS",
+    "lat": 31.56017,
+    "lon": -91.40329,
+    "country": "US"
+  },
+  {
+    "subdomain": "columbiamo",
+    "label": "columbia / jeff city",
+    "lat": 38.95171,
+    "lon": -92.33407,
+    "country": "US"
+  },
+  {
+    "subdomain": "joplin",
+    "label": "joplin",
+    "lat": 37.08423,
+    "lon": -94.51328,
+    "country": "US"
+  },
+  {
+    "subdomain": "kansascity",
+    "label": "kansas city",
+    "lat": 39.09973,
+    "lon": -94.57857,
+    "country": "US"
+  },
+  {
+    "subdomain": "kirksville",
+    "label": "kirksville",
+    "lat": 40.19475,
+    "lon": -92.58325,
+    "country": "US"
+  },
+  {
+    "subdomain": "loz",
+    "label": "lake of the ozarks",
+    "lat": 38.09809,
+    "lon": -92.61685,
+    "country": "US"
+  },
+  {
+    "subdomain": "semo",
+    "label": "southeast missouri",
+    "lat": 37.31088,
+    "lon": -89.54037,
+    "country": "US"
+  },
+  {
+    "subdomain": "springfield",
+    "label": "springfield",
+    "lat": 37.21533,
+    "lon": -93.29824,
+    "country": "US"
+  },
+  {
+    "subdomain": "stjoseph",
+    "label": "st joseph",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "stlouis",
+    "label": "st louis",
+    "lat": 38.62727,
+    "lon": -90.19789,
+    "country": "US"
+  },
+  {
+    "subdomain": "billings",
+    "label": "billings",
+    "lat": 45.78329,
+    "lon": -108.50069,
+    "country": "US"
+  },
+  {
+    "subdomain": "bozeman",
+    "label": "bozeman",
+    "lat": 45.67965,
+    "lon": -111.03856,
+    "country": "US"
+  },
+  {
+    "subdomain": "butte",
+    "label": "butte",
+    "lat": 46.00382,
+    "lon": -112.53474,
+    "country": "US"
+  },
+  {
+    "subdomain": "greatfalls",
+    "label": "great falls",
+    "lat": 47.50024,
+    "lon": -111.30081,
+    "country": "US"
+  },
+  {
+    "subdomain": "helena",
+    "label": "helena",
+    "lat": 46.59271,
+    "lon": -112.03611,
+    "country": "US"
+  },
+  {
+    "subdomain": "kalispell",
+    "label": "kalispell",
+    "lat": 48.19579,
+    "lon": -114.31291,
+    "country": "US"
+  },
+  {
+    "subdomain": "missoula",
+    "label": "missoula",
+    "lat": 46.87215,
+    "lon": -113.994,
+    "country": "US"
+  },
+  {
+    "subdomain": "montana",
+    "label": "eastern montana",
+    "lat": 45.27965,
+    "lon": -112.86198,
+    "country": "US"
+  },
+  {
+    "subdomain": "grandisland",
+    "label": "grand island",
+    "lat": 40.92501,
+    "lon": -98.34201,
+    "country": "US"
+  },
+  {
+    "subdomain": "lincoln",
+    "label": "lincoln",
+    "lat": 40.8,
+    "lon": -96.66696,
+    "country": "US"
+  },
+  {
+    "subdomain": "northplatte",
+    "label": "north platte",
+    "lat": 41.12389,
+    "lon": -100.76542,
+    "country": "US"
+  },
+  {
+    "subdomain": "omaha",
+    "label": "omaha / council bluffs",
+    "lat": 41.25626,
+    "lon": -95.94043,
+    "country": "US"
+  },
+  {
+    "subdomain": "scottsbluff",
+    "label": "scottsbluff / panhandle",
+    "lat": 41.8666,
+    "lon": -103.6672,
+    "country": "US"
+  },
+  {
+    "subdomain": "elko",
+    "label": "elko",
+    "lat": 40.83242,
+    "lon": -115.76312,
+    "country": "US"
+  },
+  {
+    "subdomain": "lasvegas",
+    "label": "las vegas",
+    "lat": 36.17497,
+    "lon": -115.13722,
+    "country": "US"
+  },
+  {
+    "subdomain": "reno",
+    "label": "reno / tahoe",
+    "lat": 39.52963,
+    "lon": -119.8138,
+    "country": "US"
+  },
+  {
+    "subdomain": "nh",
+    "label": "new hampshire",
+    "lat": 43.19953,
+    "lon": -71.54396,
+    "country": "US"
+  },
+  {
+    "subdomain": "cnj",
+    "label": "central NJ",
+    "lat": 40.2171,
+    "lon": -74.7429,
+    "country": "US"
+  },
+  {
+    "subdomain": "jerseyshore",
+    "label": "jersey shore",
+    "lat": 39.9653,
+    "lon": -74.0773,
+    "country": "US"
+  },
+  {
+    "subdomain": "newjersey",
+    "label": "north jersey",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "southjersey",
+    "label": "south jersey",
+    "lat": 39.8496,
+    "lon": -74.4774,
+    "country": "US"
+  },
+  {
+    "subdomain": "albuquerque",
+    "label": "albuquerque",
+    "lat": 35.08449,
+    "lon": -106.65114,
+    "country": "US"
+  },
+  {
+    "subdomain": "clovis",
+    "label": "clovis / portales",
+    "lat": 34.4048,
+    "lon": -103.20523,
+    "country": "US"
+  },
+  {
+    "subdomain": "farmington",
+    "label": "farmington",
+    "lat": 36.72806,
+    "lon": -108.21869,
+    "country": "US"
+  },
+  {
+    "subdomain": "lascruces",
+    "label": "las cruces",
+    "lat": 32.31232,
+    "lon": -106.77834,
+    "country": "US"
+  },
+  {
+    "subdomain": "roswell",
+    "label": "roswell / carlsbad",
+    "lat": 33.39437,
+    "lon": -104.52491,
+    "country": "US"
+  },
+  {
+    "subdomain": "santafe",
+    "label": "santa fe / taos",
+    "lat": 35.68698,
+    "lon": -105.9378,
+    "country": "US"
+  },
+  {
+    "subdomain": "albany",
+    "label": "albany",
+    "lat": 42.65258,
+    "lon": -73.75623,
+    "country": "US"
+  },
+  {
+    "subdomain": "binghamton",
+    "label": "binghamton",
+    "lat": 42.09869,
+    "lon": -75.91797,
+    "country": "US"
+  },
+  {
+    "subdomain": "buffalo",
+    "label": "buffalo",
+    "lat": 42.88645,
+    "lon": -78.87837,
+    "country": "US"
+  },
+  {
+    "subdomain": "catskills",
+    "label": "catskills",
+    "lat": 42.25036,
+    "lon": -74.24987,
+    "country": "US"
+  },
+  {
+    "subdomain": "chautauqua",
+    "label": "chautauqua",
+    "lat": 42.20978,
+    "lon": -79.46671,
+    "country": "US"
+  },
+  {
+    "subdomain": "elmira",
+    "label": "elmira-corning",
+    "lat": 42.1598,
+    "lon": -76.89107,
+    "country": "US"
+  },
+  {
+    "subdomain": "fingerlakes",
+    "label": "finger lakes",
+    "lat": 42.88038,
+    "lon": -76.78319,
+    "country": "US"
+  },
+  {
+    "subdomain": "glensfalls",
+    "label": "glens falls",
+    "lat": 43.30952,
+    "lon": -73.64401,
+    "country": "US"
+  },
+  {
+    "subdomain": "hudsonvalley",
+    "label": "hudson valley",
+    "lat": 41.54528,
+    "lon": -74.00972,
+    "country": "US"
+  },
+  {
+    "subdomain": "ithaca",
+    "label": "ithaca",
+    "lat": 42.44063,
+    "lon": -76.49661,
+    "country": "US"
+  },
+  {
+    "subdomain": "longisland",
+    "label": "long island",
+    "lat": 40.81677,
+    "lon": -73.06622,
+    "country": "US"
+  },
+  {
+    "subdomain": "newyork",
+    "label": "new york city",
+    "lat": 40.71427,
+    "lon": -74.00597,
+    "country": "US"
+  },
+  {
+    "subdomain": "oneonta",
+    "label": "oneonta",
+    "lat": 42.45286,
+    "lon": -75.06377,
+    "country": "US"
+  },
+  {
+    "subdomain": "plattsburgh",
+    "label": "plattsburgh-adirondacks",
+    "lat": 44.69949,
+    "lon": -73.45291,
+    "country": "US"
+  },
+  {
+    "subdomain": "potsdam",
+    "label": "potsdam-canton-massena",
+    "lat": 44.66978,
+    "lon": -74.98131,
+    "country": "US"
+  },
+  {
+    "subdomain": "rochester",
+    "label": "rochester",
+    "lat": 43.15478,
+    "lon": -77.61556,
+    "country": "US"
+  },
+  {
+    "subdomain": "syracuse",
+    "label": "syracuse",
+    "lat": 43.04812,
+    "lon": -76.14742,
+    "country": "US"
+  },
+  {
+    "subdomain": "twintiers",
+    "label": "twin tiers NY/PA",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "utica",
+    "label": "utica-rome-oneida",
+    "lat": 43.1009,
+    "lon": -75.23266,
+    "country": "US"
+  },
+  {
+    "subdomain": "watertown",
+    "label": "watertown",
+    "lat": 43.97478,
+    "lon": -75.91076,
+    "country": "US"
+  },
+  {
+    "subdomain": "asheville",
+    "label": "asheville",
+    "lat": 35.60095,
+    "lon": -82.55402,
+    "country": "US"
+  },
+  {
+    "subdomain": "boone",
+    "label": "boone",
+    "lat": 36.21679,
+    "lon": -81.67455,
+    "country": "US"
+  },
+  {
+    "subdomain": "charlotte",
+    "label": "charlotte",
+    "lat": 35.22709,
+    "lon": -80.84313,
+    "country": "US"
+  },
+  {
+    "subdomain": "eastnc",
+    "label": "eastern NC",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "fayetteville",
+    "label": "fayetteville",
+    "lat": 35.05266,
+    "lon": -78.87836,
+    "country": "US"
+  },
+  {
+    "subdomain": "greensboro",
+    "label": "greensboro",
+    "lat": 36.07264,
+    "lon": -79.79198,
+    "country": "US"
+  },
+  {
+    "subdomain": "hickory",
+    "label": "hickory / lenoir",
+    "lat": 35.73319,
+    "lon": -81.3412,
+    "country": "US"
+  },
+  {
+    "subdomain": "onslow",
+    "label": "jacksonville",
+    "lat": 34.75405,
+    "lon": -77.43024,
+    "country": "US"
+  },
+  {
+    "subdomain": "outerbanks",
+    "label": "outer banks",
+    "lat": 35.56685,
+    "lon": -75.46849,
+    "country": "US"
+  },
+  {
+    "subdomain": "raleigh",
+    "label": "raleigh / durham / CH",
+    "lat": 35.7721,
+    "lon": -78.63861,
+    "country": "US"
+  },
+  {
+    "subdomain": "wilmington",
+    "label": "wilmington",
+    "lat": 34.23556,
+    "lon": -77.94604,
+    "country": "US"
+  },
+  {
+    "subdomain": "winstonsalem",
+    "label": "winston-salem",
+    "lat": 36.09986,
+    "lon": -80.24422,
+    "country": "US"
+  },
+  {
+    "subdomain": "bismarck",
+    "label": "bismarck",
+    "lat": 46.80833,
+    "lon": -100.78374,
+    "country": "US"
+  },
+  {
+    "subdomain": "fargo",
+    "label": "fargo / moorhead",
+    "lat": 46.87719,
+    "lon": -96.7898,
+    "country": "US"
+  },
+  {
+    "subdomain": "grandforks",
+    "label": "grand forks",
+    "lat": 47.92526,
+    "lon": -97.03285,
+    "country": "US"
+  },
+  {
+    "subdomain": "nd",
+    "label": "north dakota",
+    "lat": 46.24027,
+    "lon": -100.51929,
+    "country": "US"
+  },
+  {
+    "subdomain": "akroncanton",
+    "label": "akron / canton",
+    "lat": 41.0814,
+    "lon": -81.519,
+    "country": "US"
+  },
+  {
+    "subdomain": "ashtabula",
+    "label": "ashtabula",
+    "lat": 41.8651,
+    "lon": -80.7898,
+    "country": "US"
+  },
+  {
+    "subdomain": "athensohio",
+    "label": "athens",
+    "lat": 39.3292,
+    "lon": -82.1013,
+    "country": "US"
+  },
+  {
+    "subdomain": "chillicothe",
+    "label": "chillicothe",
+    "lat": 39.33312,
+    "lon": -82.9824,
+    "country": "US"
+  },
+  {
+    "subdomain": "cincinnati",
+    "label": "cincinnati",
+    "lat": 39.12711,
+    "lon": -84.51439,
+    "country": "US"
+  },
+  {
+    "subdomain": "cleveland",
+    "label": "cleveland",
+    "lat": 41.4995,
+    "lon": -81.69541,
+    "country": "US"
+  },
+  {
+    "subdomain": "columbus",
+    "label": "columbus",
+    "lat": 39.96118,
+    "lon": -82.99879,
+    "country": "US"
+  },
+  {
+    "subdomain": "dayton",
+    "label": "dayton / springfield",
+    "lat": 39.75895,
+    "lon": -84.19161,
+    "country": "US"
+  },
+  {
+    "subdomain": "limaohio",
+    "label": "lima / findlay",
+    "lat": 40.74255,
+    "lon": -84.10523,
+    "country": "US"
+  },
+  {
+    "subdomain": "mansfield",
+    "label": "mansfield",
+    "lat": 40.75839,
+    "lon": -82.51545,
+    "country": "US"
+  },
+  {
+    "subdomain": "sandusky",
+    "label": "sandusky",
+    "lat": 41.44894,
+    "lon": -82.70796,
+    "country": "US"
+  },
+  {
+    "subdomain": "toledo",
+    "label": "toledo",
+    "lat": 41.66394,
+    "lon": -83.55521,
+    "country": "US"
+  },
+  {
+    "subdomain": "tuscarawas",
+    "label": "tuscarawas co",
+    "lat": 40.39479,
+    "lon": -81.40706,
+    "country": "US"
+  },
+  {
+    "subdomain": "youngstown",
+    "label": "youngstown",
+    "lat": 41.09978,
+    "lon": -80.64952,
+    "country": "US"
+  },
+  {
+    "subdomain": "zanesville",
+    "label": "zanesville / cambridge",
+    "lat": 39.94035,
+    "lon": -82.01319,
+    "country": "US"
+  },
+  {
+    "subdomain": "lawton",
+    "label": "lawton",
+    "lat": 34.60869,
+    "lon": -98.39033,
+    "country": "US"
+  },
+  {
+    "subdomain": "enid",
+    "label": "northwest OK",
+    "lat": 36.39559,
+    "lon": -97.87839,
+    "country": "US"
+  },
+  {
+    "subdomain": "oklahomacity",
+    "label": "oklahoma city",
+    "lat": 35.46756,
+    "lon": -97.51643,
+    "country": "US"
+  },
+  {
+    "subdomain": "stillwater",
+    "label": "stillwater",
+    "lat": 36.11561,
+    "lon": -97.05837,
+    "country": "US"
+  },
+  {
+    "subdomain": "tulsa",
+    "label": "tulsa",
+    "lat": 36.15398,
+    "lon": -95.99277,
+    "country": "US"
+  },
+  {
+    "subdomain": "bend",
+    "label": "bend",
+    "lat": 44.05817,
+    "lon": -121.31531,
+    "country": "US"
+  },
+  {
+    "subdomain": "corvallis",
+    "label": "corvallis/albany",
+    "lat": 44.56457,
+    "lon": -123.26204,
+    "country": "US"
+  },
+  {
+    "subdomain": "eastoregon",
+    "label": "east oregon",
+    "lat": 42.50223,
+    "lon": -122.85731,
+    "country": "US"
+  },
+  {
+    "subdomain": "eugene",
+    "label": "eugene",
+    "lat": 44.05207,
+    "lon": -123.08675,
+    "country": "US"
+  },
+  {
+    "subdomain": "klamath",
+    "label": "klamath falls",
+    "lat": 42.22487,
+    "lon": -121.78167,
+    "country": "US"
+  },
+  {
+    "subdomain": "medford",
+    "label": "medford-ashland",
+    "lat": 42.32652,
+    "lon": -122.87559,
+    "country": "US"
+  },
+  {
+    "subdomain": "oregoncoast",
+    "label": "oregon coast",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "portland",
+    "label": "portland",
+    "lat": 45.52345,
+    "lon": -122.67621,
+    "country": "US"
+  },
+  {
+    "subdomain": "roseburg",
+    "label": "roseburg",
+    "lat": 43.2165,
+    "lon": -123.34174,
+    "country": "US"
+  },
+  {
+    "subdomain": "salem",
+    "label": "salem",
+    "lat": 44.9429,
+    "lon": -123.0351,
+    "country": "US"
+  },
+  {
+    "subdomain": "altoona",
+    "label": "altoona-johnstown",
+    "lat": 40.51868,
+    "lon": -78.39474,
+    "country": "US"
+  },
+  {
+    "subdomain": "chambersburg",
+    "label": "cumberland valley",
+    "lat": 39.81761,
+    "lon": -77.72545,
+    "country": "US"
+  },
+  {
+    "subdomain": "erie",
+    "label": "erie",
+    "lat": 42.12922,
+    "lon": -80.08506,
+    "country": "US"
+  },
+  {
+    "subdomain": "harrisburg",
+    "label": "harrisburg",
+    "lat": 40.2737,
+    "lon": -76.88442,
+    "country": "US"
+  },
+  {
+    "subdomain": "lancaster",
+    "label": "lancaster",
+    "lat": 40.03788,
+    "lon": -76.30551,
+    "country": "US"
+  },
+  {
+    "subdomain": "allentown",
+    "label": "lehigh valley",
+    "lat": 40.6701,
+    "lon": -75.49546,
+    "country": "US"
+  },
+  {
+    "subdomain": "meadville",
+    "label": "meadville",
+    "lat": 41.64144,
+    "lon": -80.15145,
+    "country": "US"
+  },
+  {
+    "subdomain": "philadelphia",
+    "label": "philadelphia",
+    "lat": 39.95238,
+    "lon": -75.16362,
+    "country": "US"
+  },
+  {
+    "subdomain": "pittsburgh",
+    "label": "pittsburgh",
+    "lat": 40.44062,
+    "lon": -79.99589,
+    "country": "US"
+  },
+  {
+    "subdomain": "poconos",
+    "label": "poconos",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "reading",
+    "label": "reading",
+    "lat": 40.33565,
+    "lon": -75.92687,
+    "country": "US"
+  },
+  {
+    "subdomain": "scranton",
+    "label": "scranton / wilkes-barre",
+    "lat": 41.40916,
+    "lon": -75.6649,
+    "country": "US"
+  },
+  {
+    "subdomain": "pennstate",
+    "label": "state college",
+    "lat": 40.79339,
+    "lon": -77.86,
+    "country": "US"
+  },
+  {
+    "subdomain": "williamsport",
+    "label": "williamsport",
+    "lat": 41.24119,
+    "lon": -77.00108,
+    "country": "US"
+  },
+  {
+    "subdomain": "york",
+    "label": "york",
+    "lat": 39.9626,
+    "lon": -76.72774,
+    "country": "US"
+  },
+  {
+    "subdomain": "providence",
+    "label": "rhode island",
+    "lat": 41.55566,
+    "lon": -71.26422,
+    "country": "US"
+  },
+  {
+    "subdomain": "charleston",
+    "label": "charleston",
+    "lat": 32.77632,
+    "lon": -79.93275,
+    "country": "US"
+  },
+  {
+    "subdomain": "columbia",
+    "label": "columbia",
+    "lat": 34.00071,
+    "lon": -81.03481,
+    "country": "US"
+  },
+  {
+    "subdomain": "florencesc",
+    "label": "florence",
+    "lat": 34.19543,
+    "lon": -79.76256,
+    "country": "US"
+  },
+  {
+    "subdomain": "greenville",
+    "label": "greenville / upstate",
+    "lat": 34.85262,
+    "lon": -82.39401,
+    "country": "US"
+  },
+  {
+    "subdomain": "hiltonhead",
+    "label": "hilton head",
+    "lat": 32.21632,
+    "lon": -80.75261,
+    "country": "US"
+  },
+  {
+    "subdomain": "myrtlebeach",
+    "label": "myrtle beach",
+    "lat": 33.68906,
+    "lon": -78.88669,
+    "country": "US"
+  },
+  {
+    "subdomain": "nesd",
+    "label": "northeast SD",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "csd",
+    "label": "pierre / central SD",
+    "lat": 44.36832,
+    "lon": -100.35097,
+    "country": "US"
+  },
+  {
+    "subdomain": "rapidcity",
+    "label": "rapid city / west SD",
+    "lat": 44.08054,
+    "lon": -103.23101,
+    "country": "US"
+  },
+  {
+    "subdomain": "siouxfalls",
+    "label": "sioux falls / SE SD",
+    "lat": 43.54369,
+    "lon": -96.72796,
+    "country": "US"
+  },
+  {
+    "subdomain": "sd",
+    "label": "south dakota",
+    "lat": 45.41746,
+    "lon": -96.7009,
+    "country": "US"
+  },
+  {
+    "subdomain": "chattanooga",
+    "label": "chattanooga",
+    "lat": 35.04563,
+    "lon": -85.30968,
+    "country": "US"
+  },
+  {
+    "subdomain": "clarksville",
+    "label": "clarksville",
+    "lat": 36.52977,
+    "lon": -87.35945,
+    "country": "US"
+  },
+  {
+    "subdomain": "cookeville",
+    "label": "cookeville",
+    "lat": 36.16284,
+    "lon": -85.50164,
+    "country": "US"
+  },
+  {
+    "subdomain": "jacksontn",
+    "label": "jackson",
+    "lat": 35.61452,
+    "lon": -88.81395,
+    "country": "US"
+  },
+  {
+    "subdomain": "knoxville",
+    "label": "knoxville",
+    "lat": 35.96064,
+    "lon": -83.92074,
+    "country": "US"
+  },
+  {
+    "subdomain": "memphis",
+    "label": "memphis",
+    "lat": 35.14953,
+    "lon": -90.04898,
+    "country": "US"
+  },
+  {
+    "subdomain": "nashville",
+    "label": "nashville",
+    "lat": 36.16589,
+    "lon": -86.78444,
+    "country": "US"
+  },
+  {
+    "subdomain": "tricities",
+    "label": "tri-cities",
+    "lat": 36.51736,
+    "lon": -82.35489,
+    "country": "US"
+  },
+  {
+    "subdomain": "abilene",
+    "label": "abilene",
+    "lat": 32.44874,
+    "lon": -99.73314,
+    "country": "US"
+  },
+  {
+    "subdomain": "amarillo",
+    "label": "amarillo",
+    "lat": 35.222,
+    "lon": -101.8313,
+    "country": "US"
+  },
+  {
+    "subdomain": "austin",
+    "label": "austin",
+    "lat": 30.26715,
+    "lon": -97.74306,
+    "country": "US"
+  },
+  {
+    "subdomain": "beaumont",
+    "label": "beaumont / port arthur",
+    "lat": 30.08605,
+    "lon": -94.10185,
+    "country": "US"
+  },
+  {
+    "subdomain": "brownsville",
+    "label": "brownsville",
+    "lat": 25.90175,
+    "lon": -97.49748,
+    "country": "US"
+  },
+  {
+    "subdomain": "collegestation",
+    "label": "college station",
+    "lat": 30.628,
+    "lon": -96.3344,
+    "country": "US"
+  },
+  {
+    "subdomain": "corpuschristi",
+    "label": "corpus christi",
+    "lat": 27.80058,
+    "lon": -97.39638,
+    "country": "US"
+  },
+  {
+    "subdomain": "dallas",
+    "label": "dallas / fort worth",
+    "lat": 32.78306,
+    "lon": -96.80667,
+    "country": "US"
+  },
+  {
+    "subdomain": "nacogdoches",
+    "label": "deep east texas",
+    "lat": 31.60351,
+    "lon": -94.65549,
+    "country": "US"
+  },
+  {
+    "subdomain": "delrio",
+    "label": "del rio / eagle pass",
+    "lat": 29.36273,
+    "lon": -100.89676,
+    "country": "US"
+  },
+  {
+    "subdomain": "elpaso",
+    "label": "el paso",
+    "lat": 31.75872,
+    "lon": -106.48693,
+    "country": "US"
+  },
+  {
+    "subdomain": "galveston",
+    "label": "galveston",
+    "lat": 29.30135,
+    "lon": -94.7977,
+    "country": "US"
+  },
+  {
+    "subdomain": "houston",
+    "label": "houston",
+    "lat": 29.76328,
+    "lon": -95.36327,
+    "country": "US"
+  },
+  {
+    "subdomain": "killeen",
+    "label": "killeen / temple / ft hood",
+    "lat": 31.1171,
+    "lon": -97.7278,
+    "country": "US"
+  },
+  {
+    "subdomain": "laredo",
+    "label": "laredo",
+    "lat": 27.50641,
+    "lon": -99.50754,
+    "country": "US"
+  },
+  {
+    "subdomain": "lubbock",
+    "label": "lubbock",
+    "lat": 33.57786,
+    "lon": -101.85517,
+    "country": "US"
+  },
+  {
+    "subdomain": "mcallen",
+    "label": "mcallen / edinburg",
+    "lat": 26.20341,
+    "lon": -98.23001,
+    "country": "US"
+  },
+  {
+    "subdomain": "odessa",
+    "label": "odessa / midland",
+    "lat": 31.84568,
+    "lon": -102.36764,
+    "country": "US"
+  },
+  {
+    "subdomain": "sanangelo",
+    "label": "san angelo",
+    "lat": 31.46377,
+    "lon": -100.43704,
+    "country": "US"
+  },
+  {
+    "subdomain": "sanantonio",
+    "label": "san antonio",
+    "lat": 29.42412,
+    "lon": -98.49363,
+    "country": "US"
+  },
+  {
+    "subdomain": "sanmarcos",
+    "label": "san marcos",
+    "lat": 29.8833,
+    "lon": -97.9414,
+    "country": "US"
+  },
+  {
+    "subdomain": "bigbend",
+    "label": "southwest TX",
+    "lat": 30.2711,
+    "lon": -103.6026,
+    "country": "US"
+  },
+  {
+    "subdomain": "texoma",
+    "label": "texoma",
+    "lat": 33.7537,
+    "lon": -96.8357,
+    "country": "US"
+  },
+  {
+    "subdomain": "easttexas",
+    "label": "tyler / east TX",
+    "lat": 32.3513,
+    "lon": -95.3011,
+    "country": "US"
+  },
+  {
+    "subdomain": "victoriatx",
+    "label": "victoria",
+    "lat": 28.80527,
+    "lon": -97.0036,
+    "country": "US"
+  },
+  {
+    "subdomain": "waco",
+    "label": "waco",
+    "lat": 31.54933,
+    "lon": -97.14667,
+    "country": "US"
+  },
+  {
+    "subdomain": "wichitafalls",
+    "label": "wichita falls",
+    "lat": 33.91371,
+    "lon": -98.49339,
+    "country": "US"
+  },
+  {
+    "subdomain": "logan",
+    "label": "logan",
+    "lat": 41.73549,
+    "lon": -111.83439,
+    "country": "US"
+  },
+  {
+    "subdomain": "ogden",
+    "label": "ogden-clearfield",
+    "lat": 41.223,
+    "lon": -111.97383,
+    "country": "US"
+  },
+  {
+    "subdomain": "provo",
+    "label": "provo / orem",
+    "lat": 40.23384,
+    "lon": -111.65853,
+    "country": "US"
+  },
+  {
+    "subdomain": "saltlakecity",
+    "label": "salt lake city",
+    "lat": 40.76078,
+    "lon": -111.89105,
+    "country": "US"
+  },
+  {
+    "subdomain": "stgeorge",
+    "label": "st george",
+    "lat": 37.03102,
+    "lon": -113.51014,
+    "country": "US"
+  },
+  {
+    "subdomain": "vermont",
+    "label": "vermont",
+    "lat": 40.29421,
+    "lon": -90.4279,
+    "country": "US"
+  },
+  {
+    "subdomain": "charlottesville",
+    "label": "charlottesville",
+    "lat": 38.0293,
+    "lon": -78.4767,
+    "country": "US"
+  },
+  {
+    "subdomain": "danville",
+    "label": "danville",
+    "lat": 36.58597,
+    "lon": -79.39502,
+    "country": "US"
+  },
+  {
+    "subdomain": "fredericksburg",
+    "label": "fredericksburg",
+    "lat": 38.3032,
+    "lon": -77.4605,
+    "country": "US"
+  },
+  {
+    "subdomain": "norfolk",
+    "label": "hampton roads",
+    "lat": 36.78015,
+    "lon": -76.44884,
+    "country": "US"
+  },
+  {
+    "subdomain": "harrisonburg",
+    "label": "harrisonburg",
+    "lat": 38.4496,
+    "lon": -78.8689,
+    "country": "US"
+  },
+  {
+    "subdomain": "lynchburg",
+    "label": "lynchburg",
+    "lat": 37.4138,
+    "lon": -79.1422,
+    "country": "US"
+  },
+  {
+    "subdomain": "blacksburg",
+    "label": "new river valley",
+    "lat": 37.2297,
+    "lon": -80.4139,
+    "country": "US"
+  },
+  {
+    "subdomain": "richmond",
+    "label": "richmond",
+    "lat": 37.55376,
+    "lon": -77.46026,
+    "country": "US"
+  },
+  {
+    "subdomain": "roanoke",
+    "label": "roanoke",
+    "lat": 37.27097,
+    "lon": -79.94143,
+    "country": "US"
+  },
+  {
+    "subdomain": "swva",
+    "label": "southwest VA",
+    "lat": 37.2709,
+    "lon": -79.9414,
+    "country": "US"
+  },
+  {
+    "subdomain": "winchester",
+    "label": "winchester",
+    "lat": 39.18566,
+    "lon": -78.16333,
+    "country": "US"
+  },
+  {
+    "subdomain": "bellingham",
+    "label": "bellingham",
+    "lat": 48.75955,
+    "lon": -122.48822,
+    "country": "US"
+  },
+  {
+    "subdomain": "kpr",
+    "label": "kennewick-pasco-richland",
+    "lat": 58.49222,
+    "lon": -152.58278,
+    "country": "US"
+  },
+  {
+    "subdomain": "moseslake",
+    "label": "moses lake",
+    "lat": 47.13014,
+    "lon": -119.27808,
+    "country": "US"
+  },
+  {
+    "subdomain": "olympic",
+    "label": "olympic peninsula",
+    "lat": 47.31899,
+    "lon": -122.42651,
+    "country": "US"
+  },
+  {
+    "subdomain": "pullman",
+    "label": "pullman / moscow",
+    "lat": 46.73127,
+    "lon": -117.17962,
+    "country": "US"
+  },
+  {
+    "subdomain": "seattle",
+    "label": "seattle-tacoma",
+    "lat": 47.44899,
+    "lon": -122.30929,
+    "country": "US"
+  },
+  {
+    "subdomain": "skagit",
+    "label": "skagit / island / SJI",
+    "lat": 48.38344,
+    "lon": -122.36294,
+    "country": "US"
+  },
+  {
+    "subdomain": "spokane",
+    "label": "spokane / coeur d'alene",
+    "lat": 47.65966,
+    "lon": -117.42908,
+    "country": "US"
+  },
+  {
+    "subdomain": "wenatchee",
+    "label": "wenatchee",
+    "lat": 47.42346,
+    "lon": -120.31035,
+    "country": "US"
+  },
+  {
+    "subdomain": "yakima",
+    "label": "yakima",
+    "lat": 46.60207,
+    "lon": -120.5059,
+    "country": "US"
+  },
+  {
+    "subdomain": "charlestonwv",
+    "label": "charleston",
+    "lat": 38.34982,
+    "lon": -81.63262,
+    "country": "US"
+  },
+  {
+    "subdomain": "martinsburg",
+    "label": "eastern panhandle",
+    "lat": 39.45621,
+    "lon": -77.96389,
+    "country": "US"
+  },
+  {
+    "subdomain": "huntington",
+    "label": "huntington-ashland",
+    "lat": 38.41925,
+    "lon": -82.44515,
+    "country": "US"
+  },
+  {
+    "subdomain": "morgantown",
+    "label": "morgantown",
+    "lat": 39.62953,
+    "lon": -79.9559,
+    "country": "US"
+  },
+  {
+    "subdomain": "wheeling",
+    "label": "northern panhandle",
+    "lat": 40.06396,
+    "lon": -80.72091,
+    "country": "US"
+  },
+  {
+    "subdomain": "parkersburg",
+    "label": "parkersburg-marietta",
+    "lat": 39.26674,
+    "lon": -81.56151,
+    "country": "US"
+  },
+  {
+    "subdomain": "swv",
+    "label": "southern WV",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "wv",
+    "label": "west virginia (old)",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "US"
+  },
+  {
+    "subdomain": "appleton",
+    "label": "appleton-oshkosh-FDL",
+    "lat": 44.26193,
+    "lon": -88.41538,
+    "country": "US"
+  },
+  {
+    "subdomain": "eauclaire",
+    "label": "eau claire",
+    "lat": 44.81135,
+    "lon": -91.49849,
+    "country": "US"
+  },
+  {
+    "subdomain": "greenbay",
+    "label": "green bay",
+    "lat": 44.51916,
+    "lon": -88.01983,
+    "country": "US"
+  },
+  {
+    "subdomain": "janesville",
+    "label": "janesville",
+    "lat": 42.68279,
+    "lon": -89.01872,
+    "country": "US"
+  },
+  {
+    "subdomain": "racine",
+    "label": "kenosha-racine",
+    "lat": 42.72613,
+    "lon": -87.78285,
+    "country": "US"
+  },
+  {
+    "subdomain": "lacrosse",
+    "label": "la crosse",
+    "lat": 43.80136,
+    "lon": -91.23958,
+    "country": "US"
+  },
+  {
+    "subdomain": "madison",
+    "label": "madison",
+    "lat": 43.07305,
+    "lon": -89.40123,
+    "country": "US"
+  },
+  {
+    "subdomain": "milwaukee",
+    "label": "milwaukee",
+    "lat": 43.0389,
+    "lon": -87.90647,
+    "country": "US"
+  },
+  {
+    "subdomain": "northernwi",
+    "label": "northern WI",
+    "lat": 44.94746,
+    "lon": -91.39488,
+    "country": "US"
+  },
+  {
+    "subdomain": "sheboygan",
+    "label": "sheboygan",
+    "lat": 43.75083,
+    "lon": -87.71453,
+    "country": "US"
+  },
+  {
+    "subdomain": "wausau",
+    "label": "wausau",
+    "lat": 44.95914,
+    "lon": -89.63012,
+    "country": "US"
+  },
+  {
+    "subdomain": "wyoming",
+    "label": "wyoming",
+    "lat": 42.91336,
+    "lon": -85.70531,
+    "country": "US"
+  },
+  {
+    "subdomain": "micronesia",
+    "label": "guam-micronesia",
+    "lat": 7.4256,
+    "lon": 151.7415,
+    "country": "FM"
+  },
+  {
+    "subdomain": "puertorico",
+    "label": "puerto rico",
+    "lat": 26.6495,
+    "lon": -98.34557,
+    "country": "US"
+  },
+  {
+    "subdomain": "virgin",
+    "label": "U.S. virgin islands",
+    "lat": 37.20832,
+    "lon": -113.18828,
+    "country": "US"
+  },
+  {
+    "subdomain": "calgary",
+    "label": "calgary",
+    "lat": 51.05011,
+    "lon": -114.08529,
+    "country": "CA"
+  },
+  {
+    "subdomain": "edmonton",
+    "label": "edmonton",
+    "lat": 53.55014,
+    "lon": -113.46871,
+    "country": "CA"
+  },
+  {
+    "subdomain": "ftmcmurray",
+    "label": "ft mcmurray",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "CA"
+  },
+  {
+    "subdomain": "lethbridge",
+    "label": "lethbridge",
+    "lat": 49.69999,
+    "lon": -112.81856,
+    "country": "CA"
+  },
+  {
+    "subdomain": "hat",
+    "label": "medicine hat",
+    "lat": 50.03928,
+    "lon": -110.67661,
+    "country": "CA"
+  },
+  {
+    "subdomain": "peace",
+    "label": "peace river country",
+    "lat": 56.23715,
+    "lon": -117.29176,
+    "country": "CA"
+  },
+  {
+    "subdomain": "reddeer",
+    "label": "red deer",
+    "lat": 52.26682,
+    "lon": -113.802,
+    "country": "CA"
+  },
+  {
+    "subdomain": "cariboo",
+    "label": "cariboo",
+    "lat": 49.25,
+    "lon": -122.88333,
+    "country": "CA"
+  },
+  {
+    "subdomain": "comoxvalley",
+    "label": "comox valley",
+    "lat": 49.71083,
+    "lon": -124.88667,
+    "country": "CA"
+  },
+  {
+    "subdomain": "abbotsford",
+    "label": "fraser valley",
+    "lat": 49.05798,
+    "lon": -122.25257,
+    "country": "CA"
+  },
+  {
+    "subdomain": "kamloops",
+    "label": "kamloops",
+    "lat": 50.66648,
+    "lon": -120.3192,
+    "country": "CA"
+  },
+  {
+    "subdomain": "kelowna",
+    "label": "kelowna / okanagan",
+    "lat": 49.88307,
+    "lon": -119.48568,
+    "country": "CA"
+  },
+  {
+    "subdomain": "kootenays",
+    "label": "kootenays",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "CA"
+  },
+  {
+    "subdomain": "nanaimo",
+    "label": "nanaimo",
+    "lat": 49.16638,
+    "lon": -123.94003,
+    "country": "CA"
+  },
+  {
+    "subdomain": "princegeorge",
+    "label": "prince george",
+    "lat": 53.9166,
+    "lon": -122.75301,
+    "country": "CA"
+  },
+  {
+    "subdomain": "skeena",
+    "label": "skeena-bulkley",
+    "lat": 55.09832,
+    "lon": -127.81463,
+    "country": "CA"
+  },
+  {
+    "subdomain": "sunshine",
+    "label": "sunshine coast",
+    "lat": 49.99891,
+    "lon": -123.75412,
+    "country": "CA"
+  },
+  {
+    "subdomain": "vancouver",
+    "label": "vancouver",
+    "lat": 49.24966,
+    "lon": -123.11934,
+    "country": "CA"
+  },
+  {
+    "subdomain": "victoria",
+    "label": "victoria",
+    "lat": 48.4359,
+    "lon": -123.35155,
+    "country": "CA"
+  },
+  {
+    "subdomain": "whistler",
+    "label": "whistler",
+    "lat": 50.11817,
+    "lon": -122.95396,
+    "country": "CA"
+  },
+  {
+    "subdomain": "winnipeg",
+    "label": "winnipeg",
+    "lat": 49.8844,
+    "lon": -97.14704,
+    "country": "CA"
+  },
+  {
+    "subdomain": "newbrunswick",
+    "label": "new brunswick",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "CA"
+  },
+  {
+    "subdomain": "newfoundland",
+    "label": "st john's",
+    "lat": 48.56476,
+    "lon": -55.77879,
+    "country": "CA"
+  },
+  {
+    "subdomain": "territories",
+    "label": "territories",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "CA"
+  },
+  {
+    "subdomain": "yellowknife",
+    "label": "yellowknife",
+    "lat": 62.45411,
+    "lon": -114.37248,
+    "country": "CA"
+  },
+  {
+    "subdomain": "halifax",
+    "label": "halifax",
+    "lat": 44.64269,
+    "lon": -63.57688,
+    "country": "CA"
+  },
+  {
+    "subdomain": "barrie",
+    "label": "barrie",
+    "lat": 44.40011,
+    "lon": -79.66634,
+    "country": "CA"
+  },
+  {
+    "subdomain": "belleville",
+    "label": "belleville",
+    "lat": 44.16682,
+    "lon": -77.38277,
+    "country": "CA"
+  },
+  {
+    "subdomain": "brantford",
+    "label": "brantford-woodstock",
+    "lat": 43.1334,
+    "lon": -80.26636,
+    "country": "CA"
+  },
+  {
+    "subdomain": "chatham",
+    "label": "chatham-kent",
+    "lat": 42.3081,
+    "lon": -82.07894,
+    "country": "CA"
+  },
+  {
+    "subdomain": "cornwall",
+    "label": "cornwall",
+    "lat": 45.01809,
+    "lon": -74.72815,
+    "country": "CA"
+  },
+  {
+    "subdomain": "guelph",
+    "label": "guelph",
+    "lat": 43.54594,
+    "lon": -80.25599,
+    "country": "CA"
+  },
+  {
+    "subdomain": "hamilton",
+    "label": "hamilton-burlington",
+    "lat": 43.25011,
+    "lon": -79.84963,
+    "country": "CA"
+  },
+  {
+    "subdomain": "kingston",
+    "label": "kingston",
+    "lat": 44.22976,
+    "lon": -76.48098,
+    "country": "CA"
+  },
+  {
+    "subdomain": "kitchener",
+    "label": "kitchener-waterloo-cambridge",
+    "lat": 43.42537,
+    "lon": -80.5112,
+    "country": "CA"
+  },
+  {
+    "subdomain": "londonon",
+    "label": "london",
+    "lat": 42.98339,
+    "lon": -81.23304,
+    "country": "CA"
+  },
+  {
+    "subdomain": "niagara",
+    "label": "niagara region",
+    "lat": 43.64455,
+    "lon": -79.40712,
+    "country": "CA"
+  },
+  {
+    "subdomain": "ottawa",
+    "label": "ottawa-hull-gatineau",
+    "lat": 45.41117,
+    "lon": -75.69812,
+    "country": "CA"
+  },
+  {
+    "subdomain": "owensound",
+    "label": "owen sound",
+    "lat": 44.56717,
+    "lon": -80.94349,
+    "country": "CA"
+  },
+  {
+    "subdomain": "peterborough",
+    "label": "peterborough",
+    "lat": 44.30012,
+    "lon": -78.31623,
+    "country": "CA"
+  },
+  {
+    "subdomain": "sarnia",
+    "label": "sarnia",
+    "lat": 42.97866,
+    "lon": -82.40407,
+    "country": "CA"
+  },
+  {
+    "subdomain": "soo",
+    "label": "sault ste marie",
+    "lat": 48.37463,
+    "lon": -123.72762,
+    "country": "CA"
+  },
+  {
+    "subdomain": "sudbury",
+    "label": "sudbury",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "CA"
+  },
+  {
+    "subdomain": "thunderbay",
+    "label": "thunder bay",
+    "lat": 48.38202,
+    "lon": -89.25018,
+    "country": "CA"
+  },
+  {
+    "subdomain": "toronto",
+    "label": "toronto",
+    "lat": 43.70643,
+    "lon": -79.39864,
+    "country": "CA"
+  },
+  {
+    "subdomain": "windsor",
+    "label": "windsor",
+    "lat": 42.30008,
+    "lon": -83.01654,
+    "country": "CA"
+  },
+  {
+    "subdomain": "pei",
+    "label": "prince edward island",
+    "lat": 46.50011,
+    "lon": -62.99868,
+    "country": "CA"
+  },
+  {
+    "subdomain": "montreal",
+    "label": "montreal",
+    "lat": 45.50884,
+    "lon": -73.58781,
+    "country": "CA"
+  },
+  {
+    "subdomain": "quebec",
+    "label": "quebec city",
+    "lat": 46.81228,
+    "lon": -71.21454,
+    "country": "CA"
+  },
+  {
+    "subdomain": "saguenay",
+    "label": "saguenay",
+    "lat": 48.41675,
+    "lon": -71.06573,
+    "country": "CA"
+  },
+  {
+    "subdomain": "sherbrooke",
+    "label": "sherbrooke",
+    "lat": 45.40008,
+    "lon": -71.89908,
+    "country": "CA"
+  },
+  {
+    "subdomain": "troisrivieres",
+    "label": "trois-rivieres",
+    "lat": 46.34515,
+    "lon": -72.5477,
+    "country": "CA"
+  },
+  {
+    "subdomain": "regina",
+    "label": "regina",
+    "lat": 50.45008,
+    "lon": -104.6178,
+    "country": "CA"
+  },
+  {
+    "subdomain": "saskatoon",
+    "label": "saskatoon",
+    "lat": 52.13238,
+    "lon": -106.66892,
+    "country": "CA"
+  },
+  {
+    "subdomain": "whitehorse",
+    "label": "whitehorse",
+    "lat": 60.71611,
+    "lon": -135.05376,
+    "country": "CA"
+  },
+  {
+    "subdomain": "vienna",
+    "label": "vienna",
+    "lat": 48.20849,
+    "lon": 16.37208,
+    "country": "AT"
+  },
+  {
+    "subdomain": "brussels",
+    "label": "belgium",
+    "lat": 50.75,
+    "lon": 4.5,
+    "country": "BE"
+  },
+  {
+    "subdomain": "bulgaria",
+    "label": "bulgaria",
+    "lat": 42.66667,
+    "lon": 25.25,
+    "country": "BG"
+  },
+  {
+    "subdomain": "zagreb",
+    "label": "croatia",
+    "lat": 45.16667,
+    "lon": 15.5,
+    "country": "HR"
+  },
+  {
+    "subdomain": "prague",
+    "label": "prague",
+    "lat": 50.08804,
+    "lon": 14.42076,
+    "country": "CZ"
+  },
+  {
+    "subdomain": "copenhagen",
+    "label": "copenhagen",
+    "lat": 55.67594,
+    "lon": 12.56553,
+    "country": "DK"
+  },
+  {
+    "subdomain": "helsinki",
+    "label": "finland",
+    "lat": 64.0,
+    "lon": 26.0,
+    "country": "FI"
+  },
+  {
+    "subdomain": "bordeaux",
+    "label": "bordeaux",
+    "lat": 44.84124,
+    "lon": -0.58046,
+    "country": "FR"
+  },
+  {
+    "subdomain": "rennes",
+    "label": "brittany",
+    "lat": 48.11109,
+    "lon": -1.67431,
+    "country": "FR"
+  },
+  {
+    "subdomain": "grenoble",
+    "label": "grenoble",
+    "lat": 45.17869,
+    "lon": 5.71479,
+    "country": "FR"
+  },
+  {
+    "subdomain": "lille",
+    "label": "lille",
+    "lat": 50.63391,
+    "lon": 3.05512,
+    "country": "FR"
+  },
+  {
+    "subdomain": "loire",
+    "label": "loire valley",
+    "lat": 47.61477,
+    "lon": -0.97891,
+    "country": "FR"
+  },
+  {
+    "subdomain": "lyon",
+    "label": "lyon",
+    "lat": 45.74906,
+    "lon": 4.84789,
+    "country": "FR"
+  },
+  {
+    "subdomain": "marseilles",
+    "label": "marseille",
+    "lat": 43.29695,
+    "lon": 5.38107,
+    "country": "FR"
+  },
+  {
+    "subdomain": "montpellier",
+    "label": "montpellier",
+    "lat": 43.61093,
+    "lon": 3.87635,
+    "country": "FR"
+  },
+  {
+    "subdomain": "cotedazur",
+    "label": "nice / cote d'azur",
+    "lat": 43.70313,
+    "lon": 7.26608,
+    "country": "FR"
+  },
+  {
+    "subdomain": "rouen",
+    "label": "normandy",
+    "lat": 49.44313,
+    "lon": 1.09932,
+    "country": "FR"
+  },
+  {
+    "subdomain": "paris",
+    "label": "paris",
+    "lat": 48.85341,
+    "lon": 2.3488,
+    "country": "FR"
+  },
+  {
+    "subdomain": "strasbourg",
+    "label": "strasbourg",
+    "lat": 48.58392,
+    "lon": 7.74553,
+    "country": "FR"
+  },
+  {
+    "subdomain": "toulouse",
+    "label": "toulouse",
+    "lat": 43.60426,
+    "lon": 1.44367,
+    "country": "FR"
+  },
+  {
+    "subdomain": "berlin",
+    "label": "berlin",
+    "lat": 52.52437,
+    "lon": 13.41053,
+    "country": "DE"
+  },
+  {
+    "subdomain": "bremen",
+    "label": "bremen",
+    "lat": 53.07582,
+    "lon": 8.80717,
+    "country": "DE"
+  },
+  {
+    "subdomain": "cologne",
+    "label": "cologne",
+    "lat": 50.93333,
+    "lon": 6.95,
+    "country": "DE"
+  },
+  {
+    "subdomain": "dresden",
+    "label": "dresden",
+    "lat": 51.05089,
+    "lon": 13.73832,
+    "country": "DE"
+  },
+  {
+    "subdomain": "dusseldorf",
+    "label": "dusseldorf",
+    "lat": 51.22319,
+    "lon": 6.77927,
+    "country": "DE"
+  },
+  {
+    "subdomain": "essen",
+    "label": "essen / ruhr",
+    "lat": 51.45657,
+    "lon": 7.01228,
+    "country": "DE"
+  },
+  {
+    "subdomain": "frankfurt",
+    "label": "frankfurt",
+    "lat": 50.11552,
+    "lon": 8.68417,
+    "country": "DE"
+  },
+  {
+    "subdomain": "hamburg",
+    "label": "hamburg",
+    "lat": 53.55073,
+    "lon": 9.99302,
+    "country": "DE"
+  },
+  {
+    "subdomain": "hannover",
+    "label": "hannover",
+    "lat": 52.37052,
+    "lon": 9.73322,
+    "country": "DE"
+  },
+  {
+    "subdomain": "heidelberg",
+    "label": "heidelberg",
+    "lat": 49.40768,
+    "lon": 8.69079,
+    "country": "DE"
+  },
+  {
+    "subdomain": "kaiserslautern",
+    "label": "kaiserslautern",
+    "lat": 49.443,
+    "lon": 7.77161,
+    "country": "DE"
+  },
+  {
+    "subdomain": "leipzig",
+    "label": "leipzig",
+    "lat": 51.33962,
+    "lon": 12.37129,
+    "country": "DE"
+  },
+  {
+    "subdomain": "munich",
+    "label": "munich",
+    "lat": 48.13743,
+    "lon": 11.57549,
+    "country": "DE"
+  },
+  {
+    "subdomain": "nuremberg",
+    "label": "nuremberg",
+    "lat": 49.45421,
+    "lon": 11.07752,
+    "country": "DE"
+  },
+  {
+    "subdomain": "stuttgart",
+    "label": "stuttgart",
+    "lat": 48.78232,
+    "lon": 9.17702,
+    "country": "DE"
+  },
+  {
+    "subdomain": "athens",
+    "label": "greece",
+    "lat": 39.0,
+    "lon": 22.0,
+    "country": "GR"
+  },
+  {
+    "subdomain": "budapest",
+    "label": "budapest",
+    "lat": 47.49835,
+    "lon": 19.04045,
+    "country": "HU"
+  },
+  {
+    "subdomain": "reykjavik",
+    "label": "reykjavik",
+    "lat": 64.13548,
+    "lon": -21.89541,
+    "country": "IS"
+  },
+  {
+    "subdomain": "dublin",
+    "label": "dublin",
+    "lat": 53.33306,
+    "lon": -6.24889,
+    "country": "IE"
+  },
+  {
+    "subdomain": "bologna",
+    "label": "bologna",
+    "lat": 44.49381,
+    "lon": 11.33875,
+    "country": "IT"
+  },
+  {
+    "subdomain": "florence",
+    "label": "florence / tuscany",
+    "lat": 43.77925,
+    "lon": 11.24626,
+    "country": "IT"
+  },
+  {
+    "subdomain": "genoa",
+    "label": "genoa",
+    "lat": 44.40478,
+    "lon": 8.94439,
+    "country": "IT"
+  },
+  {
+    "subdomain": "milan",
+    "label": "milan",
+    "lat": 45.46427,
+    "lon": 9.18951,
+    "country": "IT"
+  },
+  {
+    "subdomain": "naples",
+    "label": "napoli / campania",
+    "lat": 40.87618,
+    "lon": 14.5195,
+    "country": "IT"
+  },
+  {
+    "subdomain": "perugia",
+    "label": "perugia",
+    "lat": 43.1122,
+    "lon": 12.38878,
+    "country": "IT"
+  },
+  {
+    "subdomain": "rome",
+    "label": "rome",
+    "lat": 41.89193,
+    "lon": 12.51133,
+    "country": "IT"
+  },
+  {
+    "subdomain": "sardinia",
+    "label": "sardinia",
+    "lat": 40.0,
+    "lon": 9.0,
+    "country": "IT"
+  },
+  {
+    "subdomain": "sicily",
+    "label": "sicilia",
+    "lat": 37.62304,
+    "lon": 13.93457,
+    "country": "IT"
+  },
+  {
+    "subdomain": "torino",
+    "label": "torino",
+    "lat": 45.07049,
+    "lon": 7.68682,
+    "country": "IT"
+  },
+  {
+    "subdomain": "venice",
+    "label": "venice / veneto",
+    "lat": 45.43713,
+    "lon": 12.33265,
+    "country": "IT"
+  },
+  {
+    "subdomain": "luxembourg",
+    "label": "luxembourg",
+    "lat": 49.75,
+    "lon": 6.16667,
+    "country": "LU"
+  },
+  {
+    "subdomain": "amsterdam",
+    "label": "amsterdam / randstad",
+    "lat": 52.37403,
+    "lon": 4.88969,
+    "country": "NL"
+  },
+  {
+    "subdomain": "oslo",
+    "label": "norway",
+    "lat": 62.0,
+    "lon": 10.0,
+    "country": "NO"
+  },
+  {
+    "subdomain": "warsaw",
+    "label": "poland",
+    "lat": 52.0,
+    "lon": 20.0,
+    "country": "PL"
+  },
+  {
+    "subdomain": "faro",
+    "label": "faro / algarve",
+    "lat": 37.01869,
+    "lon": -7.92716,
+    "country": "PT"
+  },
+  {
+    "subdomain": "lisbon",
+    "label": "lisbon",
+    "lat": 38.72509,
+    "lon": -9.1498,
+    "country": "PT"
+  },
+  {
+    "subdomain": "porto",
+    "label": "porto",
+    "lat": 41.1485,
+    "lon": -8.61097,
+    "country": "PT"
+  },
+  {
+    "subdomain": "bucharest",
+    "label": "romania",
+    "lat": 46.0,
+    "lon": 25.0,
+    "country": "RO"
+  },
+  {
+    "subdomain": "moscow",
+    "label": "moscow",
+    "lat": 55.75204,
+    "lon": 37.61781,
+    "country": "RU"
+  },
+  {
+    "subdomain": "stpetersburg",
+    "label": "st petersburg",
+    "lat": 59.93863,
+    "lon": 30.31413,
+    "country": "RU"
+  },
+  {
+    "subdomain": "alicante",
+    "label": "alicante",
+    "lat": 38.34517,
+    "lon": -0.48149,
+    "country": "ES"
+  },
+  {
+    "subdomain": "baleares",
+    "label": "baleares",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "ES"
+  },
+  {
+    "subdomain": "barcelona",
+    "label": "barcelona",
+    "lat": 41.38879,
+    "lon": 2.15899,
+    "country": "ES"
+  },
+  {
+    "subdomain": "bilbao",
+    "label": "bilbao",
+    "lat": 43.26271,
+    "lon": -2.92528,
+    "country": "ES"
+  },
+  {
+    "subdomain": "cadiz",
+    "label": "cadiz",
+    "lat": 36.52672,
+    "lon": -6.2891,
+    "country": "ES"
+  },
+  {
+    "subdomain": "canarias",
+    "label": "canarias",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "ES"
+  },
+  {
+    "subdomain": "granada",
+    "label": "granada",
+    "lat": 37.18817,
+    "lon": -3.60667,
+    "country": "ES"
+  },
+  {
+    "subdomain": "madrid",
+    "label": "madrid",
+    "lat": 40.4165,
+    "lon": -3.70256,
+    "country": "ES"
+  },
+  {
+    "subdomain": "malaga",
+    "label": "malaga",
+    "lat": 36.72016,
+    "lon": -4.42034,
+    "country": "ES"
+  },
+  {
+    "subdomain": "sevilla",
+    "label": "sevilla",
+    "lat": 37.38283,
+    "lon": -5.97317,
+    "country": "ES"
+  },
+  {
+    "subdomain": "valencia",
+    "label": "valencia",
+    "lat": 39.47391,
+    "lon": -0.37966,
+    "country": "ES"
+  },
+  {
+    "subdomain": "stockholm",
+    "label": "sweden",
+    "lat": 62.0,
+    "lon": 15.0,
+    "country": "SE"
+  },
+  {
+    "subdomain": "basel",
+    "label": "basel",
+    "lat": 47.55839,
+    "lon": 7.57327,
+    "country": "CH"
+  },
+  {
+    "subdomain": "bern",
+    "label": "bern",
+    "lat": 46.94809,
+    "lon": 7.44744,
+    "country": "CH"
+  },
+  {
+    "subdomain": "geneva",
+    "label": "geneva",
+    "lat": 46.20222,
+    "lon": 6.14569,
+    "country": "CH"
+  },
+  {
+    "subdomain": "lausanne",
+    "label": "lausanne",
+    "lat": 46.516,
+    "lon": 6.63282,
+    "country": "CH"
+  },
+  {
+    "subdomain": "zurich",
+    "label": "zurich",
+    "lat": 47.36667,
+    "lon": 8.55,
+    "country": "CH"
+  },
+  {
+    "subdomain": "istanbul",
+    "label": "turkey",
+    "lat": 41.01384,
+    "lon": 28.94966,
+    "country": "TR"
+  },
+  {
+    "subdomain": "ukraine",
+    "label": "ukraine",
+    "lat": 49.0,
+    "lon": 32.0,
+    "country": "UA"
+  },
+  {
+    "subdomain": "aberdeen",
+    "label": "aberdeen",
+    "lat": 57.14369,
+    "lon": -2.09814,
+    "country": "GB"
+  },
+  {
+    "subdomain": "bath",
+    "label": "bath",
+    "lat": 51.3751,
+    "lon": -2.36172,
+    "country": "GB"
+  },
+  {
+    "subdomain": "belfast",
+    "label": "belfast",
+    "lat": 54.59682,
+    "lon": -5.92541,
+    "country": "GB"
+  },
+  {
+    "subdomain": "birmingham",
+    "label": "birmingham / west mids",
+    "lat": 52.48142,
+    "lon": -1.89983,
+    "country": "GB"
+  },
+  {
+    "subdomain": "brighton",
+    "label": "brighton",
+    "lat": 50.82838,
+    "lon": -0.13947,
+    "country": "GB"
+  },
+  {
+    "subdomain": "bristol",
+    "label": "bristol",
+    "lat": 51.45523,
+    "lon": -2.59665,
+    "country": "GB"
+  },
+  {
+    "subdomain": "cambridge",
+    "label": "cambridge, UK",
+    "lat": 52.2,
+    "lon": 0.11667,
+    "country": "GB"
+  },
+  {
+    "subdomain": "cardiff",
+    "label": "cardiff / wales",
+    "lat": 51.48,
+    "lon": -3.18,
+    "country": "GB"
+  },
+  {
+    "subdomain": "coventry",
+    "label": "coventry",
+    "lat": 52.40656,
+    "lon": -1.51217,
+    "country": "GB"
+  },
+  {
+    "subdomain": "derby",
+    "label": "derby",
+    "lat": 52.92277,
+    "lon": -1.47663,
+    "country": "GB"
+  },
+  {
+    "subdomain": "devon",
+    "label": "devon &amp; cornwall",
+    "lat": 50.37807,
+    "lon": -4.17534,
+    "country": "GB"
+  },
+  {
+    "subdomain": "dundee",
+    "label": "dundee",
+    "lat": 56.46913,
+    "lon": -2.97489,
+    "country": "GB"
+  },
+  {
+    "subdomain": "norwich",
+    "label": "east anglia",
+    "lat": 52.62783,
+    "lon": 1.29834,
+    "country": "GB"
+  },
+  {
+    "subdomain": "eastmids",
+    "label": "east midlands",
+    "lat": 52.83111,
+    "lon": -1.32806,
+    "country": "GB"
+  },
+  {
+    "subdomain": "edinburgh",
+    "label": "edinburgh",
+    "lat": 55.95206,
+    "lon": -3.19648,
+    "country": "GB"
+  },
+  {
+    "subdomain": "essex",
+    "label": "essex",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "GB"
+  },
+  {
+    "subdomain": "glasgow",
+    "label": "glasgow",
+    "lat": 55.86515,
+    "lon": -4.25763,
+    "country": "GB"
+  },
+  {
+    "subdomain": "hampshire",
+    "label": "hampshire",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "GB"
+  },
+  {
+    "subdomain": "kent",
+    "label": "kent",
+    "lat": 50.89269,
+    "lon": -1.80317,
+    "country": "GB"
+  },
+  {
+    "subdomain": "leeds",
+    "label": "leeds",
+    "lat": 53.79648,
+    "lon": -1.54785,
+    "country": "GB"
+  },
+  {
+    "subdomain": "liverpool",
+    "label": "liverpool",
+    "lat": 53.41058,
+    "lon": -2.97794,
+    "country": "GB"
+  },
+  {
+    "subdomain": "london",
+    "label": "london",
+    "lat": 51.50853,
+    "lon": -0.12574,
+    "country": "GB"
+  },
+  {
+    "subdomain": "manchester",
+    "label": "manchester",
+    "lat": 53.48095,
+    "lon": -2.23743,
+    "country": "GB"
+  },
+  {
+    "subdomain": "newcastle",
+    "label": "newcastle / NE england",
+    "lat": 54.21804,
+    "lon": -5.88979,
+    "country": "GB"
+  },
+  {
+    "subdomain": "nottingham",
+    "label": "nottingham",
+    "lat": 52.9536,
+    "lon": -1.15047,
+    "country": "GB"
+  },
+  {
+    "subdomain": "oxford",
+    "label": "oxford",
+    "lat": 51.75222,
+    "lon": -1.25596,
+    "country": "GB"
+  },
+  {
+    "subdomain": "sheffield",
+    "label": "sheffield",
+    "lat": 53.38297,
+    "lon": -1.4659,
+    "country": "GB"
+  },
+  {
+    "subdomain": "bangladesh",
+    "label": "bangladesh",
+    "lat": 24.0,
+    "lon": 90.0,
+    "country": "BD"
+  },
+  {
+    "subdomain": "beijing",
+    "label": "beijing",
+    "lat": 39.9075,
+    "lon": 116.39723,
+    "country": "CN"
+  },
+  {
+    "subdomain": "chengdu",
+    "label": "chengdu",
+    "lat": 30.66667,
+    "lon": 104.06667,
+    "country": "CN"
+  },
+  {
+    "subdomain": "chongqing",
+    "label": "chongqing",
+    "lat": 29.56026,
+    "lon": 106.55771,
+    "country": "CN"
+  },
+  {
+    "subdomain": "dalian",
+    "label": "dalian",
+    "lat": 38.91222,
+    "lon": 121.60222,
+    "country": "CN"
+  },
+  {
+    "subdomain": "guangzhou",
+    "label": "guangzhou",
+    "lat": 23.11667,
+    "lon": 113.25,
+    "country": "CN"
+  },
+  {
+    "subdomain": "hangzhou",
+    "label": "hangzhou",
+    "lat": 30.29365,
+    "lon": 120.16142,
+    "country": "CN"
+  },
+  {
+    "subdomain": "nanjing",
+    "label": "nanjing",
+    "lat": 32.06167,
+    "lon": 118.77778,
+    "country": "CN"
+  },
+  {
+    "subdomain": "shanghai",
+    "label": "shanghai",
+    "lat": 31.22222,
+    "lon": 121.45806,
+    "country": "CN"
+  },
+  {
+    "subdomain": "shenyang",
+    "label": "shenyang",
+    "lat": 41.79222,
+    "lon": 123.43278,
+    "country": "CN"
+  },
+  {
+    "subdomain": "shenzhen",
+    "label": "shenzhen",
+    "lat": 22.54554,
+    "lon": 114.0683,
+    "country": "CN"
+  },
+  {
+    "subdomain": "wuhan",
+    "label": "wuhan",
+    "lat": 30.58333,
+    "lon": 114.26667,
+    "country": "CN"
+  },
+  {
+    "subdomain": "xian",
+    "label": "xi'an",
+    "lat": 34.25833,
+    "lon": 108.92861,
+    "country": "CN"
+  },
+  {
+    "subdomain": "hongkong",
+    "label": "hong kong",
+    "lat": 22.27832,
+    "lon": 114.17469,
+    "country": "HK"
+  },
+  {
+    "subdomain": "ahmedabad",
+    "label": "ahmedabad",
+    "lat": 23.02579,
+    "lon": 72.58727,
+    "country": "IN"
+  },
+  {
+    "subdomain": "bangalore",
+    "label": "bangalore",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "IN"
+  },
+  {
+    "subdomain": "bhubaneswar",
+    "label": "bhubaneswar",
+    "lat": 20.27241,
+    "lon": 85.83385,
+    "country": "IN"
+  },
+  {
+    "subdomain": "chandigarh",
+    "label": "chandigarh",
+    "lat": 30.73629,
+    "lon": 76.7884,
+    "country": "IN"
+  },
+  {
+    "subdomain": "chennai",
+    "label": "chennai (madras)",
+    "lat": 13.08784,
+    "lon": 80.27847,
+    "country": "IN"
+  },
+  {
+    "subdomain": "delhi",
+    "label": "delhi",
+    "lat": 28.65195,
+    "lon": 77.23149,
+    "country": "IN"
+  },
+  {
+    "subdomain": "goa",
+    "label": "goa",
+    "lat": 24.60243,
+    "lon": 72.72583,
+    "country": "IN"
+  },
+  {
+    "subdomain": "hyderabad",
+    "label": "hyderabad",
+    "lat": 17.38405,
+    "lon": 78.45636,
+    "country": "IN"
+  },
+  {
+    "subdomain": "indore",
+    "label": "indore",
+    "lat": 22.71792,
+    "lon": 75.8333,
+    "country": "IN"
+  },
+  {
+    "subdomain": "jaipur",
+    "label": "jaipur",
+    "lat": 26.91962,
+    "lon": 75.78781,
+    "country": "IN"
+  },
+  {
+    "subdomain": "kerala",
+    "label": "kerala",
+    "lat": 10.70319,
+    "lon": 79.65714,
+    "country": "IN"
+  },
+  {
+    "subdomain": "kolkata",
+    "label": "kolkata (calcutta)",
+    "lat": 22.56263,
+    "lon": 88.36304,
+    "country": "IN"
+  },
+  {
+    "subdomain": "lucknow",
+    "label": "lucknow",
+    "lat": 26.83928,
+    "lon": 80.92313,
+    "country": "IN"
+  },
+  {
+    "subdomain": "mumbai",
+    "label": "mumbai",
+    "lat": 19.07283,
+    "lon": 72.88261,
+    "country": "IN"
+  },
+  {
+    "subdomain": "pune",
+    "label": "pune",
+    "lat": 18.51957,
+    "lon": 73.85535,
+    "country": "IN"
+  },
+  {
+    "subdomain": "surat",
+    "label": "surat surat",
+    "lat": 21.19594,
+    "lon": 72.83023,
+    "country": "IN"
+  },
+  {
+    "subdomain": "jakarta",
+    "label": "indonesia",
+    "lat": -5.0,
+    "lon": 120.0,
+    "country": "ID"
+  },
+  {
+    "subdomain": "tehran",
+    "label": "iran",
+    "lat": 32.0,
+    "lon": 53.0,
+    "country": "IR"
+  },
+  {
+    "subdomain": "baghdad",
+    "label": "iraq",
+    "lat": 33.0,
+    "lon": 44.0,
+    "country": "IQ"
+  },
+  {
+    "subdomain": "haifa",
+    "label": "haifa",
+    "lat": 32.81303,
+    "lon": 34.99928,
+    "country": "IL"
+  },
+  {
+    "subdomain": "jerusalem",
+    "label": "jerusalem",
+    "lat": 31.76904,
+    "lon": 35.21633,
+    "country": "IL"
+  },
+  {
+    "subdomain": "telaviv",
+    "label": "tel aviv",
+    "lat": 32.08088,
+    "lon": 34.78057,
+    "country": "IL"
+  },
+  {
+    "subdomain": "ramallah",
+    "label": "west bank",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "IL"
+  },
+  {
+    "subdomain": "fukuoka",
+    "label": "fukuoka",
+    "lat": 33.6,
+    "lon": 130.41667,
+    "country": "JP"
+  },
+  {
+    "subdomain": "hiroshima",
+    "label": "hiroshima",
+    "lat": 34.4,
+    "lon": 132.45,
+    "country": "JP"
+  },
+  {
+    "subdomain": "nagoya",
+    "label": "nagoya",
+    "lat": 35.18147,
+    "lon": 136.9064,
+    "country": "JP"
+  },
+  {
+    "subdomain": "okinawa",
+    "label": "okinawa",
+    "lat": 26.50687,
+    "lon": 127.94581,
+    "country": "JP"
+  },
+  {
+    "subdomain": "osaka",
+    "label": "osaka-kobe-kyoto",
+    "lat": 34.69379,
+    "lon": 135.50107,
+    "country": "JP"
+  },
+  {
+    "subdomain": "sapporo",
+    "label": "sapporo",
+    "lat": 43.06667,
+    "lon": 141.35,
+    "country": "JP"
+  },
+  {
+    "subdomain": "sendai",
+    "label": "sendai",
+    "lat": 38.26667,
+    "lon": 140.86667,
+    "country": "JP"
+  },
+  {
+    "subdomain": "tokyo",
+    "label": "tokyo",
+    "lat": 35.6895,
+    "lon": 139.69171,
+    "country": "JP"
+  },
+  {
+    "subdomain": "seoul",
+    "label": "seoul",
+    "lat": 37.566,
+    "lon": 126.9784,
+    "country": "KR"
+  },
+  {
+    "subdomain": "kuwait",
+    "label": "kuwait",
+    "lat": 29.5,
+    "lon": 47.75,
+    "country": "KW"
+  },
+  {
+    "subdomain": "beirut",
+    "label": "beirut, lebanon",
+    "lat": 33.89332,
+    "lon": 35.50157,
+    "country": "LB"
+  },
+  {
+    "subdomain": "malaysia",
+    "label": "malaysia",
+    "lat": 2.5,
+    "lon": 112.5,
+    "country": "MY"
+  },
+  {
+    "subdomain": "pakistan",
+    "label": "pakistan",
+    "lat": 30.0,
+    "lon": 70.0,
+    "country": "PK"
+  },
+  {
+    "subdomain": "bacolod",
+    "label": "bacolod",
+    "lat": 10.66667,
+    "lon": 122.95,
+    "country": "PH"
+  },
+  {
+    "subdomain": "naga",
+    "label": "bicol region",
+    "lat": 13.61917,
+    "lon": 123.18139,
+    "country": "PH"
+  },
+  {
+    "subdomain": "cdo",
+    "label": "cagayan de oro",
+    "lat": 8.48222,
+    "lon": 124.64722,
+    "country": "PH"
+  },
+  {
+    "subdomain": "cebu",
+    "label": "cebu",
+    "lat": 10.33333,
+    "lon": 123.75,
+    "country": "PH"
+  },
+  {
+    "subdomain": "davaocity",
+    "label": "davao city",
+    "lat": 7.07306,
+    "lon": 125.61278,
+    "country": "PH"
+  },
+  {
+    "subdomain": "iloilo",
+    "label": "iloilo",
+    "lat": 10.69694,
+    "lon": 122.56444,
+    "country": "PH"
+  },
+  {
+    "subdomain": "manila",
+    "label": "manila",
+    "lat": 14.6042,
+    "lon": 120.9822,
+    "country": "PH"
+  },
+  {
+    "subdomain": "pampanga",
+    "label": "pampanga",
+    "lat": 7.11,
+    "lon": 125.64889,
+    "country": "PH"
+  },
+  {
+    "subdomain": "zamboanga",
+    "label": "zamboanga",
+    "lat": 6.91028,
+    "lon": 122.07389,
+    "country": "PH"
+  },
+  {
+    "subdomain": "singapore",
+    "label": "singapore",
+    "lat": 1.28967,
+    "lon": 103.85007,
+    "country": "SG"
+  },
+  {
+    "subdomain": "taipei",
+    "label": "taiwan",
+    "lat": 24.0,
+    "lon": 121.0,
+    "country": "TW"
+  },
+  {
+    "subdomain": "bangkok",
+    "label": "thailand",
+    "lat": 15.5,
+    "lon": 101.0,
+    "country": "TH"
+  },
+  {
+    "subdomain": "dubai",
+    "label": "united arab emirates",
+    "lat": 23.75,
+    "lon": 54.5,
+    "country": "AE"
+  },
+  {
+    "subdomain": "vietnam",
+    "label": "vietnam",
+    "lat": 16.16667,
+    "lon": 107.83333,
+    "country": "VN"
+  },
+  {
+    "subdomain": "adelaide",
+    "label": "adelaide",
+    "lat": -34.92866,
+    "lon": 138.59863,
+    "country": "AU"
+  },
+  {
+    "subdomain": "brisbane",
+    "label": "brisbane",
+    "lat": -27.46794,
+    "lon": 153.02809,
+    "country": "AU"
+  },
+  {
+    "subdomain": "cairns",
+    "label": "cairns",
+    "lat": -16.92366,
+    "lon": 145.76613,
+    "country": "AU"
+  },
+  {
+    "subdomain": "canberra",
+    "label": "canberra",
+    "lat": -35.28346,
+    "lon": 149.12807,
+    "country": "AU"
+  },
+  {
+    "subdomain": "darwin",
+    "label": "darwin",
+    "lat": -12.46113,
+    "lon": 130.84184,
+    "country": "AU"
+  },
+  {
+    "subdomain": "goldcoast",
+    "label": "gold coast",
+    "lat": -28.00029,
+    "lon": 153.43088,
+    "country": "AU"
+  },
+  {
+    "subdomain": "melbourne",
+    "label": "melbourne",
+    "lat": -37.814,
+    "lon": 144.96332,
+    "country": "AU"
+  },
+  {
+    "subdomain": "ntl",
+    "label": "newcastle, NSW",
+    "lat": -32.92953,
+    "lon": 151.7801,
+    "country": "AU"
+  },
+  {
+    "subdomain": "perth",
+    "label": "perth",
+    "lat": -31.95224,
+    "lon": 115.8614,
+    "country": "AU"
+  },
+  {
+    "subdomain": "sydney",
+    "label": "sydney",
+    "lat": -33.86785,
+    "lon": 151.20732,
+    "country": "AU"
+  },
+  {
+    "subdomain": "hobart",
+    "label": "tasmania",
+    "lat": -42.0,
+    "lon": 147.0,
+    "country": "AU"
+  },
+  {
+    "subdomain": "wollongong",
+    "label": "wollongong",
+    "lat": -34.424,
+    "lon": 150.89345,
+    "country": "AU"
+  },
+  {
+    "subdomain": "auckland",
+    "label": "auckland",
+    "lat": -36.84853,
+    "lon": 174.76349,
+    "country": "NZ"
+  },
+  {
+    "subdomain": "christchurch",
+    "label": "christchurch",
+    "lat": -43.53333,
+    "lon": 172.63333,
+    "country": "NZ"
+  },
+  {
+    "subdomain": "dunedin",
+    "label": "dunedin",
+    "lat": -45.87416,
+    "lon": 170.50362,
+    "country": "NZ"
+  },
+  {
+    "subdomain": "wellington",
+    "label": "wellington",
+    "lat": -41.28664,
+    "lon": 174.77557,
+    "country": "NZ"
+  },
+  {
+    "subdomain": "buenosaires",
+    "label": "buenos aires",
+    "lat": -34.61315,
+    "lon": -58.37723,
+    "country": "AR"
+  },
+  {
+    "subdomain": "lapaz",
+    "label": "bolivia",
+    "lat": -17.0,
+    "lon": -65.0,
+    "country": "BO"
+  },
+  {
+    "subdomain": "belohorizonte",
+    "label": "belo horizonte",
+    "lat": -19.92083,
+    "lon": -43.93778,
+    "country": "BR"
+  },
+  {
+    "subdomain": "brasilia",
+    "label": "brasilia",
+    "lat": -15.77972,
+    "lon": -47.92972,
+    "country": "BR"
+  },
+  {
+    "subdomain": "curitiba",
+    "label": "curitiba",
+    "lat": -25.42778,
+    "lon": -49.27306,
+    "country": "BR"
+  },
+  {
+    "subdomain": "fortaleza",
+    "label": "fortaleza",
+    "lat": -3.71722,
+    "lon": -38.54306,
+    "country": "BR"
+  },
+  {
+    "subdomain": "portoalegre",
+    "label": "porto alegre",
+    "lat": -30.03283,
+    "lon": -51.23019,
+    "country": "BR"
+  },
+  {
+    "subdomain": "recife",
+    "label": "recife",
+    "lat": -8.05389,
+    "lon": -34.88111,
+    "country": "BR"
+  },
+  {
+    "subdomain": "rio",
+    "label": "rio de janeiro",
+    "lat": -22.90642,
+    "lon": -43.18223,
+    "country": "BR"
+  },
+  {
+    "subdomain": "salvador",
+    "label": "salvador, bahia",
+    "lat": -12.97563,
+    "lon": -38.49096,
+    "country": "BR"
+  },
+  {
+    "subdomain": "saopaulo",
+    "label": "sao paulo",
+    "lat": -23.5475,
+    "lon": -46.63611,
+    "country": "BR"
+  },
+  {
+    "subdomain": "caribbean",
+    "label": "caribbean islands",
+    "lat": 18.41537,
+    "lon": -77.03695,
+    "country": "JM"
+  },
+  {
+    "subdomain": "santiago",
+    "label": "chile",
+    "lat": -30.0,
+    "lon": -71.0,
+    "country": "CL"
+  },
+  {
+    "subdomain": "colombia",
+    "label": "colombia",
+    "lat": 4.0,
+    "lon": -73.25,
+    "country": "CO"
+  },
+  {
+    "subdomain": "costarica",
+    "label": "costa rica",
+    "lat": 10.0,
+    "lon": -84.0,
+    "country": "CR"
+  },
+  {
+    "subdomain": "santodomingo",
+    "label": "dominican republic",
+    "lat": 19.0,
+    "lon": -70.66667,
+    "country": "DO"
+  },
+  {
+    "subdomain": "quito",
+    "label": "ecuador",
+    "lat": -1.25,
+    "lon": -78.25,
+    "country": "EC"
+  },
+  {
+    "subdomain": "elsalvador",
+    "label": "el salvador",
+    "lat": 13.83333,
+    "lon": -88.91667,
+    "country": "SV"
+  },
+  {
+    "subdomain": "guatemala",
+    "label": "guatemala",
+    "lat": 15.5,
+    "lon": -90.25,
+    "country": "GT"
+  },
+  {
+    "subdomain": "acapulco",
+    "label": "acapulco",
+    "lat": 16.84942,
+    "lon": -99.90891,
+    "country": "MX"
+  },
+  {
+    "subdomain": "bajasur",
+    "label": "baja california sur",
+    "lat": 20.0,
+    "lon": 0.0,
+    "country": "MX"
+  },
+  {
+    "subdomain": "chihuahua",
+    "label": "chihuahua",
+    "lat": 28.63528,
+    "lon": -106.08889,
+    "country": "MX"
+  },
+  {
+    "subdomain": "juarez",
+    "label": "ciudad juarez",
+    "lat": 31.72024,
+    "lon": -106.46084,
+    "country": "MX"
+  },
+  {
+    "subdomain": "guadalajara",
+    "label": "guadalajara",
+    "lat": 20.67738,
+    "lon": -103.34749,
+    "country": "MX"
+  },
+  {
+    "subdomain": "guanajuato",
+    "label": "guanajuato",
+    "lat": 21.01858,
+    "lon": -101.2591,
+    "country": "MX"
+  },
+  {
+    "subdomain": "hermosillo",
+    "label": "hermosillo",
+    "lat": 29.08874,
+    "lon": -110.96677,
+    "country": "MX"
+  },
+  {
+    "subdomain": "mazatlan",
+    "label": "mazatlan",
+    "lat": 23.22163,
+    "lon": -106.41885,
+    "country": "MX"
+  },
+  {
+    "subdomain": "mexicocity",
+    "label": "mexico city",
+    "lat": 19.42847,
+    "lon": -99.12766,
+    "country": "MX"
+  },
+  {
+    "subdomain": "monterrey",
+    "label": "monterrey",
+    "lat": 25.68435,
+    "lon": -100.31721,
+    "country": "MX"
+  },
+  {
+    "subdomain": "oaxaca",
+    "label": "oaxaca",
+    "lat": 17.06025,
+    "lon": -96.72544,
+    "country": "MX"
+  },
+  {
+    "subdomain": "puebla",
+    "label": "puebla",
+    "lat": 19.04778,
+    "lon": -98.20723,
+    "country": "MX"
+  },
+  {
+    "subdomain": "pv",
+    "label": "puerto vallarta",
+    "lat": 20.617,
+    "lon": -105.23018,
+    "country": "MX"
+  },
+  {
+    "subdomain": "tijuana",
+    "label": "tijuana",
+    "lat": 32.5027,
+    "lon": -117.00371,
+    "country": "MX"
+  },
+  {
+    "subdomain": "veracruz",
+    "label": "veracruz",
+    "lat": 19.18095,
+    "lon": -96.1429,
+    "country": "MX"
+  },
+  {
+    "subdomain": "yucatan",
+    "label": "yucatan",
+    "lat": 19.34472,
+    "lon": -96.36167,
+    "country": "MX"
+  },
+  {
+    "subdomain": "managua",
+    "label": "nicaragua",
+    "lat": 13.0,
+    "lon": -85.0,
+    "country": "NI"
+  },
+  {
+    "subdomain": "panama",
+    "label": "panama",
+    "lat": 9.0,
+    "lon": -80.0,
+    "country": "PA"
+  },
+  {
+    "subdomain": "lima",
+    "label": "peru",
+    "lat": -10.0,
+    "lon": -75.25,
+    "country": "PE"
+  },
+  {
+    "subdomain": "montevideo",
+    "label": "montevideo",
+    "lat": -34.90328,
+    "lon": -56.18816,
+    "country": "UY"
+  },
+  {
+    "subdomain": "caracas",
+    "label": "venezuela",
+    "lat": 8.0,
+    "lon": -66.0,
+    "country": "VE"
+  },
+  {
+    "subdomain": "cairo",
+    "label": "egypt",
+    "lat": 27.0,
+    "lon": 30.0,
+    "country": "EG"
+  },
+  {
+    "subdomain": "addisababa",
+    "label": "ethiopia",
+    "lat": 9.0,
+    "lon": 39.5,
+    "country": "ET"
+  },
+  {
+    "subdomain": "accra",
+    "label": "ghana",
+    "lat": 8.1,
+    "lon": -1.2,
+    "country": "GH"
+  },
+  {
+    "subdomain": "kenya",
+    "label": "kenya",
+    "lat": 1.0,
+    "lon": 38.0,
+    "country": "KE"
+  },
+  {
+    "subdomain": "casablanca",
+    "label": "morocco",
+    "lat": 28.5,
+    "lon": -10.0,
+    "country": "MA"
+  },
+  {
+    "subdomain": "capetown",
+    "label": "cape town",
+    "lat": -33.92584,
+    "lon": 18.42322,
+    "country": "ZA"
+  },
+  {
+    "subdomain": "durban",
+    "label": "durban",
+    "lat": -29.8579,
+    "lon": 31.0292,
+    "country": "ZA"
+  },
+  {
+    "subdomain": "johannesburg",
+    "label": "johannesburg",
+    "lat": -26.20227,
+    "lon": 28.04363,
+    "country": "ZA"
+  },
+  {
+    "subdomain": "pretoria",
+    "label": "pretoria",
+    "lat": -25.74486,
+    "lon": 28.18783,
+    "country": "ZA"
+  },
+  {
+    "subdomain": "tunis",
+    "label": "tunisia",
+    "lat": 34.0,
+    "lon": 9.0,
+    "country": "TN"
+  }
+]

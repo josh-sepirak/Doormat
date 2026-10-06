@@ -270,14 +270,24 @@ async def persist_listing_classification(
                 "listing_found",
                 f"✓ Great match: {short_addr} {price_str}",
                 stage="scraping",
-                payload={"listing_id": listing.id, "category": category, "address": listing.address, "price": listing.price},
+                payload={
+                    "listing_id": listing.id,
+                    "category": category,
+                    "address": listing.address,
+                    "price": listing.price,
+                },
             )
         elif category == "worth_a_look":
             await emitter.emit(
                 "listing_found",
                 f"Worth a look: {short_addr} {price_str}",
                 stage="scraping",
-                payload={"listing_id": listing.id, "category": category, "address": listing.address, "price": listing.price},
+                payload={
+                    "listing_id": listing.id,
+                    "category": category,
+                    "address": listing.address,
+                    "price": listing.price,
+                },
             )
         elif category == "near_miss":
             await emitter.emit(

@@ -126,6 +126,7 @@ def test_cost_summary():
 
 
 @pytest.mark.asyncio
+@pytest.mark.real_startup_sweep
 async def test_cleanup_orphaned_runs_marks_stuck_runs() -> None:
     """_cleanup_orphaned_runs must mark any 'running' SearchRun/DiscoveryRun as 'error'."""
     from doormat.main import _cleanup_orphaned_runs
@@ -149,6 +150,7 @@ async def test_cleanup_orphaned_runs_marks_stuck_runs() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.real_startup_sweep
 async def test_cleanup_orphaned_runs_noop_when_no_stuck_runs() -> None:
     """_cleanup_orphaned_runs should not log a warning when no runs are stuck."""
     from doormat.main import _cleanup_orphaned_runs

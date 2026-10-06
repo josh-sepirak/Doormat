@@ -205,7 +205,7 @@ def _parse_rows(html: str) -> list[Row]:
                 admin1 = None
                 country = COUNTRY_ISO.get(region_title, "US")
             for href, label in re.findall(
-                r'<li><a href="https://([^.]+)\.craigslist\.org/?">([^<]+)</a></li>',
+                r'<li><a href="https://www\.craigslist\.org/area/([^/"]+)/?">([^<]+)</a></li>',
                 ul_html,
             ):
                 rows.append(
@@ -228,12 +228,10 @@ def _parse_rows(html: str) -> list[Row]:
 
 
 def _geocode(name: str, country: str, admin1: str | None) -> tuple[float, float] | None:
-    q = urllib.parse.urlencode({"name": name, "count": "1", "language": "en"})
+    q = urllib.parse.urlencode({"name": name, "count": "10", "language": "en"})
     url = f"{GEOCODE_URL}?{q}"
     if len(country) == 2:
         url += f"&countryCode={urllib.parse.quote(country.upper())}"
-    if admin1:
-        url += f"&admin1={urllib.parse.quote(admin1)}"
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
@@ -243,7 +241,12 @@ def _geocode(name: str, country: str, admin1: str | None) -> tuple[float, float]
     results = data.get("results") or []
     if not results:
         return None
+    # Open-Meteo has no admin1 filter, so pick the first hit in the right state or
+    # province. Without this, "lancaster" (PA) resolves to Lancaster, CA.
     r0 = results[0]
+    if admin1:
+        wanted = admin1.strip().lower()
+        r0 = next((r for r in results if str(r.get("admin1", "")).lower() == wanted), r0)
     try:
         return float(r0["latitude"]), float(r0["longitude"])
     except (KeyError, TypeError, ValueError):

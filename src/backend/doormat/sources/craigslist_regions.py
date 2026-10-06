@@ -28,7 +28,11 @@ class CraigslistRegion:
 
 @lru_cache(maxsize=1)
 def load_regions() -> tuple[CraigslistRegion, ...]:
-    raw = resources.files(doormat_data_pkg).joinpath("craigslist_regions.json").read_text(encoding="utf-8")
+    raw = (
+        resources.files(doormat_data_pkg)
+        .joinpath("craigslist_regions.json")
+        .read_text(encoding="utf-8")
+    )
     rows = json.loads(raw)
     out: list[CraigslistRegion] = []
     for r in rows:

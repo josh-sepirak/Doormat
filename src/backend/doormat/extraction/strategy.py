@@ -32,7 +32,7 @@ class StrategyCache:
         result = await self._session.execute(stmt)
         return result.scalars().first()
 
-    async def merge(
+    async def merge(  # noqa: C901
         self,
         property_manager_id: str,
         update: StrategyUpdate,

@@ -17,13 +17,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
 
 import httpx
 import structlog
 
-from doormat.extraction.schemas import ApiRecipe, ExtractedListing
 from doormat.extraction.recipe_executor import extract_listing_via_recipe
+from doormat.extraction.schemas import ApiRecipe, ExtractedListing
 
 log = structlog.get_logger(__name__)
 
@@ -67,13 +66,9 @@ class RecipeValidator:
             return await self._self_replay(recipe, timeout_seconds)
 
         listing_id, expected = held_out_listings[0]
-        return await self._replay_against(
-            recipe, listing_id, expected, timeout_seconds
-        )
+        return await self._replay_against(recipe, listing_id, expected, timeout_seconds)
 
-    async def _self_replay(
-        self, recipe: ApiRecipe, timeout: float
-    ) -> RecipeValidationResult:
+    async def _self_replay(self, recipe: ApiRecipe, timeout: float) -> RecipeValidationResult:
         """Replay against the listing the recipe was captured from."""
         try:
             extracted = await self._fire_recipe(recipe, recipe.captured_from_listing_id, timeout)
@@ -168,7 +163,9 @@ class RecipeValidator:
             raise _ReplayError(f"http error: {exc}") from exc
 
         if resp.status_code in (401, 403):
-            raise _ReplayError(f"auth required (status {resp.status_code}) — recipe is session-bound")
+            raise _ReplayError(
+                f"auth required (status {resp.status_code}) — recipe is session-bound"
+            )
         if resp.status_code >= 400:
             raise _ReplayError(f"status {resp.status_code}")
 

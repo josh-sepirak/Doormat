@@ -16,8 +16,8 @@ from sqlalchemy import update
 
 from doormat import metrics
 from doormat.api.routers.config import router as config_router
-from doormat.api.routers.craigslist_regions import router as craigslist_regions_router
 from doormat.api.routers.costs import router as costs_router
+from doormat.api.routers.craigslist_regions import router as craigslist_regions_router
 from doormat.api.routers.discovery import router as discovery_router
 from doormat.api.routers.extraction import router as extraction_router
 from doormat.api.routers.listings import router as listings_router

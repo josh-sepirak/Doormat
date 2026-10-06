@@ -41,7 +41,9 @@ async def test_scrape_craigslist_calls_trusted_subdomain(monkeypatch):
 
     session = MagicMock()
     session.execute = AsyncMock(side_effect=[exec_trusted, exec_empty, exec_empty, exec_empty])
-    session.get = AsyncMock(return_value=SimpleNamespace(id="sr1", extraction_attempts=0, listings_seen=0))
+    session.get = AsyncMock(
+        return_value=SimpleNamespace(id="sr1", extraction_attempts=0, listings_seen=0)
+    )
     session.commit = AsyncMock()
     session.add = MagicMock()
 
@@ -91,7 +93,9 @@ async def test_scrape_craigslist_auto_warning_when_no_trusted(monkeypatch):
 
     session = MagicMock()
     session.execute = AsyncMock(side_effect=[exec_trusted, exec_empty, exec_empty, exec_empty])
-    session.get = AsyncMock(return_value=SimpleNamespace(id="sr1", extraction_attempts=0, listings_seen=0))
+    session.get = AsyncMock(
+        return_value=SimpleNamespace(id="sr1", extraction_attempts=0, listings_seen=0)
+    )
     session.commit = AsyncMock()
     session.add = MagicMock()
 
@@ -106,7 +110,9 @@ async def test_scrape_craigslist_auto_warning_when_no_trusted(monkeypatch):
         _fake_fetch,
         raising=False,
     )
-    monkeypatch.setattr("doormat.runs.pipeline._get_or_create_source_pm", _fake_get_pm, raising=False)
+    monkeypatch.setattr(
+        "doormat.runs.pipeline._get_or_create_source_pm", _fake_get_pm, raising=False
+    )
 
     emitter = AsyncMock(spec=run_events.SearchRunEventEmitter)
     emitter.emit = AsyncMock()

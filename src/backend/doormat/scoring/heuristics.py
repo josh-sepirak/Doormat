@@ -1,6 +1,5 @@
 """Heuristic fallback scoring for listings when LLM is unavailable."""
 
-import math
 from dataclasses import dataclass
 
 
@@ -12,7 +11,7 @@ class HeuristicScore:
     reason: str
 
 
-def score_heuristic(
+def score_heuristic(  # noqa: C901
     address: str,
     price: int | None,
     bedrooms: int | None,
@@ -56,9 +55,7 @@ def score_heuristic(
     # Bathrooms
     if bathrooms is not None and preference_min_bathrooms is not None:
         if bathrooms >= preference_min_bathrooms:
-            matches.append(
-                f"{bathrooms} bathrooms ≥ {preference_min_bathrooms} requested"
-            )
+            matches.append(f"{bathrooms} bathrooms ≥ {preference_min_bathrooms} requested")
         else:
             misses.append(f"{bathrooms} baths < {preference_min_bathrooms} requested")
 

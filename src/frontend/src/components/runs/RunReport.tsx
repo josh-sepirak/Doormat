@@ -382,7 +382,7 @@ export function RunReport({ runId }: RunReportProps) {
           Based on how listings matched your filters — useful nudges, not guarantees.
         </p>
         <div className="mt-4">
-          <RunSuggestions run={run} suggestions={run.suggestions} />
+          <RunSuggestions run={run} suggestions={run.suggestions ?? []} />
         </div>
       </section>
 
