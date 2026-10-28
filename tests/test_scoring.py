@@ -177,3 +177,89 @@ def test_listing_score_validates_range():
 
     with pytest.raises(pydantic.ValidationError):
         ListingScore(score=-0.1, explanation="negative")
+
+
+@pytest.mark.asyncio
+async def test_scorer_uses_multimodal_when_photos_and_api_key_present(monkeypatch):
+    """Listing with photos should invoke multimodal evaluation and attach visual criteria."""
+    import json
+    from unittest.mock import AsyncMock
+
+    import doormat.scoring.scorer as scorer_mod
+    from doormat.scoring.schemas import MultimodalEvaluationResult, VisualCriterionVerdict
+    from doormat.security.secrets import encrypt_secret
+
+    pref = make_preference("Need a flat grass lawn for a 12ft trampoline")
+    pref.openrouter_api_key = encrypt_secret("sk-or-test-key-12345678")
+
+    listing = make_listing()
+    listing.photos = json.dumps([
+        "https://example.com/p1.jpg",
+        "https://example.com/p2.jpg",
+    ])
+
+    expected_mm = MultimodalEvaluationResult(
+        match_score=0.92,
+        headline="Spacious yard perfectly fits 12ft trampoline",
+        criteria=[
+            VisualCriterionVerdict(
+                criterion="12ft trampoline fit",
+                verdict="confirmed",
+                confidence="high",
+                plain_label="Fits 12ft Trampoline",
+                evidence="Photo 2 shows a flat grassy backyard with ~30ft circular diameter.",
+                photo_index=2,
+            )
+        ],
+    )
+
+    mock_evaluator = AsyncMock()
+    mock_evaluator.evaluate.return_value = expected_mm
+
+    monkeypatch.setattr(scorer_mod, "MultimodalListingEvaluator", lambda: mock_evaluator)
+
+    scorer = ListingScorer()
+    res = await scorer.score(listing, pref)
+
+    assert res.score == 0.92
+    assert "Photo 2" in res.explanation
+    assert "Fits 12ft Trampoline" in res.explanation
+    assert len(res.criteria) == 1
+    assert res.criteria[0].verdict == "confirmed"
+
+    # Verify criteria attached to listing raw_data for downstream run filters
+    assert listing.raw_data is not None
+    parsed_raw = json.loads(listing.raw_data)
+    assert "visual_criteria" in parsed_raw
+    assert parsed_raw["visual_criteria"][0]["plain_label"] == "Fits 12ft Trampoline"
+    assert parsed_raw["visual_criteria"][0]["photo_index"] == 2
+
+
+def test_classify_listing_retains_visual_criteria_reasons():
+    """classify_listing should retain visual criteria badges in structured reasons."""
+    from doormat.runs.filters import classify_listing
+
+    listing = make_listing()
+    visual_criteria = [
+        {
+            "criterion": "12ft trampoline fit",
+            "plain_label": "Fits 12ft Trampoline",
+            "verdict": "confirmed",
+            "evidence": "Photo 2 shows open grass lawn.",
+            "photo_index": 2,
+            "confidence": "high",
+        }
+    ]
+
+    cat, reasons, exp = classify_listing(
+        listing,
+        {"max_price": 2000},
+        effective_score=0.9,
+        visual_criteria=visual_criteria,
+    )
+
+    assert cat == "great_match"
+    assert len(reasons) == 1
+    assert reasons[0]["label"] == "Fits 12ft Trampoline"
+    assert reasons[0]["photo_index"] == 2
+    assert reasons[0]["is_visual"] is True

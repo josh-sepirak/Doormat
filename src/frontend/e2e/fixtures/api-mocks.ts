@@ -183,7 +183,7 @@ export async function mockBackendApis(page: Page) {
     }
   })
 
-  await page.route('**/api/listings', (route) =>
+  await page.route(/\/api\/listings(?:\?.*)?$/, (route) =>
     route.fulfill({ json: { listings: MOCK_LISTINGS, total: 2 } }),
   )
 

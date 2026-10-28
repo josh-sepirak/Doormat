@@ -10,6 +10,11 @@ from doormat.llm.client import get_llm_client
 from doormat.llm.prompt_registry import PromptKey, get_effective_prompt
 from doormat.models.orm import Listing, Preference
 from doormat.preference_signals import extract_max_price, extract_min_bedrooms
+from doormat.scoring.multimodal_evaluator import (
+    MultimodalListingEvaluator,
+    extract_photo_urls,
+)
+from doormat.scoring.schemas import VisualCriterionVerdict
 from doormat.security.secrets import decrypt_secret
 
 logger = structlog.get_logger(__name__)
@@ -23,6 +28,7 @@ class ListingScore(BaseModel):
 
     score: float = Field(..., ge=0.0, le=1.0, description="Match score 0-1")
     explanation: str = Field(..., min_length=1, description="Why this score was assigned")
+    criteria: list[VisualCriterionVerdict] = Field(default_factory=list)
 
 
 class ListingScorer:
@@ -30,7 +36,38 @@ class ListingScorer:
 
     async def score(self, listing: Listing, preference: Preference) -> ListingScore:
         """Score a single listing against a preference."""
-        llm = get_llm_client(api_key=decrypt_secret(preference.openrouter_api_key))
+        photo_urls = extract_photo_urls(listing)
+        api_key = decrypt_secret(preference.openrouter_api_key)
+
+        # Use fast Gemini 2.0 Flash multimodal decision model when photos and API key exist
+        if photo_urls and api_key:
+            try:
+                evaluator = MultimodalListingEvaluator()
+                mm_result = await evaluator.evaluate(listing, preference, photos=photo_urls)
+                confirmed = [
+                    f"{c.plain_label} (Photo {c.photo_index})" if c.photo_index else c.plain_label
+                    for c in mm_result.criteria
+                    if c.verdict == "confirmed"
+                ]
+                explanation = mm_result.headline
+                if confirmed:
+                    explanation = f"{explanation}. Verified: {', '.join(confirmed)}."
+
+                _attach_visual_criteria_to_listing(listing, mm_result.criteria)
+
+                return ListingScore(
+                    score=round(float(mm_result.match_score), 2),
+                    explanation=explanation,
+                    criteria=mm_result.criteria,
+                )
+            except Exception as e:
+                logger.warning(
+                    "multimodal_scoring_failed_fallback_to_text",
+                    listing_id=listing.id,
+                    error=str(e),
+                )
+
+        llm = get_llm_client(api_key=api_key)
         user_content = build_listing_scoring_prompt(listing, preference)
 
         system_prompt = get_effective_prompt(PromptKey.SCORING_SYSTEM, preference)
@@ -66,8 +103,27 @@ class ListingScorer:
             result = await self.score(listing, preference)
             listing.score = result.score
             listing.score_explanation = result.explanation
+            if result.criteria:
+                _attach_visual_criteria_to_listing(listing, result.criteria)
 
 
+
+def _attach_visual_criteria_to_listing(
+    listing: Listing, criteria: list[VisualCriterionVerdict]
+) -> None:
+    """Store structured visual criteria in listing raw_data for persistence."""
+    if not criteria:
+        return
+    raw: dict[str, Any] = {}
+    if listing.raw_data:
+        try:
+            parsed = json.loads(listing.raw_data)
+            if isinstance(parsed, dict):
+                raw = parsed
+        except Exception:
+            raw = {}
+    raw["visual_criteria"] = [c.model_dump() for c in criteria]
+    listing.raw_data = json.dumps(raw)
 def build_listing_scoring_prompt(listing: Listing, preference: Preference) -> str:
     """Build a bounded prompt with untrusted listing data isolated as JSON."""
     payload = {

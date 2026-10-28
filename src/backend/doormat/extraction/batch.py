@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from doormat.extraction.orchestrator import extract_listing
 from doormat.extraction.schemas import ListingExtractionResult
 from doormat.models.orm import PropertyManager
+from doormat.security.ssrf import validate_safe_host
 from doormat.sources.urls import resolve_property_manager_scrape_url
 
 logger = structlog.get_logger(__name__)
@@ -192,6 +193,11 @@ class BatchExtractor:
         if parsed.username or parsed.password:
             logger.warning("listing_url_rejected", url=raw_url, reason="embedded_credentials")
             return None
+        host = parsed.hostname or ""
+        if not validate_safe_host(host):
+            logger.warning("listing_url_rejected", url=raw_url, reason="ssrf_restricted_host")
+            return None
+
 
         netloc = parsed.netloc.lower()
         if self.policy.same_origin_only and self.origin_netloc and netloc != self.origin_netloc:

@@ -1,6 +1,7 @@
 """Mode A0: Zero-cost API recipe extraction (fast path)."""
 
 from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 import structlog
@@ -56,7 +57,7 @@ async def run_mode_a0(
                 "mode_a0_http_request_failed",
                 source_id=source_id,
             )
-            return _handle_recipe_failure(recipe)
+            return _handle_recipe_failure(recipe, strategy)
 
         # Extract listing from response
         listing = extract_listing_via_recipe(recipe, response_json)
@@ -66,7 +67,7 @@ async def run_mode_a0(
                 source_id=source_id,
                 reason="extract_listing_via_recipe returned None",
             )
-            return _handle_recipe_failure(recipe)
+            return _handle_recipe_failure(recipe, strategy)
 
         logger.info(
             "mode_a0_success",
@@ -78,7 +79,8 @@ async def run_mode_a0(
         # Reset failure count on success
         recipe.failure_count = 0
         recipe.last_failure_at = None
-
+        if strategy is not None:
+            strategy.api_recipe = recipe
         return ListingExtractionResult(
             listing=listing,
             confidence="high",  # API recipes are high-confidence by definition
@@ -92,7 +94,7 @@ async def run_mode_a0(
             source_id=source_id,
             error=str(exc),
         )
-        return _handle_recipe_failure(recipe)
+        return _handle_recipe_failure(recipe, strategy)
     except Exception as exc:
         logger.error(
             "mode_a0_unexpected_error",
@@ -100,14 +102,14 @@ async def run_mode_a0(
             error_type=type(exc).__name__,
             error=str(exc),
         )
-        return _handle_recipe_failure(recipe)
+        return _handle_recipe_failure(recipe, strategy)
 
 
 async def _fire_recipe(
     http_client: httpx.AsyncClient,
     url: str,
     recipe: ApiRecipe,
-) -> dict | None:
+) -> dict[str, Any] | None:
     """Execute HTTP request via recipe template.
 
     Returns response JSON parsed at response_root, or None on error.
@@ -142,7 +144,7 @@ async def _fire_recipe(
         response.raise_for_status()
 
         data = response.json()
-        return data
+        return data if isinstance(data, dict) else None
 
     except (httpx.HTTPError, ValueError) as exc:
         logger.debug(
@@ -154,11 +156,14 @@ async def _fire_recipe(
         return None
 
 
-def _handle_recipe_failure(recipe: ApiRecipe) -> ListingExtractionResult | None:
+def _handle_recipe_failure(
+    recipe: ApiRecipe, strategy: ExtractionStrategy | None = None
+) -> ListingExtractionResult | None:
     """Increment failure counter; retire recipe if >= 3 failures.
 
     Returns None (callers should fall through to Mode A).
     Side effect: Mutates recipe.failure_count and may set recipe.confidence to None.
+    Writes updated recipe back to strategy if provided.
     """
     recipe.failure_count = (recipe.failure_count or 0) + 1
     recipe.last_failure_at = datetime.now(UTC)
@@ -174,5 +179,8 @@ def _handle_recipe_failure(recipe: ApiRecipe) -> ListingExtractionResult | None:
             "mode_a0_recipe_failure_logged",
             failure_count=recipe.failure_count,
         )
+
+    if strategy is not None:
+        strategy.api_recipe = recipe
 
     return None

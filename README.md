@@ -38,6 +38,7 @@ Result: you check Doormat once a day and see personalized matches. No more tabs.
 - **Two-tier extraction**: Fast cheap model + strong validation model = cheap + accurate
 - **Natural language preferences**: "Pet-friendly, no noise" → structured search
 - **Real-time scoring**: Listings arrive and are scored as they're found
+- **Multimodal visual verification**: Google Gemini 2.0 Flash (~$0.10/1M tokens) visually verifies physical criteria that text listings omit (trampoline clearance, fenced yards for dogs, in-unit laundry, sunlight) with plain-English badges and photo citations (e.g., `Photo 2`)
 - **Cost dashboard**: Every LLM call visible; < $1/month typical
 - **Dark mode**: Intentionally designed for both light and dark
 - **Self-hosted + BYOK**: Your data, your machine, your API keys
@@ -206,6 +207,10 @@ src/backend/doormat/
 │   ├── discovery.py         # Browser-Use city discovery
 │   ├── extraction.py        # Tier 1 + Tier 2 extraction
 │   └── scoring.py           # Listing scorer
+├── scoring/
+│   ├── multimodal_evaluator.py # Gemini 2.0 Flash photo inspection & physical criteria
+│   ├── scorer.py            # Preference match scoring & decision pipeline
+│   └── schemas.py           # Structured visual verdict and scoring schemas
 ├── api/
 │   ├── preferences.py       # CRUD endpoints
 │   ├── listings.py          # Query + scoring endpoints

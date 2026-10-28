@@ -19,7 +19,7 @@ class SystemConfig(BaseModel):
 
 
 @router.get("", response_model=SystemConfig)
-async def get_system_config():
+async def get_system_config() -> SystemConfig:
     """Return whether system-wide keys are configured in .env."""
 
     def last4(s: str | None) -> str | None:

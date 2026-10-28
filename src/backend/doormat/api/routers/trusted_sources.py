@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from doormat.db.base import get_db
 from doormat.models.orm import Listing, PropertyManager, TrustedSource
 from doormat.security.auth import require_bearer_auth
+from doormat.security.ssrf import validate_safe_host, validate_safe_url
 
 logger = structlog.get_logger(__name__)
 
@@ -83,13 +84,15 @@ def _normalize_pm_url(url: str) -> str:
     p = urlparse(s)
     if p.scheme not in ("http", "https"):
         raise ValueError("URL must be http(s)")
-    host = (p.netloc or "").lower()
-    if not host or host in ("localhost", "127.0.0.1", "::1"):
-        raise ValueError("Invalid host")
+    host = (p.hostname or "").lower()
+    if not host or not validate_safe_host(host):
+        raise ValueError("Invalid or restricted host")
     return s
 
 
 async def _probe_url(url: str, timeout: float = 12.0) -> tuple[bool, Optional[int], Optional[str]]:
+    if not validate_safe_url(url):
+        return False, None, "Blocked target: private or invalid host"
     headers = {"User-Agent": USER_AGENT, "Accept": "*/*"}
     try:
         async with httpx.AsyncClient(

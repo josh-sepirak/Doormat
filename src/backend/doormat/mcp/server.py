@@ -265,7 +265,7 @@ async def trigger_scrape(
     async def _run() -> None:
         try:
             async with AsyncSessionLocal():
-                from doormat.api.routers.search_runs import _run_discovery_background
+                from doormat.api.routers.discovery import _run_discovery_background
 
                 await _run_discovery_background(discovery_id, cleaned, preference_id, search_id)
         except Exception as exc:

@@ -90,3 +90,31 @@ def test_parse_invalid_in_parse_endpoint():
         r = client.post("/api/craigslist/regions/parse", json={"url": "https://evil.example.com"})
     assert r.status_code == 200
     assert r.json()["valid"] is False
+
+@pytest.mark.parametrize(
+    "bad_url",
+    [
+        "http://127.0.0.1/admin",
+        "http://localhost:8080",
+        "http://10.0.0.5/secret",
+        "http://192.168.1.1/router",
+        "http://169.254.169.254/latest/meta-data",
+    ],
+)
+def test_create_property_manager_rejects_ssrf_urls(bad_url):
+    app.dependency_overrides[get_db] = _fake_db([])
+    try:
+        with TestClient(app) as client:
+            r = client.post(
+                "/api/trusted-sources",
+                json={
+                    "kind": "property_manager",
+                    "label": "Internal SSRF Target",
+                    "url": bad_url,
+                },
+            )
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert r.status_code == 422
+    assert "restricted host" in r.json()["detail"].lower() or "invalid" in r.json()["detail"].lower()

@@ -1,7 +1,10 @@
 """SQLAlchemy ORM models with strict typing."""
 
-from datetime import datetime
-from typing import Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, Optional, cast
+
+if TYPE_CHECKING:
+    from doormat.extraction.schemas import ApiRecipe
 
 from sqlalchemy import (
     JSON,
@@ -18,6 +21,10 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from doormat.db.base import Base
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 class Preference(Base):
@@ -38,10 +45,10 @@ class Preference(Base):
     # LLM prompt key -> custom text (defaults live in code only).
     prompt_overrides: Mapped[Optional[dict[str, str]]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=_utcnow, nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
     )
 
     # Relationships
@@ -90,7 +97,7 @@ class PropertyManager(Base):
     listing_page_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     validated: Mapped[bool] = mapped_column(Boolean, default=False)
     discovery_timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=_utcnow, nullable=False
     )
     # Scrape health tracking — set on every fetch attempt so we can skip dead domains.
     last_fetch_attempted_at: Mapped[Optional[datetime]] = mapped_column(
@@ -121,7 +128,7 @@ class TrustedSource(Base):
         String(36), ForeignKey("property_managers.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=_utcnow, nullable=False
     )
 
     __table_args__ = (UniqueConstraint("kind", "url", name="uq_trusted_source_kind_url"),)
@@ -144,6 +151,47 @@ class ExtractionStrategy(Base):
     tier2_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     validation_rate: Mapped[float] = mapped_column(Float, default=0.95)
     last_refined: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+    @property
+    def api_recipe(self) -> Optional["ApiRecipe"]:
+        if not self.api_recipe_json:
+            self._cached_api_recipe = None
+            self._cached_api_recipe_raw = None
+            return None
+        cached_raw = getattr(self, "_cached_api_recipe_raw", None)
+        cached_obj = getattr(self, "_cached_api_recipe", None)
+        if cached_obj is not None and cached_raw == self.api_recipe_json:
+            return cast(Optional["ApiRecipe"], cached_obj)
+        try:
+            from doormat.extraction.schemas import ApiRecipe
+
+            parsed = ApiRecipe.model_validate_json(self.api_recipe_json)
+            self._cached_api_recipe = parsed
+            self._cached_api_recipe_raw = self.api_recipe_json
+            return parsed
+        except Exception:
+            self._cached_api_recipe = None
+            self._cached_api_recipe_raw = None
+            return None
+
+    @api_recipe.setter
+    def api_recipe(self, value: Any) -> None:
+        if value is None:
+            self.api_recipe_json = None
+            self._cached_api_recipe = None
+            self._cached_api_recipe_raw = None
+        elif isinstance(value, str):
+            self.api_recipe_json = value
+            self._cached_api_recipe = None
+            self._cached_api_recipe_raw = None
+        elif hasattr(value, "model_dump_json"):
+            self.api_recipe_json = value.model_dump_json()
+            self._cached_api_recipe = value
+            self._cached_api_recipe_raw = self.api_recipe_json
+        else:
+            self.api_recipe_json = str(value)
+            self._cached_api_recipe = None
+            self._cached_api_recipe_raw = None
 
     # Relationships
     property_manager: Mapped[PropertyManager] = relationship(back_populates="extraction_strategies")
@@ -179,7 +227,7 @@ class Listing(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     raw_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON stored as text
     extraction_timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=_utcnow, nullable=False
     )
     extraction_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     tier1_cost: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -214,7 +262,7 @@ class Cost(Base):
     cost_usd: Mapped[float] = mapped_column(Float, nullable=False)
     cache_hit: Mapped[bool] = mapped_column(Boolean, default=False)
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
     city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
 
@@ -237,7 +285,7 @@ class ExtractionFeedback(Base):
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     refined_strategy: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
 
     # Relationships
@@ -257,7 +305,7 @@ class DiscoveryRun(Base):
     status: Mapped[str] = mapped_column(String(20), default="running", nullable=False)
     managers_found: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -300,7 +348,7 @@ class SearchRun(Base):
     filters_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -328,7 +376,7 @@ class SearchRunEvent(Base):
     visibility: Mapped[str] = mapped_column(String(16), default="user", nullable=False)
 
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
 
     run: Mapped["SearchRun"] = relationship(back_populates="events")
@@ -380,7 +428,7 @@ class DiscoveryRunLog(Base):
     details: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON extra context
 
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=_utcnow, nullable=False
     )
 
     run: Mapped["DiscoveryRun"] = relationship(back_populates="logs")
@@ -398,5 +446,5 @@ class GeocodeCache(Base):
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=True
+        DateTime(timezone=True), default=_utcnow, nullable=True
     )

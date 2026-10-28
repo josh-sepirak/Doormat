@@ -29,7 +29,7 @@ def score_heuristic(  # noqa: C901
     """
     matches = []
     misses = []
-    bonus_points = 0
+    bonus_points: float = 0.0
 
     # Price: critical filter
     if price is not None and preference_max_price is not None:

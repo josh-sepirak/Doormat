@@ -10,7 +10,8 @@ import { Container } from '@/components/Container'
 import { Button } from '@/components/Button'
 import { HouseBuildingAnimation } from '@/components/HouseBuildingAnimation'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
+import { apiFetch } from '@/lib/api'
 
 interface Preference {
   id: string
@@ -100,35 +101,36 @@ export default function Dashboard() {
   const [listings, setListings] = useState<Listing[]>([])
   const [scraping, setScraping] = useState(false)
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
+  const [showWizard, setShowWizard] = useState(false)
 
   const fetchManagers = useCallback((city: string) => {
-    fetch(`${API}/api/discovery/cities/${encodeURIComponent(city)}/managers`)
+    apiFetch(`/api/discovery/cities/${encodeURIComponent(city)}/managers`)
       .then((r) => r.json())
       .then((data: PropertyManager[]) => setManagers(data))
       .catch(() => {})
   }, [])
 
   const fetchRuns = useCallback(() => {
-    fetch(`${API}/api/discovery/runs`)
+    apiFetch('/api/discovery/runs')
       .then((r) => r.json())
       .then(setRuns)
       .catch(() => {})
   }, [])
 
   const fetchListings = useCallback((city: string) => {
-    fetch(`${API}/api/listings?city=${encodeURIComponent(city)}&limit=50&offset=0`)
+    apiFetch(`/api/listings?city=${encodeURIComponent(city)}&limit=50&offset=0`)
       .then((r) => r.json())
       .then((data: Listing[]) => setListings(data))
       .catch(() => {})
   }, [])
 
   useEffect(() => {
-    fetch(`${API}/health`)
+    apiFetch('/health')
       .then((r) => r.json())
       .then(() => setHealth('ok'))
       .catch(() => setHealth('down'))
 
-    fetch(`${API}/api/preferences`)
+    apiFetch('/api/preferences')
       .then((r) => r.json())
       .then((prefs: Preference[]) => {
         setPreferences(prefs)
@@ -139,7 +141,7 @@ export default function Dashboard() {
       })
       .catch(() => {})
 
-    fetch(`${API}/api/config`)
+    apiFetch('/api/config')
       .then((r) => r.json())
       .then((data) => setSystemConfig(data))
       .catch(() => {})
@@ -199,8 +201,8 @@ export default function Dashboard() {
     setScraping(true)
     addEvent(`Scraping listings for property managers in ${activePref.city}…`, 'info')
     try {
-      const resp = await fetch(
-        `${API}/api/discovery/cities/${encodeURIComponent(activePref.city)}/scrape`,
+      const resp = await apiFetch(
+        `/api/discovery/cities/${encodeURIComponent(activePref.city)}/scrape`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -229,11 +231,18 @@ export default function Dashboard() {
       prev.map((l) => (l.id === listingId ? { ...l, saved: !currentSaved } : l)),
     )
     try {
-      await fetch(`${API}/api/listings/${listingId}/save`, { method: 'POST' })
+      const resp = await apiFetch(`/api/listings/${listingId}/save`, { method: 'POST' })
+      if (!resp.ok) {
+        setListings((prev) =>
+          prev.map((l) => (l.id === listingId ? { ...l, saved: currentSaved } : l)),
+        )
+        addEvent(`Failed to save listing: ${resp.statusText || 'Server error'}`, 'error')
+      }
     } catch {
       setListings((prev) =>
         prev.map((l) => (l.id === listingId ? { ...l, saved: currentSaved } : l)),
       )
+      addEvent('Failed to update listing save state', 'error')
     }
   }
 
@@ -246,27 +255,53 @@ export default function Dashboard() {
         <Container className="pt-12 pb-20">
           <div className="mx-auto max-w-3xl">
 
-            {/* Dashboard header */}
-            <div className="mb-10">
-              <p className="text-xs font-medium tracking-widest text-slate-400 uppercase dark:text-slate-500">
-                Dashboard
-              </p>
-              <h1 className="mt-1 font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-100">
-                {pref ? `Finding rentals in ${pref.city}` : 'Get started'}
-              </h1>
-              {pref?.description ? (
-                <p className="mt-2 max-w-xl text-base text-slate-500 line-clamp-2 dark:text-slate-400">
-                  {pref.description}
-                </p>
-              ) : (
-                <p className="mt-2 text-base text-slate-500 dark:text-slate-400">
-                  <a href="/preferences" className="text-blue-600 hover:underline dark:text-blue-400">
-                    Configure your preferences
-                  </a>{' '}
-                  to run your first discovery.
-                </p>
-              )}
-            </div>
+            {((!pref && health === 'ok') || showWizard) ? (
+              <OnboardingWizard
+                onCompleted={(run) => {
+                  setShowWizard(false)
+                  if (run?.id) {
+                    router.push(`/runs/${encodeURIComponent(run.id)}`)
+                  } else {
+                    apiFetch('/api/preferences')
+                      .then((r) => r.json())
+                      .then((prefs: Preference[]) => {
+                        setPreferences(prefs)
+                        if (prefs[0]?.city) {
+                          fetchManagers(prefs[0].city)
+                          fetchListings(prefs[0].city)
+                        }
+                      })
+                    fetchRuns()
+                  }
+                }}
+                onCancel={pref ? () => setShowWizard(false) : undefined}
+              />
+            ) : (
+              <>
+                {/* Dashboard header */}
+                <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-medium tracking-widest text-slate-400 uppercase dark:text-slate-500">
+                      Dashboard
+                    </p>
+                    <h1 className="mt-1 font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-100">
+                      {pref ? `Finding rentals in ${pref.city}` : 'Get started'}
+                    </h1>
+                    {pref?.description && (
+                      <p className="mt-2 max-w-xl text-base text-slate-500 line-clamp-2 dark:text-slate-400">
+                        {pref.description}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowWizard(true)}
+                    className="text-xs"
+                  >
+                    ✨ Re-run Setup Wizard
+                  </Button>
+                </div>
 
             {/* Status strip */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -490,6 +525,8 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : null}
+              </>
+            )}
 
           </div>
         </Container>

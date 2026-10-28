@@ -24,9 +24,9 @@ test.describe('Preferences page', () => {
     await expect(descInput).toHaveValue('Looking for a 2BR near downtown')
   })
 
-  test('shows API Configuration section', async ({ page }) => {
+  test('shows API Configuration section in AI & API Keys tab', async ({ page }) => {
     await page.goto('/preferences')
-    // "API Configuration" may be a styled div, not a semantic heading
+    await page.getByRole('button', { name: /AI & API Keys/i }).click()
     await expect(page.getByText('API Configuration', { exact: true })).toBeVisible()
   })
 

@@ -32,11 +32,17 @@ from doormat.schemas import DiscoveryRunResponse
 from doormat.security.auth import require_bearer_auth
 from doormat.security.secrets import decrypt_secret
 
+require_discovery_auth = require_bearer_auth
+
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/api/discovery", tags=["discovery"])
+router = APIRouter(
+    prefix="/api/discovery",
+    tags=["discovery"],
+    dependencies=[Depends(require_discovery_auth)],
+)
 
 _RATE_WINDOW_SECONDS = 60.0
 _discovery_request_times: dict[str, deque[float]] = {}

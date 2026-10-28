@@ -56,6 +56,30 @@ def _safe_http_url(value: str | None) -> str | None:
 def _serialize_listing(listing: Listing) -> SerializedListing:
     amenities = _json_list(listing.amenities)
     photos = _json_list(listing.photos)
+    filter_reasons_json = None
+    if listing.raw_data:
+        try:
+            raw = json.loads(listing.raw_data)
+            if isinstance(raw, dict) and "visual_criteria" in raw and isinstance(raw["visual_criteria"], list):
+                vc_reasons = []
+                for vc in raw["visual_criteria"]:
+                    if isinstance(vc, dict):
+                        slug = "".join(c if c.isalnum() else "_" for c in str(vc.get("criterion", "criterion")).lower()).strip("_")[:30]
+                        vc_reasons.append({
+                            "filter_code": vc.get("filter_code") or f"visual_{slug}",
+                            "label": vc.get("plain_label") or vc.get("label", "Visual Check"),
+                            "severity": vc.get("verdict", "confirmed"),
+                            "verdict": vc.get("verdict", "confirmed"),
+                            "evidence": vc.get("evidence", ""),
+                            "photo_index": vc.get("photo_index"),
+                            "confidence": vc.get("confidence", "high"),
+                            "is_visual": True,
+                            "suggestion": vc.get("evidence", ""),
+                        })
+                if vc_reasons:
+                    filter_reasons_json = json.dumps(vc_reasons)
+        except Exception:
+            pass
     return {
         "id": listing.id,
         "property_manager_id": listing.property_manager_id,
@@ -81,6 +105,7 @@ def _serialize_listing(listing: Listing) -> SerializedListing:
         "source": listing.source or "pm_direct",
         "latitude": listing.latitude,
         "longitude": listing.longitude,
+        "filter_reasons_json": filter_reasons_json,
     }
 
 

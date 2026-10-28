@@ -56,7 +56,7 @@ describe('RunReport', () => {
     expect(screen.getByText(/live activity/i)).toBeInTheDocument()
     const counters = screen.getByRole('region', { name: /run counters/i })
     expect(within(counters).getByText('2')).toBeInTheDocument()
-    expect(within(counters).getByText(/extraction attempts/i)).toBeInTheDocument()
+    expect(within(counters).getByText(/ai inspected/i)).toBeInTheDocument()
     expect(within(counters).getByText('6')).toBeInTheDocument()
     expect(screen.getByText(/try raising max rent/i)).toBeInTheDocument()
     expect(screen.getByText(/early signal/i)).toBeInTheDocument()

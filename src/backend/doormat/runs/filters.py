@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from sqlalchemy import delete, select
@@ -60,10 +60,31 @@ def classify_listing(  # noqa: C901
     filters: dict[str, Any],
     *,
     effective_score: float | None,
+    visual_criteria: list[dict[str, Any]] | None = None,
 ) -> tuple[str, list[dict[str, Any]], str]:
     """Return (category, structured_reasons, short_explanation)."""
     f = merge_filters(filters)
     reasons: list[dict[str, Any]] = []
+
+    visual_reasons: list[dict[str, Any]] = []
+    if visual_criteria:
+        for vc in visual_criteria:
+            if isinstance(vc, dict):
+                crit_name = vc.get("criterion", "criterion")
+                slug = "".join(c if c.isalnum() else "_" for c in str(crit_name).lower()).strip("_")[:30]
+                visual_reasons.append(
+                    {
+                        "filter_code": vc.get("filter_code") or f"visual_{slug}",
+                        "label": vc.get("plain_label") or vc.get("label", "Visual Check"),
+                        "severity": vc.get("verdict", "confirmed"),
+                        "verdict": vc.get("verdict", "confirmed"),
+                        "evidence": vc.get("evidence", ""),
+                        "photo_index": vc.get("photo_index"),
+                        "confidence": vc.get("confidence", "high"),
+                        "is_visual": True,
+                        "suggestion": vc.get("evidence", ""),
+                    }
+                )
 
     max_price = f.get("max_price")
     if isinstance(max_price, (int, float)) and max_price > 0:
@@ -79,7 +100,7 @@ def classify_listing(  # noqa: C901
                     "suggestion": "Raise max rent or tighten search to smaller units",
                 }
             )
-            return "filtered_out", reasons, "Outside max rent tolerance"
+            return "filtered_out", reasons + visual_reasons, "Outside max rent tolerance"
         if over_by > 0:
             reasons.append(
                 {
@@ -117,7 +138,7 @@ def classify_listing(  # noqa: C901
                     "suggestion": "Lower bedroom minimum slightly if flex space works",
                 }
             )
-            return "filtered_out", reasons, "Too few bedrooms"
+            return "filtered_out", reasons + visual_reasons, "Too few bedrooms"
         elif beds < min_bedrooms:
             reasons.append(
                 {
@@ -156,7 +177,7 @@ def classify_listing(  # noqa: C901
                     "suggestion": "Relax bathroom minimum if acceptable",
                 }
             )
-            return "filtered_out", reasons, "Too few bathrooms"
+            return "filtered_out", reasons + visual_reasons, "Too few bathrooms"
         elif baths < min_b:
             reasons.append(
                 {
@@ -192,18 +213,18 @@ def classify_listing(  # noqa: C901
                     "suggestion": "Pet-friendly listings only",
                 }
             )
-            return "filtered_out", reasons, "Pets not allowed"
+            return "filtered_out", reasons + visual_reasons, "Pets not allowed"
 
     if any(r.get("severity") == "near_miss" for r in reasons):
-        return "near_miss", reasons, "Borderline on one or more filters"
+        return "near_miss", reasons + visual_reasons, "Borderline on one or more filters"
 
     score = effective_score if effective_score is not None else 0.55
     great = float(f.get("score_great_threshold", 0.8))
     worth = float(f.get("score_worth_threshold", 0.5))
     if score >= great:
-        return "great_match", [], f"Strong match (score {score:.2f})"
+        return "great_match", reasons + visual_reasons, f"Strong match (score {score:.2f})"
     if score >= worth:
-        return "worth_a_look", [], f"Decent match (score {score:.2f})"
+        return "worth_a_look", reasons + visual_reasons, f"Decent match (score {score:.2f})"
     reasons.append(
         {
             "filter_code": "low_score",
@@ -214,7 +235,7 @@ def classify_listing(  # noqa: C901
             "suggestion": "Tune scored preferences or rescore after extraction stabilizes",
         }
     )
-    return "filtered_out", reasons, "Below match threshold"
+    return "filtered_out", reasons + visual_reasons, "Below match threshold"
 
 
 async def persist_listing_classification(
@@ -242,7 +263,13 @@ async def persist_listing_classification(
     if eff_score is None and preference is not None:
         eff_score = heuristic_listing_score(listing, preference).score
 
-    category, reasons, explanation = classify_listing(listing, filters, effective_score=eff_score)
+    visual_criteria = _extract_listing_visual_criteria(listing)
+    category, reasons, explanation = classify_listing(
+        listing,
+        filters,
+        effective_score=eff_score,
+        visual_criteria=visual_criteria,
+    )
     row = RunListingResult(
         id=str(uuid.uuid4()),
         run_id=run.id,
@@ -361,3 +388,16 @@ async def classify_city_listings_for_run(
     await session.flush()
     logger.info("run_listings_classified", run_id=run.id, city=city, count=count)
     return count
+
+
+def _extract_listing_visual_criteria(listing: Listing) -> list[dict[str, Any]]:
+    """Extract structured visual criteria from listing.raw_data."""
+    if not listing.raw_data:
+        return []
+    try:
+        raw = json.loads(listing.raw_data)
+        if isinstance(raw, dict) and isinstance(raw.get("visual_criteria"), list):
+            return cast(list[dict[str, Any]], raw["visual_criteria"])
+    except Exception:
+        pass
+    return []

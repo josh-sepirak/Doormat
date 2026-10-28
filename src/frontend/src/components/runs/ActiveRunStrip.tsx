@@ -17,7 +17,7 @@ function formatElapsed(startedAt: string): string {
 
 export function ActiveRunStrip() {
   const { run, loading, error, stop } = useActiveRun()
-  const [tick, setTick] = useState(0)
+  const [, setTick] = useState(0)
 
   useEffect(() => {
     if (!run) return

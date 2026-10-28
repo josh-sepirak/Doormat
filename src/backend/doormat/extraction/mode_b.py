@@ -235,7 +235,7 @@ async def run_mode_b(
             component="extraction",
             city=city,
         ) as cost:
-            history: Any = await agent.run()
+            history: Any = await asyncio.wait_for(agent.run(), timeout=120.0)
             prompt_tokens, completion_tokens = _token_usage_from_history(history)
             cost.prompt_tokens = prompt_tokens
             cost.completion_tokens = completion_tokens

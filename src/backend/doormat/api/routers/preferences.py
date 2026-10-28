@@ -136,9 +136,9 @@ async def update_preference(
         preference.openrouter_api_key = _encrypt_optional_secret(body.openrouter_api_key)
     if "apify_api_token" in fields_set:
         preference.apify_api_token = _encrypt_optional_secret(body.apify_api_token)
-    if body.fast_model is not None:
+    if "fast_model" in fields_set:
         preference.fast_model = _clean_optional_string(body.fast_model)
-    if body.smart_model is not None:
+    if "smart_model" in fields_set:
         preference.smart_model = _clean_optional_string(body.smart_model)
     if body.sources_enabled is not None:
         preference.sources_enabled = json.dumps(body.sources_enabled)

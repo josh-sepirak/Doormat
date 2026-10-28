@@ -60,7 +60,7 @@ class LLMClient:
 
     async def complete(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         model: Optional[str] = None,
         task: str = "unknown",
         response_model: Optional[type[T]] = None,
@@ -218,13 +218,13 @@ def _is_anthropic_model(model: str) -> bool:
 
 
 def _apply_cache_control(
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     model: str,
     cache: bool,
 ) -> list[dict[str, Any]]:
     """Return messages with cache_control on the last system message for Anthropic models."""
     if not cache or not _is_anthropic_model(model):
-        return cast(Any, messages)
+        return cast(list[dict[str, Any]], messages)
 
     result: list[dict[str, Any]] = []
     for msg in messages:

@@ -215,6 +215,7 @@ class ListingResponse(BaseModel):
     saved: bool = False
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    filter_reasons_json: Optional[str] = None
 
 
 class ListingFilterParams(BaseModel):

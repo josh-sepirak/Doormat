@@ -21,8 +21,8 @@ test.describe('Listings page', () => {
 
       await expect(page.getByText(MOCK_LISTINGS[0].address)).toBeVisible()
       await expect(page.getByText('$2,200/mo')).toBeVisible()
-      await expect(page.getByText('2BR')).toBeVisible()
-      await expect(page.getByText('1BA').first()).toBeVisible()
+      await expect(page.getByText(/2\s*BR/)).toBeVisible()
+      await expect(page.getByText(/1\s*BA/).first()).toBeVisible()
     })
 
     test('shows score badges', async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Listings page', () => {
     })
 
     test('empty state shown when no listings', async ({ page }) => {
-      await page.route('**/api/listings', (route) =>
+      await page.route(/\/api\/listings(?:\?.*)?$/, (route) =>
         route.fulfill({ json: { listings: [], total: 0 } }),
       )
       await page.route('**/health', (route) => route.fulfill({ json: { status: 'ok' } }))
@@ -69,7 +69,7 @@ test.describe('Listings page', () => {
       const listings = new ListingsPage(page)
       await listings.goto()
 
-      await expect(page.getByText('No listings yet')).toBeVisible()
+      await expect(page.getByText(/No listings match/i)).toBeVisible()
       await expect(page.getByRole('link', { name: 'Dashboard' }).first()).toBeVisible()
     })
   })

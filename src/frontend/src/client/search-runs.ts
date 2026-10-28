@@ -16,6 +16,7 @@ export type SearchRun = SearchRunResponse
 export type SearchRunEvent = SearchRunEventOut
 export type RunListingResult = RunListingResultOut
 export type { SearchRunSuggestion } from './types.gen'
+import { apiFetch } from '../lib/api'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -34,7 +35,7 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 export async function fetchSearchRun(runId: string): Promise<SearchRun> {
-  const res = await fetch(`${API}/api/search-runs/${encodeURIComponent(runId)}`, noStore)
+  const res = await apiFetch(`/api/search-runs/${encodeURIComponent(runId)}`, noStore)
   return readJson(res)
 }
 
@@ -45,20 +46,20 @@ export async function fetchSearchRunEvents(
   const sp = new URLSearchParams()
   sp.set('after_sequence', String(params.afterSequence))
   if (params.limit != null) sp.set('limit', String(params.limit))
-  const res = await fetch(
-    `${API}/api/search-runs/${encodeURIComponent(runId)}/events?${sp}`,
+  const res = await apiFetch(
+    `/api/search-runs/${encodeURIComponent(runId)}/events?${sp}`,
     noStore,
   )
   return readJson(res)
 }
 
 export async function fetchActiveSearchRun(): Promise<SearchRunActiveEnvelope> {
-  const res = await fetch(`${API}/api/search-runs/active`, noStore)
+  const res = await apiFetch('/api/search-runs/active', noStore)
   return readJson(res)
 }
 
 export async function stopSearchRun(runId: string): Promise<void> {
-  const res = await fetch(`${API}/api/search-runs/${encodeURIComponent(runId)}/stop`, {
+  const res = await apiFetch(`/api/search-runs/${encodeURIComponent(runId)}/stop`, {
     method: 'POST',
     ...noStore,
   })
@@ -69,7 +70,7 @@ export async function stopSearchRun(runId: string): Promise<void> {
 }
 
 export async function createSearchRun(body: SearchRunCreate): Promise<SearchRun> {
-  const res = await fetch(`${API}/api/search-runs`, {
+  const res = await apiFetch('/api/search-runs', {
     method: 'POST',
     ...noStore,
     headers: {
@@ -89,8 +90,8 @@ export async function fetchSearchRunResults(
   sp.set('category', opts.category)
   if (opts.limit != null) sp.set('limit', String(opts.limit))
   if (opts.offset != null) sp.set('offset', String(opts.offset))
-  const res = await fetch(
-    `${API}/api/search-runs/${encodeURIComponent(runId)}/results?${sp}`,
+  const res = await apiFetch(
+    `/api/search-runs/${encodeURIComponent(runId)}/results?${sp}`,
     noStore,
   )
   return readJson(res)
@@ -100,7 +101,7 @@ export async function patchSearchRunFilters(
   runId: string,
   patch: Record<string, unknown>,
 ): Promise<SearchRun> {
-  const res = await fetch(`${API}/api/search-runs/${encodeURIComponent(runId)}/filters`, {
+  const res = await apiFetch(`/api/search-runs/${encodeURIComponent(runId)}/filters`, {
     method: 'PATCH',
     ...noStore,
     headers: {

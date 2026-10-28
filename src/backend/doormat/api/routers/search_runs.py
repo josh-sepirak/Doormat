@@ -37,7 +37,11 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/api/search-runs", tags=["search-runs"])
+router = APIRouter(
+    prefix="/api/search-runs",
+    tags=["search-runs"],
+    dependencies=[Depends(require_discovery_auth)],
+)
 
 
 def _validate_city(city: str) -> str:

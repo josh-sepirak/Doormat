@@ -117,7 +117,7 @@ test.describe('Dashboard', () => {
 
       await page.goto('/')
 
-      await expect(page.getByRole('link', { name: 'Configure your preferences' })).toBeVisible()
+      await expect(page.getByText('Your Dream Rental')).toBeVisible()
     })
   })
 })

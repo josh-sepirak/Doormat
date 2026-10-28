@@ -2,6 +2,7 @@
  * Trusted listing sources (Craigslist regions + property manager URLs).
  */
 
+import { apiFetch } from '../lib/api'
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const noStore: RequestInit = {
@@ -37,7 +38,7 @@ export async function fetchTrustedSources(params?: {
   if (params?.kind) sp.set('kind', params.kind)
   if (params?.city) sp.set('city', params.city)
   const q = sp.toString()
-  const res = await fetch(`${API}/api/trusted-sources${q ? `?${q}` : ''}`, noStore)
+  const res = await apiFetch(`/api/trusted-sources${q ? `?${q}` : ''}`, noStore)
   return readJson(res)
 }
 
@@ -47,7 +48,7 @@ export async function createTrustedSource(body: {
   url: string
   city?: string | null
 }): Promise<TrustedSource> {
-  const res = await fetch(`${API}/api/trusted-sources`, {
+  const res = await apiFetch('/api/trusted-sources', {
     method: 'POST',
     ...noStore,
     headers: {
@@ -60,7 +61,7 @@ export async function createTrustedSource(body: {
 }
 
 export async function deleteTrustedSource(id: string): Promise<void> {
-  const res = await fetch(`${API}/api/trusted-sources/${encodeURIComponent(id)}`, {
+  const res = await apiFetch(`/api/trusted-sources/${encodeURIComponent(id)}`, {
     method: 'DELETE',
     ...noStore,
   })
@@ -75,7 +76,7 @@ export async function testTrustedSource(id: string): Promise<{
   status_code: number | null
   detail: string | null
 }> {
-  const res = await fetch(`${API}/api/trusted-sources/${encodeURIComponent(id)}/test`, {
+  const res = await apiFetch(`/api/trusted-sources/${encodeURIComponent(id)}/test`, {
     method: 'POST',
     ...noStore,
   })

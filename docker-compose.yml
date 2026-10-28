@@ -18,6 +18,7 @@ services:
       - APIFY_API_TOKEN=${APIFY_API_TOKEN:-}
       - AUTH_BEARER_TOKEN=${AUTH_BEARER_TOKEN:-}
       - DISCOVERY_RATE_LIMIT_PER_MINUTE=${DISCOVERY_RATE_LIMIT_PER_MINUTE:-10}
+      - SECRET_KEY=${SECRET_KEY:-default-insecure-dev-secret-key-change-in-production}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

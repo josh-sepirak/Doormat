@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import clsx from 'clsx'
+import { apiFetch } from '@/lib/api'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Container } from '@/components/Container'
@@ -31,8 +33,16 @@ interface SystemConfig {
   has_apify_token: boolean
   apify_token_last4: string | null
 }
+const TABS = [
+  { id: 'criteria', label: '1. Search Criteria' },
+  { id: 'keys', label: '2. AI & API Keys' },
+  { id: 'sources', label: '3. Rental Sources' },
+  { id: 'advanced', label: '4. Advanced Settings' },
+] as const
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+type TabKey = (typeof TABS)[number]['id']
+
+
 
 function ModelChip({
   label,
@@ -433,6 +443,35 @@ export default function PreferencesPage() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null)
   const [missingTrustedClRegion, setMissingTrustedClRegion] = useState(false)
 
+  const [activeTab, setActiveTab] = useState<TabKey>('criteria')
+  const [testingOpenRouter, setTestingOpenRouter] = useState(false)
+  const [openRouterStatus, setOpenRouterStatus] = useState<string | null>(null)
+
+  const handleTestConnection = async () => {
+    setTestingOpenRouter(true)
+    setOpenRouterStatus(null)
+    try {
+      const resp = await apiFetch('/api/openrouter/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: openrouterKey.trim() || undefined,
+          preference_id: activePreference?.id,
+          curated: false,
+        }),
+      })
+      if (resp.ok) {
+        setOpenRouterStatus('Connected! Valid OpenRouter key.')
+      } else {
+        const err = await resp.json().catch(() => ({}))
+        setOpenRouterStatus(`Failed: ${err.detail || 'Invalid key'}`)
+      }
+    } catch {
+      setOpenRouterStatus('Connection test failed.')
+    } finally {
+      setTestingOpenRouter(false)
+    }
+  }
   const activePreference = preferences[0]
   const canFetchModels =
     openrouterKey.length >= 20 ||
@@ -441,12 +480,12 @@ export default function PreferencesPage() {
 
   useEffect(() => {
     // Fetch system config (defaults from .env)
-    fetch(`${API}/api/config`)
+    apiFetch('/api/config')
       .then((r) => r.json())
       .then((data) => setSystemConfig(data))
       .catch(() => {})
 
-    fetch(`${API}/api/preferences`)
+    apiFetch('/api/preferences')
       .then((r) => r.json())
       .then((data: Preference[]) => {
         setPreferences(data)
@@ -473,7 +512,7 @@ export default function PreferencesPage() {
       return
     }
     const q = encodeURIComponent(prefCity)
-    fetch(`${API}/api/trusted-sources?kind=craigslist_region&city=${q}`)
+    apiFetch(`/api/trusted-sources?kind=craigslist_region&city=${q}`)
       .then((r) => r.json())
       .then((rows: unknown) => {
         const ok = Array.isArray(rows) && rows.length > 0
@@ -494,7 +533,7 @@ export default function PreferencesPage() {
     setLoadingModels(true)
     setFetchedModels(false)
     try {
-      const resp = await fetch(`${API}/api/openrouter/models`, {
+      const resp = await apiFetch('/api/openrouter/models', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -506,6 +545,7 @@ export default function PreferencesPage() {
       if (!resp.ok) throw new Error('Could not load models')
       const data: unknown = await resp.json()
       setAvailableModels(Array.isArray(data) ? (data as ModelInfo[]) : [])
+      setFetchedModels(true)
     } catch {
       setAvailableModels([])
     } finally {
@@ -549,13 +589,13 @@ export default function PreferencesPage() {
       }
       let resp: Response
       if (preferences.length > 0) {
-        resp = await fetch(`${API}/api/preferences/${preferences[0].id}`, {
+        resp = await apiFetch(`/api/preferences/${preferences[0].id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       } else {
-        resp = await fetch(`${API}/api/preferences`, {
+        resp = await apiFetch('/api/preferences', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -609,11 +649,30 @@ export default function PreferencesPage() {
             <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
               Configure your search criteria and API keys.
             </p>
+            {/* Tab navigation */}
+            <div className="mt-8 flex overflow-x-auto border-b border-slate-200 dark:border-slate-800">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={clsx(
+                    'border-b-2 px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors',
+                    activeTab === t.id
+                      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
 
-            <form onSubmit={handleSave} className="mt-10 space-y-10">
-              <fieldset>
-                <legend className="font-display text-xl font-medium text-slate-900 dark:text-slate-100">
-                  Search Preferences
+            <form onSubmit={handleSave} className="mt-10 space-y-8">
+              {activeTab === 'criteria' && (
+                <fieldset>
+                  <legend className="font-display text-xl font-medium text-slate-900 dark:text-slate-100">
+                    Search Preferences
                 </legend>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   What are you looking for and where?
@@ -647,7 +706,9 @@ export default function PreferencesPage() {
                   </div>
                 </div>
               </fieldset>
+            )}
 
+            {activeTab === 'keys' && (
               <fieldset>
                 <legend className="font-display text-xl font-medium text-slate-900 dark:text-slate-100">
                   API Configuration
@@ -792,77 +853,34 @@ export default function PreferencesPage() {
                       </button>
                     </div>
                   )}
-
-                  {canFetchModels && (
-                    <div className="border-t border-slate-200 pt-6 dark:border-slate-700">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Model selection
-                          </p>
-                          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                            Click Fast or Smart on any row to assign it. Fast runs frequently; Smart
-                            handles complex tasks.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleLoadModels}
-                          disabled={loadingModels}
-                          className="min-h-[40px] shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                        >
-                          {loadingModels ? 'Loading...' : 'Load models'}
-                        </button>
-                      </div>
-
-                      {loadingModels && (
-                        <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                          <svg
-                            className="h-3.5 w-3.5 motion-safe:animate-spin"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v8z"
-                            />
-                          </svg>
-                          Fetching models from OpenRouter…
-                        </div>
-                      )}
-
-                      {!loadingModels && fetchedModels && availableModels.length === 0 && (
-                        <p className="mt-4 text-xs text-red-500 dark:text-red-400">
-                          Could not load models. Check your API key.
-                        </p>
-                      )}
-
-                      {!loadingModels && availableModels.length > 0 && (
-                        <div className="mt-5">
-                          <ModelPicker
-                            allModels={availableModels}
-                            fastModel={fastModel}
-                            smartModel={smartModel}
-                            onFastChange={setFastModel}
-                            onSmartChange={setSmartModel}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTestConnection}
+                      disabled={testingOpenRouter || (!openrouterKey.trim() && !activePreference?.has_openrouter_api_key && !systemConfig?.has_openrouter_key)}
+                      className="text-xs"
+                    >
+                      {testingOpenRouter ? 'Testing Connection…' : 'Test OpenRouter Connection'}
+                    </Button>
+                    {openRouterStatus && (
+                      <span
+                        className={clsx(
+                          'text-xs font-medium',
+                          openRouterStatus.startsWith('Connected')
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-red-600 dark:text-red-400',
+                        )}
+                      >
+                        {openRouterStatus}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </fieldset>
+            )}
 
+            {activeTab === 'sources' && (
               <fieldset>
                 <legend className="text-sm font-semibold leading-6 text-slate-900 dark:text-white">
                   Listing sources
@@ -936,11 +954,93 @@ export default function PreferencesPage() {
                   </div>
                 ) : null}
               </fieldset>
+            )}
 
-              <div className="flex items-center justify-end gap-x-4">
+            {activeTab === 'advanced' && (
+              <div className="space-y-8">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100">
+                        AI Model Configuration
+                      </h3>
+                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        Assign specific OpenRouter models for Fast filtering and Smart extraction.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleLoadModels}
+                      disabled={loadingModels || !canFetchModels}
+                      className="text-xs"
+                    >
+                      {loadingModels ? 'Loading…' : 'Load Available Models'}
+                    </Button>
+                  </div>
+
+                  {loadingModels && (
+                    <p className="mt-4 text-xs text-slate-400">Fetching models from OpenRouter…</p>
+                  )}
+                  {!loadingModels && fetchedModels && availableModels.length === 0 && (
+                    <p className="mt-4 text-xs text-red-500 dark:text-red-400">
+                      Could not load models. Check your API key.
+                    </p>
+                  )}
+
+                  {!loadingModels && availableModels.length > 0 && (
+                    <div className="mt-5">
+                      <ModelPicker
+                        allModels={availableModels}
+                        fastModel={fastModel}
+                        smartModel={smartModel}
+                        onFastChange={setFastModel}
+                        onSmartChange={setSmartModel}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {activePreference ? (
+                  <PreferencePromptsPanel preferenceId={activePreference.id} />
+                ) : null}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div className="flex gap-2">
+                {activeTab !== 'criteria' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const idx = TABS.findIndex((t) => t.id === activeTab)
+                      if (idx > 0) setActiveTab(TABS[idx - 1].id)
+                    }}
+                    className="text-xs"
+                  >
+                    ← Previous
+                  </Button>
+                )}
+                {activeTab !== 'advanced' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const idx = TABS.findIndex((t) => t.id === activeTab)
+                      if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id)
+                    }}
+                    className="text-xs"
+                  >
+                    Next Step →
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-x-4">
                 <div role="status" aria-live="polite" className="text-sm">
                   {message?.type === 'success' && (
-                    <span className="font-medium text-green-600 dark:text-green-400">Saved</span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">✓ Saved</span>
                   )}
                   {message?.type === 'error' && (
                     <span className="text-red-600 dark:text-red-400">{message.text}</span>
@@ -950,9 +1050,8 @@ export default function PreferencesPage() {
                   {saving ? 'Saving…' : 'Save Preferences'}
                 </Button>
               </div>
-            </form>
-
-            {activePreference ? <PreferencePromptsPanel preferenceId={activePreference.id} /> : null}
+            </div>
+          </form>
           </div>
         </Container>
       </main>

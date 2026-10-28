@@ -1,5 +1,7 @@
 """Pydantic schemas for listing scoring."""
 
+from typing import Any, Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -51,3 +53,37 @@ class ScorerConfig(BaseModel):
     timeout_seconds: int = Field(default=10, ge=1)
     fallback_on_error: bool = True
     track_costs: bool = True
+
+
+class VisualCriterionVerdict(BaseModel):
+    """Individual physical or lifestyle criterion verdict with visual evidence."""
+
+    criterion: str
+    verdict: Literal["confirmed", "likely_compromise", "not_possible", "unclear"]
+    confidence: Literal["high", "medium", "low"]
+    plain_label: str
+    evidence: str
+    photo_index: int | None = None
+
+    def to_filter_reason(self) -> dict[str, Any]:
+        """Format for inclusion in RunListingResult.filter_reasons_json."""
+        slug = "".join(c if c.isalnum() else "_" for c in self.criterion.lower()).strip("_")[:30]
+        return {
+            "filter_code": f"visual_{slug}",
+            "label": self.plain_label,
+            "severity": self.verdict,
+            "verdict": self.verdict,
+            "evidence": self.evidence,
+            "photo_index": self.photo_index,
+            "confidence": self.confidence,
+            "is_visual": True,
+            "suggestion": self.evidence,
+        }
+
+
+class MultimodalEvaluationResult(BaseModel):
+    """Overall multimodal scoring and visual criteria evaluation for a listing."""
+
+    match_score: float = Field(ge=0.0, le=1.0)
+    headline: str
+    criteria: list[VisualCriterionVerdict] = Field(default_factory=list)

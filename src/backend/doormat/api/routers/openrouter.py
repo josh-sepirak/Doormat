@@ -7,7 +7,7 @@ from typing import Annotated
 import httpx
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.db.base import get_db
@@ -157,14 +157,22 @@ class ModelInfo(BaseModel):
 class ModelsRequest(BaseModel):
     """Request available OpenRouter models without putting secrets in URLs."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     key: str | None = Field(None, min_length=10, max_length=255)
+    api_key: str | None = Field(None, min_length=10, max_length=255)
     preference_id: str | None = Field(None, max_length=36)
     curated: bool = True
 
+    @property
+    def effective_key(self) -> str | None:
+        return self.key or self.api_key
+
 
 async def _resolve_openrouter_key(body: ModelsRequest, session: AsyncSession) -> str:
-    if body.key:
-        return body.key.strip()
+    key = body.effective_key
+    if key:
+        return key.strip()
     if body.preference_id:
         preference = await session.get(Preference, body.preference_id)
         if preference and preference.openrouter_api_key:

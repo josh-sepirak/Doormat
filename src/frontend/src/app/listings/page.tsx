@@ -12,6 +12,7 @@ import { safeHttpUrl } from '@/lib/url'
 import type { RunListingResult, SearchRun } from '@/client/search-runs'
 import { fetchSearchRun, fetchSearchRunResults } from '@/client/search-runs'
 import { FilterReasonList } from '@/components/runs/FilterReasonList'
+import { apiFetch } from '@/lib/api'
 
 const ListingMiniMap = dynamic(
   () => import('@/components/listings/ListingMiniMap').then((m) => m.ListingMiniMap),
@@ -47,6 +48,7 @@ export type ListingDTO = {
   source: string
   score: number | null
   score_explanation: string | null
+  filter_reasons_json?: string | null
   validation_passed: boolean
   extraction_timestamp: string
   photos?: string[]
@@ -143,7 +145,7 @@ function ListingsContent() {
   const searchParams = useSearchParams()
   const runId = searchParams.get('run')
   const categoryParam = searchParams.get('category') ?? 'great_match'
-  const view: ViewMode = searchParams.get('view') === 'cards' ? 'cards' : 'table'
+  const view: ViewMode = searchParams.get('view') === 'table' ? 'table' : 'cards'
 
   const [listings, setListings] = useState<ListingDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -192,7 +194,7 @@ function ListingsContent() {
   const loadAllListings = useCallback(() => {
     const qs = listingsQueryFromSearchParams(searchParams)
     setLoading(true)
-    fetch(`${API}/api/listings?${qs}`)
+    apiFetch(`/api/listings?${qs}`)
       .then((r) => r.json())
       .then((data) => setListings(data.listings || data || []))
       .catch(() => {})
@@ -214,7 +216,7 @@ function ListingsContent() {
       try {
         const [rRun, rListings, rRes] = await Promise.all([
           fetchSearchRun(runId),
-          fetch(`${API}/api/listings?limit=300`).then((x) => x.json()),
+          apiFetch('/api/listings?limit=300').then((x) => x.json()),
           fetchSearchRunResults(runId, { category: activeCategory, limit: 200 }),
         ])
         if (cancelled) return
@@ -333,7 +335,7 @@ function ListingsContent() {
   }
 
   const geocodeOne = async (listingId: string) => {
-    const r = await fetch(`${API}/api/listings/${encodeURIComponent(listingId)}/geocode`, {
+    const r = await apiFetch(`/api/listings/${encodeURIComponent(listingId)}/geocode`, {
       method: 'POST',
     })
     if (!r.ok) return
@@ -575,7 +577,14 @@ function ListingsContent() {
                 {runLoading ? (
                   <p className="text-slate-500">Loading run results…</p>
                 ) : filteredResults.length === 0 ? (
-                  <p className="text-sm text-slate-500">No listings in this category for the current revision.</p>
+                  <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
+                    <p className="text-base font-medium text-slate-800 dark:text-slate-200">
+                      No listings match all strict criteria in this category.
+                    </p>
+                    <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+                      Try expanding your price range by 10%, checking the <strong>Worth a look</strong> tab, or adding more property managers.
+                    </p>
+                  </div>
                 ) : view === 'table' ? (
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
                     <table className="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-700">
@@ -962,34 +971,61 @@ function RunResultCard({
   onGeocode: () => void
 }) {
   const row = merged ?? listing
+  const [activePhotoIdx, setActivePhotoIdx] = useState<number | null>(null)
   const sourceUrl = row ? safeHttpUrl(row.url) : null
-  const src = thumbSrc(row)
+  const selectedPhoto =
+    activePhotoIdx != null && row?.photos?.[activePhotoIdx - 1]
+      ? safeHttpUrl(row.photos[activePhotoIdx - 1])
+      : null
+  const src = selectedPhoto ?? thumbSrc(row)
   const maps = row ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(row.address)}` : '#'
   return (
-    <div className="rounded-2xl border border-slate-200 p-6 dark:border-slate-800">
-      <div className="flex gap-4">
-        {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="" className="h-24 w-32 shrink-0 rounded-xl object-cover" loading="lazy" />
-        ) : (
-          <div className="h-24 w-32 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800" />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+    <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             {result.category.replace(/_/g, ' ')}
           </p>
-          <h3 className="mt-1 font-display text-base font-medium text-slate-900 dark:text-slate-100">
-            {row?.address ?? `Listing ${result.listing_id.slice(0, 8)}…`}
-          </h3>
-          {row ? (
-            <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-400">
-              <span className="font-semibold text-slate-900 dark:text-slate-100">${row.price.toLocaleString()}/mo</span>
-              {row.bedrooms !== null && <span>{row.bedrooms} BR</span>}
-              {row.bathrooms !== null && <span>{row.bathrooms} BA</span>}
-              {row.sqft !== null && <span>{row.sqft.toLocaleString()} sqft</span>}
-              <span className="text-xs">{petLabel(row.pets_policy)}</span>
-            </div>
-          ) : null}
+          {result.score != null && (
+            <span
+              className={clsx(
+                'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold',
+                result.score >= 0.8
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300'
+                  : result.score >= 0.6
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300',
+              )}
+            >
+              {Math.round(result.score <= 1 ? result.score * 100 : result.score)}% Match
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex gap-4">
+          {src ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={src} alt="" className="h-24 w-32 shrink-0 rounded-xl object-cover" loading="lazy" />
+          ) : (
+            <div className="h-24 w-32 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800" />
+          )}
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100">
+              {row?.address ?? `Listing ${result.listing_id.slice(0, 8)}…`}
+            </h3>
+            {row ? (
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-600 dark:text-slate-400">
+                <span className="font-bold text-slate-900 dark:text-slate-100">${row.price.toLocaleString()}/mo</span>
+                {row.bedrooms !== null && <span>{row.bedrooms} BR</span>}
+                {row.bathrooms !== null && <span>{row.bathrooms} BA</span>}
+                {row.sqft !== null && <span>{row.sqft.toLocaleString()} sqft</span>}
+                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{petLabel(row.pets_policy)}</span>
+              </div>
+            ) : null}
+            <FilterReasonList
+              reasonsJson={result.filter_reasons_json ?? null}
+              onPhotoClick={(idx) => setActivePhotoIdx(idx)}
+            />
+          </div>
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -1015,23 +1051,27 @@ function RunResultCard({
           Open in OpenStreetMap
         </a>
       </div>
-      {result.score != null ? (
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Score: {scoreLabel(result.score)}</p>
-      ) : null}
-      {result.explanation ? (
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{result.explanation}</p>
-      ) : null}
-      <FilterReasonList reasonsJson={result.filter_reasons_json ?? null} />
-      {sourceUrl ? (
-        <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
-        >
-          View source
-        </a>
-      ) : null}
+      <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+        {result.explanation ? (
+          <p className="text-xs text-slate-600 dark:text-slate-300">{result.explanation}</p>
+        ) : null}
+
+        {sourceUrl && (
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-500"
+            >
+              Apply / View on Source ↗
+            </a>
+            <span className="text-xs text-slate-400 capitalize">
+              {row?.source ?? 'pm_direct'}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -1043,8 +1083,13 @@ function ListingCard({
   listing: ListingDTO
   onGeocode: () => void
 }) {
+  const [activePhotoIdx, setActivePhotoIdx] = useState<number | null>(null)
   const sourceUrl = safeHttpUrl(listing.url)
-  const src = thumbSrc(listing)
+  const selectedPhoto =
+    activePhotoIdx != null && listing.photos?.[activePhotoIdx - 1]
+      ? safeHttpUrl(listing.photos[activePhotoIdx - 1])
+      : null
+  const src = selectedPhoto ?? thumbSrc(listing)
   const maps = mapsLink(listing)
   return (
     <div className="group relative rounded-2xl border border-slate-200 p-6 transition-shadow hover:shadow-lg dark:border-slate-800">
@@ -1074,11 +1119,15 @@ function ListingCard({
           <h3 className="font-display text-base font-medium text-slate-900 dark:text-slate-100">{listing.address}</h3>
           <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-400">
             <span className="font-semibold text-slate-900 dark:text-slate-100">${listing.price.toLocaleString()}/mo</span>
-            {listing.bedrooms !== null && <span>{listing.bedrooms} BR</span>}
-            {listing.bathrooms !== null && <span>{listing.bathrooms} BA</span>}
+            {listing.bedrooms !== null && <span>{listing.bedrooms}BR</span>}
+            {listing.bathrooms !== null && <span>{listing.bathrooms}BA</span>}
             {listing.sqft !== null && <span>{listing.sqft.toLocaleString()} sqft</span>}
             <span className="text-xs">{petLabel(listing.pets_policy)}</span>
           </div>
+          <FilterReasonList
+            reasonsJson={listing.filter_reasons_json ?? null}
+            onPhotoClick={(idx) => setActivePhotoIdx(idx)}
+          />
         </div>
       </div>
 

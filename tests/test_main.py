@@ -128,26 +128,36 @@ def test_cost_summary():
 @pytest.mark.asyncio
 @pytest.mark.real_startup_sweep
 async def test_cleanup_orphaned_runs_marks_stuck_runs() -> None:
-    """_cleanup_orphaned_runs must mark any 'running' SearchRun/DiscoveryRun as 'error'."""
+    """_cleanup_orphaned_runs must mark any 'running', 'queued', or 'cancel_requested' runs as 'error'."""
     from doormat.main import _cleanup_orphaned_runs
+    from doormat.models.orm import SearchRunEvent
 
-    update_result = MagicMock()
-    update_result.rowcount = 1
+    mock_run = MagicMock(id="sr-123", status="running")
+    sr_result = MagicMock()
+    sr_result.scalars.return_value.all.return_value = [mock_run]
+
+    seq_result = MagicMock()
+    seq_result.scalar_one.return_value = 0
+
+    dr_result = MagicMock()
+    dr_result.rowcount = 1
 
     session_mock = AsyncMock()
-    session_mock.execute = AsyncMock(return_value=update_result)
+    session_mock.execute = AsyncMock(side_effect=[sr_result, seq_result, dr_result])
     session_mock.commit = AsyncMock()
-    # Make the session work as an async context manager.
+    session_mock.add = MagicMock()
     session_mock.__aenter__ = AsyncMock(return_value=session_mock)
     session_mock.__aexit__ = AsyncMock(return_value=False)
 
     with patch("doormat.main.AsyncSessionLocal", return_value=session_mock):
         await _cleanup_orphaned_runs()
 
-    # One UPDATE for SearchRun, one for DiscoveryRun.
-    assert session_mock.execute.await_count == 2
+    assert mock_run.status == "error"
+    session_mock.add.assert_called_once()
+    added_evt = session_mock.add.call_args[0][0]
+    assert isinstance(added_evt, SearchRunEvent)
+    assert added_evt.event_type == "error"
     session_mock.commit.assert_awaited_once()
-
 
 @pytest.mark.asyncio
 @pytest.mark.real_startup_sweep

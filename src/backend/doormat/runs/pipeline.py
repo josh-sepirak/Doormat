@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 import httpx
 import structlog
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from doormat.config import settings
@@ -60,7 +60,7 @@ def _enabled_sources(search_run: SearchRun, preference: Optional[Preference]) ->
         return ["craigslist"]
 
 
-def _scrapeable_property_managers_stmt(city: str):
+def _scrapeable_property_managers_stmt(city: str) -> Select[tuple[PropertyManager]]:
     """Return the PM query used for PM-direct scraping."""
     return select(PropertyManager).where(
         PropertyManager.city == city,

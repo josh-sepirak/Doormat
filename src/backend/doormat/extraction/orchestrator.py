@@ -20,7 +20,7 @@ from doormat.security.secrets import decrypt_secret
 logger = structlog.get_logger(__name__)
 
 
-async def extract_listing(
+async def extract_listing(  # noqa: C901
     session: AsyncSession,
     html: str,
     url: str,
@@ -43,10 +43,17 @@ async def extract_listing(
         async with httpx.AsyncClient() as http_client:
             try:
                 result = await run_mode_a0(url, source_id, strategy, http_client)
+                if strategy is not None:
+                    await session.commit()
                 if result and _is_persistable_result(result):
                     logger.info("extraction_mode_a0_succeeded", source_id=source_id, url=url)
                     return await _save_listing(session, result, property_manager, url)
             except Exception as exc:
+                if strategy is not None:
+                    try:
+                        await session.commit()
+                    except Exception:
+                        pass
                 logger.warning(
                     "extraction_mode_a0_error",
                     source_id=source_id,

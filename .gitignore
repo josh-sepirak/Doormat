@@ -221,6 +221,8 @@ __marimo__/
 /data/
 logs/
 *.db
+*.db-shm
+*.db-wal
 *.log
 
 # Environment

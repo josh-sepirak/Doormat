@@ -4,6 +4,7 @@ import json
 import uuid
 from datetime import UTC, datetime
 
+import httpx
 import structlog
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,24 +90,24 @@ class StrategyCache:
             )
 
             if held_out_listings:
-                validator = RecipeValidator()
-                validation_result = await validator.validate_recipe(
-                    update.api_recipe, held_out_listings
-                )
+                async with httpx.AsyncClient() as http_client:
+                    validator = RecipeValidator(http_client)
+                    validation_result = await validator.validate(
+                        update.api_recipe, held_out_listings
+                    )
 
-                if validation_result.passed:
+                if validation_result.valid:
                     logger.info(
                         "recipe_validation_passed",
                         property_manager_id=property_manager_id,
-                        matched_count=validation_result.matched_count,
-                        total_count=validation_result.total_count,
+                        confidence=validation_result.confidence,
                     )
                     api_recipe = update.api_recipe
                 else:
                     logger.warning(
                         "recipe_validation_failed",
                         property_manager_id=property_manager_id,
-                        reason=validation_result.failure_reason,
+                        reason=validation_result.reason,
                     )
                     validation_passed = False
             else:
@@ -166,35 +167,38 @@ class StrategyCache:
 
     async def _select_held_out_listings(
         self, property_manager_id: str, sample_size: int = 5
-    ) -> list[ExtractedListing]:
+    ) -> list[tuple[str, ExtractedListing]]:
         """Select recent listings for recipe validation (held-out sample)."""
         stmt = (
             select(Listing)
-            .join(ExtractionStrategy)
+            .join(
+                ExtractionStrategy,
+                Listing.property_manager_id == ExtractionStrategy.property_manager_id,
+            )
             .where(ExtractionStrategy.property_manager_id == property_manager_id)
-            .order_by(desc(Listing.extracted_at))
+            .order_by(desc(Listing.extraction_timestamp))
             .limit(sample_size)
         )
         result = await self._session.execute(stmt)
         listings_orm = result.scalars().all()
 
-        extracted_listings = []
+        held_out_listings: list[tuple[str, ExtractedListing]] = []
         for listing_orm in listings_orm:
             try:
                 extracted = ExtractedListing(
                     address=listing_orm.address,
                     rent=int(listing_orm.price) if listing_orm.price else 0,
-                    bedrooms=listing_orm.bedrooms,
-                    bathrooms=listing_orm.bathrooms,
-                    url=listing_orm.url,
-                    source_id=listing_orm.source_id,
-                    extracted_at=listing_orm.extracted_at or datetime.now(UTC),
+                    bedrooms=listing_orm.bedrooms or 0,
+                    bathrooms=listing_orm.bathrooms or 0.0,
+                    pets_policy=listing_orm.pets_policy or "unknown",
+                    description=listing_orm.description or "",
+                    sqft=listing_orm.sqft,
                 )
-                extracted_listings.append(extracted)
+                held_out_listings.append((listing_orm.id, extracted))
             except (ValueError, AttributeError):
                 continue
 
-        return extracted_listings
+        return held_out_listings
 
 
 def _empty_strategy_data() -> dict[str, object]:

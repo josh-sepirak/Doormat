@@ -30,7 +30,12 @@ const TERMINAL = new Set(['success', 'error', 'cancelled'])
 
 const STAGE_ORDER = ['discovery', 'scraping', 'scoring', 'done'] as const
 type Stage = (typeof STAGE_ORDER)[number]
-
+const STAGE_LABELS: Record<Stage, string> = {
+  discovery: 'Find Managers',
+  scraping: 'Scan Listings',
+  scoring: 'AI Match',
+  done: 'Complete',
+}
 function stageIndex(stage: string | null | undefined): number {
   if (!stage) return -1
   const s = stage.toLowerCase()
@@ -97,7 +102,9 @@ export function RunReport({ runId }: RunReportProps) {
   const lastSeq = useRef(-1)
   const prevRunIdRef = useRef<string | null>(null)
   const runRef = useRef(run)
-  runRef.current = run
+  useEffect(() => {
+    runRef.current = run
+  }, [run])
   const debouncedRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Tick for relative timestamps
@@ -271,6 +278,58 @@ export function RunReport({ runId }: RunReportProps) {
         <RunControls run={run} onStop={handleStop} />
       </header>
 
+      {/* Celebration banner on completion */}
+      {terminal && run.status === 'success' && (
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/90 p-6 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+                🎉 Search Complete
+              </span>
+              <h3 className="mt-2 font-display text-xl font-semibold text-emerald-950 dark:text-emerald-100 sm:text-2xl">
+                We found {run.great_matches} Great Matches and {run.worth_a_look} places Worth a Look!
+              </h3>
+              <p className="mt-1 text-sm text-emerald-800/80 dark:text-emerald-300/80">
+                Scanned {run.sources_checked} sources across {run.city} and evaluated listings against your criteria.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              <Link
+                href={`/listings?run=${run.id}&category=great_match`}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500"
+              >
+                View Top Matches →
+              </Link>
+              <Link
+                href="/preferences"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-medium text-emerald-900 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-200"
+              >
+                Refine Filters
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active work indicator */}
+      {!terminal && (
+        <div className="flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/60 p-4 dark:border-blue-900/40 dark:bg-blue-950/30">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-blue-600" />
+          </span>
+          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+            {run.current_stage === 'discovery'
+              ? `Discovering local property managers in ${run.city}…`
+              : run.current_stage === 'scraping'
+                ? `Scanning Craigslist and verified management sites in ${run.city}…`
+                : run.current_stage === 'scoring'
+                  ? 'Scoring extracted listings against your preferences…'
+                  : 'Searching listings across verified sources…'}
+          </p>
+        </div>
+      )}
+
       {/* Stage breadcrumb */}
       <StageIndicator currentIndex={currentStageIdx} terminal={terminal} />
 
@@ -279,18 +338,17 @@ export function RunReport({ runId }: RunReportProps) {
           Run counters
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Counter label="Sources" value={run.sources_checked} />
-          <Counter label="Managers" value={run.managers_validated} />
-          <Counter label="Listings seen" value={run.listings_seen} />
-          <Counter label="Extraction attempts" value={run.extraction_attempts ?? 0} />
-          <Counter label="Cost (USD)" value={run.cost_usd_so_far} decimals={3} />
+          <Counter label="Rental Sources" value={run.sources_checked} />
+          <Counter label="Property Managers" value={run.managers_validated} />
+          <Counter label="Listings Found" value={run.listings_seen} />
+          <Counter label="AI Inspected" value={run.extraction_attempts ?? 0} />
+          <Counter label="AI Token Cost" value={run.cost_usd_so_far} decimals={3} />
           <Counter label="Great matches" value={run.great_matches} accent="green" />
           <Counter label="Worth a look" value={run.worth_a_look} accent="blue" />
           <Counter label="Near misses" value={run.near_misses} accent="amber" />
           <Counter label="Filtered out" value={run.filtered_out} />
         </div>
       </section>
-
       {/* Latest find highlight card */}
       {latestFind ? (
         <div className="flex items-start gap-3 rounded-2xl border border-green-200 bg-green-50/70 px-4 py-3 dark:border-green-900/40 dark:bg-green-950/20">
@@ -451,7 +509,7 @@ function StageIndicator({
                   pending && 'text-slate-400 dark:text-slate-600',
                 )}
               >
-                {stage}
+                {STAGE_LABELS[stage] ?? stage}
               </span>
             </div>
           </div>

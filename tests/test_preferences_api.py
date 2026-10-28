@@ -120,6 +120,25 @@ def test_update_preference_persists_selected_models():
     assert preference.fast_model == "openai/gpt-4o-mini"
     assert preference.smart_model == "anthropic/claude-3.5-sonnet"
 
+def test_update_preference_can_clear_models():
+    preference = make_preference()
+    preference.fast_model = "openai/gpt-4o-mini"
+    preference.smart_model = "anthropic/claude-3.5-sonnet"
+    app.dependency_overrides[get_db] = _fake_db_for_one(preference)
+
+    try:
+        with TestClient(app) as client:
+            resp = client.patch(
+                "/api/preferences/pref-1",
+                json={"fast_model": None, "smart_model": None},
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    assert preference.fast_model is None
+    assert preference.smart_model is None
+
 
 def test_preferences_require_bearer_when_configured(monkeypatch):
     monkeypatch.setattr(settings, "AUTH_BEARER_TOKEN", "test-token")

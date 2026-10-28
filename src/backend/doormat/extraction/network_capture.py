@@ -44,6 +44,8 @@ class NetworkResponse:
     headers: dict[str, str] = field(default_factory=dict)
     body: Optional[str] = None
     is_json: bool = False
+MAX_TOTAL_BODY_BYTES: int = 5 * 1024 * 1024  # 5MB memory ceiling
+
 
 
 @dataclass
@@ -89,11 +91,13 @@ class NetworkCapture:
         self.calls: list[CapturedNetworkCall] = []
         self.enabled = False
         self._cdp_index: dict[str, int] = {}
+        self.total_body_bytes: int = 0
 
     def start(self) -> None:
         """Begin capturing network traffic."""
         self.calls = []
         self._cdp_index = {}
+        self.total_body_bytes = 0
         self.enabled = True
         logger.debug("network_capture_started")
 
@@ -168,8 +172,16 @@ class NetworkCapture:
         if idx is None:
             return
         call = self.calls[idx]
+        body_bytes = len(body.encode("utf-8", errors="ignore"))
+        if self.total_body_bytes + body_bytes > MAX_TOTAL_BODY_BYTES:
+            logger.warning(
+                "network_capture_payload_limit_exceeded",
+                request_id=request_id,
+                total_bytes=self.total_body_bytes,
+            )
+            return
+        self.total_body_bytes += body_bytes
         call.response.body = body
-
     def get_cdp_call(self, request_id: str) -> Optional["CapturedNetworkCall"]:
         """Return the in-flight capture row for a CDP request id, if any."""
         idx = self._cdp_index.get(request_id)
@@ -243,10 +255,18 @@ class NetworkCapture:
         # Scrub sensitive response headers
         scrubbed_headers = _scrub_headers(response_headers)
 
+        stored_body = body
+        if body:
+            body_bytes = len(body.encode("utf-8", errors="ignore"))
+            if self.total_body_bytes + body_bytes > MAX_TOTAL_BODY_BYTES:
+                logger.warning("network_capture_payload_limit_exceeded", url=url)
+                stored_body = None
+            else:
+                self.total_body_bytes += body_bytes
         call.response = NetworkResponse(
             status_code=status_code,
             headers=scrubbed_headers,
-            body=body,
+            body=stored_body,
             is_json=is_json,
         )
         call.timestamp = timestamp

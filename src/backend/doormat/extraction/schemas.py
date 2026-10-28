@@ -108,11 +108,12 @@ class ApiRecipe(BaseModel):
         "(sets it to None on the strategy) when failure_count >= 3 consecutive failures without "
         "an intervening success.",
     )
-    confidence: Literal["high", "medium", "low"] = Field(
+    confidence: Optional[Literal["high", "medium", "low"]] = Field(
+        default="low",
         description="high = recipe was replay-validated against a held-out listing and returned "
         "all extractable_fields. medium = matched extracted fields but not replay-validated. "
         "low = captured opportunistically; treated as not-yet-promoted until a future Mode B run "
-        "validates it."
+        "validates it.",
     )
     capture_notes: Optional[str] = Field(
         default=None,

@@ -1,16 +1,18 @@
 """Tests for Mode A0 (zero-cost API recipe extraction)."""
 
+import uuid
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
 
+from doormat.db.base import AsyncSessionLocal
 from doormat.extraction.mode_a0 import _fire_recipe, _handle_recipe_failure, run_mode_a0
 from doormat.extraction.schemas import (
     ApiRecipe,
 )
-from doormat.models.orm import ExtractionStrategy
+from doormat.models.orm import ExtractionStrategy, PropertyManager
 
 
 def create_test_recipe(**overrides):
@@ -183,6 +185,71 @@ class TestModeA0:
         assert result is None
         assert recipe.failure_count == 3
         assert recipe.confidence is None  # Retired
+
+    @pytest.mark.asyncio
+    async def test_mode_a0_real_orm_failures_accumulate_and_retire(self):
+        """Real ORM ExtractionStrategy persists failure counts and retires after 3 failures."""
+        pm_id = f"pm_{uuid.uuid4().hex[:8]}"
+        strat_id = f"strat_{uuid.uuid4().hex[:8]}"
+
+        async with AsyncSessionLocal() as session:
+            pm = PropertyManager(
+                id=pm_id,
+                name="Test PM",
+                city="San Francisco",
+                website="https://example.com",
+            )
+            strategy = ExtractionStrategy(
+                id=strat_id,
+                property_manager_id=pm_id,
+                strategy_json="{}",
+                api_recipe=create_test_recipe(confidence="high", failure_count=0),
+            )
+            session.add_all([pm, strategy])
+            await session.commit()
+
+        # Execute 3 failing runs
+        http_client = AsyncMock()
+        http_client.request.side_effect = httpx.ConnectError("Connection refused")
+
+        async with AsyncSessionLocal() as session:
+            strat = await session.get(ExtractionStrategy, strat_id)
+            assert strat is not None
+            assert strat.api_recipe is not None
+            assert strat.api_recipe.failure_count == 0
+
+            # 1st failure
+            res1 = await run_mode_a0("https://example.com/1", pm_id, strat, http_client)
+            assert res1 is None
+            assert strat.api_recipe.failure_count == 1
+            await session.commit()
+
+            # 2nd failure
+            res2 = await run_mode_a0("https://example.com/2", pm_id, strat, http_client)
+            assert res2 is None
+            assert strat.api_recipe.failure_count == 2
+            await session.commit()
+
+            # 3rd failure - should retire recipe
+            res3 = await run_mode_a0("https://example.com/3", pm_id, strat, http_client)
+            assert res3 is None
+            assert strat.api_recipe.failure_count == 3
+            assert strat.api_recipe.confidence is None
+            await session.commit()
+
+        # Reload in a completely new session from database
+        async with AsyncSessionLocal() as session:
+            reloaded = await session.get(ExtractionStrategy, strat_id)
+            assert reloaded is not None
+            assert reloaded.api_recipe is not None
+            assert reloaded.api_recipe.failure_count == 3
+            assert reloaded.api_recipe.confidence is None
+
+            # 4th attempt: should skip immediately due to retired recipe
+            http_client.reset_mock()
+            res4 = await run_mode_a0("https://example.com/4", pm_id, reloaded, http_client)
+            assert res4 is None
+            http_client.request.assert_not_called()
 
 
 class TestFireRecipe:

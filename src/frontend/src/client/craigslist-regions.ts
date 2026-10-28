@@ -2,6 +2,7 @@
  * Craigslist region suggestions from geocoded city + state.
  */
 
+import { apiFetch } from '../lib/api'
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const noStore: RequestInit = {
@@ -39,7 +40,7 @@ export async function fetchCraigslistRegions(city: string, state: string): Promi
   const sp = new URLSearchParams()
   sp.set('city', city)
   sp.set('state', state)
-  const res = await fetch(`${API}/api/craigslist/regions?${sp}`, noStore)
+  const res = await apiFetch(`/api/craigslist/regions?${sp}`, noStore)
   return readJson(res)
 }
 
@@ -50,7 +51,7 @@ export async function parseCraigslistRegionUrl(url: string): Promise<{
   valid: boolean
   error: string | null
 }> {
-  const res = await fetch(`${API}/api/craigslist/regions/parse`, {
+  const res = await apiFetch('/api/craigslist/regions/parse', {
     method: 'POST',
     ...noStore,
     headers: {

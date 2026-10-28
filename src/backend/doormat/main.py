@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from doormat import metrics
 from doormat.api.routers.config import router as config_router
@@ -37,22 +37,43 @@ logger = get_logger("doormat.main")
 
 
 async def _cleanup_orphaned_runs() -> None:
-    """Mark any runs left in 'running' state (from a prior server crash) as 'error'."""
+    """Mark any runs left in 'running', 'queued', or 'cancel_requested' state (from a prior server crash) as 'error'."""
     now = datetime.now(UTC)
+    orphaned_statuses = ["running", "queued", "cancel_requested"]
     async with AsyncSessionLocal() as session:
-        sr_result = await session.execute(
-            update(SearchRun)
-            .where(SearchRun.status == "running")
-            .values(status="error", finished_at=now)
-        )
-        dr_result = await session.execute(
+        sr_stmt = select(SearchRun).where(SearchRun.status.in_(orphaned_statuses))
+        sr_result = await session.execute(sr_stmt)
+        sr_runs = list(sr_result.scalars().all())
+
+        for run in sr_runs:
+            prev_status = getattr(run, "status", "unknown")
+            run.status = "error"
+            run.finished_at = now
+            try:
+                from doormat.runs.events import append_search_run_event
+
+                await append_search_run_event(
+                    session,
+                    run_id=run.id,
+                    event_type="error",
+                    message="Search run terminated unexpectedly due to server restart",
+                    stage="cleanup",
+                    payload={"previous_status": prev_status},
+                    visibility="user",
+                )
+            except Exception:
+                pass
+
+        dr_stmt = (
             update(DiscoveryRun)
-            .where(DiscoveryRun.status == "running")
+            .where(DiscoveryRun.status.in_(orphaned_statuses))
             .values(status="error", finished_at=now)
         )
+        dr_result = await session.execute(dr_stmt)
         await session.commit()
-        sr_count = sr_result.rowcount
-        dr_count = dr_result.rowcount
+
+        sr_count = len(sr_runs)
+        dr_count = int(getattr(dr_result, "rowcount", 0) or 0)
         if sr_count or dr_count:
             logger.warning(
                 "orphaned_runs_cleaned_on_startup",
